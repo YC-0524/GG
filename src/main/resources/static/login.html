@@ -6,6 +6,11 @@
     <title>Game Gang Login</title>
 </head>
 <body>
-
+    <a href="/">Home</a>
+    <form action="/auth/login-email" method="POST">
+        <input type="email" required placeholder="Your email..." name="email" id="email">
+        <input type="password" required name="password" id="password" placeholder="Your password...">
+        <button type="submit">Login</button>
+    </form>
 </body>
 </html>

@@ -58,7 +58,7 @@ public class UserTests {
         });
     }
 
-        @Test 
+    @Test 
     @Transactional 
     void testDuplicateUserEmail() {
         User user = new User(

@@ -15,12 +15,16 @@ import java.util.Date;
 @Entity
 @Table(name = "users")
 public class User {
+
+    public static int MINIMUM_PASSWORD_LENGTH = 8;
+
     @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private long id;
     
     @Column(name = "username")
+    @Size(min = 3)
     @NotBlank 
     private String username;
     
@@ -33,7 +37,7 @@ public class User {
     
     // sha256 hashes are exactly 64 characters
     @Column(name = "password_hash")
-    @Size(min = 64,max = 64)
+    @Size(min = 64, max = 64)
     @NotBlank 
     private String password_hash;
     
