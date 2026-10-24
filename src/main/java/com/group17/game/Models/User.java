@@ -33,6 +33,7 @@ public class User {
     
     @Column(name = "email", unique = true)
     @Email 
+    @NotBlank 
     private String email;
     
     // sha256 hashes are exactly 64 characters
