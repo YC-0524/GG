@@ -1,7 +1,5 @@
 package com.group17.game.Controllers;
 
-import java.util.Date;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,12 +36,7 @@ public class AuthController {
 
             // converts plain text into something more secure
             String passwordHash = HashUtil.sha256Hash(password);
-            User newUser = new User(
-                    username,
-                    "BLANK", // TODO: figure this out
-                    email,
-                    passwordHash,
-                    new Date());
+            User newUser = new User(username, email, passwordHash);
 
             userRepository.save(newUser);
             return "redirect:/profile/" + newUser.getId();

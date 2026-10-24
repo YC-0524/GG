@@ -39,18 +39,26 @@ public class User {
     @Column(name = "password_hash")
     @Size(min = 64, max = 64)
     @NotBlank 
-    private String password_hash;
+    private String passwordHash;
     
     @Column(name = "registered")
     private Date registered;
 
+    // empty constructor, needed for springboot initializers
     public User() {}
 
+    public User(String username, String email, String passwordHash) {
+        this.username = username;
+        this.email = email;
+        this.passwordHash = passwordHash;
+    }
+
+    // full constructor, has every non generated field
     public User(String username, String avatar, String email, String hash, Date registered) {
         this.username = username;
         this.avatar = avatar;
         this.email = email;
-        this.password_hash = hash;
+        this.passwordHash = hash;
         this.registered = registered;
     }
 
@@ -72,7 +80,7 @@ public class User {
     }
 
     public String getPassword_hash() {
-        return password_hash;
+        return passwordHash;
     }
 
     public Date getRegistered() {
@@ -97,7 +105,7 @@ public class User {
     }
 
     public void setPassword_hash(String password_hash) {
-        this.password_hash = password_hash;
+        this.passwordHash = password_hash;
     }
 
     public void setRegistered(Date registered) {

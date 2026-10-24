@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Date;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,10 +24,8 @@ public class UserTests {
     void testUserInsertionAndDeletion() {
         User user = new User(
             "username", 
-            "avatar", 
             "email@gmail.com", 
-            "134eb251c5f98bbbc2a345b3d0a33ad10437919899571bd158114097d54b30cf",
-            new Date()
+            "134eb251c5f98bbbc2a345b3d0a33ad10437919899571bd158114097d54b30cf"
         );
 
         // insert user
@@ -46,10 +42,8 @@ public class UserTests {
     void testInvalidUserHashInsertion() {
         User invalidUser = new User(
             "username", 
-            "avatar", 
             "email@gmail.com", 
-            "aaaaaaaa", // this is too short
-            new Date()
+            "aaaaaaaa" // this is too short
         );
 
         // try to insert user
@@ -63,10 +57,8 @@ public class UserTests {
     void testDuplicateUserEmail() {
         User user = new User(
             "username1", 
-            "avatar", 
             "email@gmail.com", 
-            "134eb251c5f98bbbc2a345b3d0a33ad10437919899571bd158114097d54b30cf", // this is too short
-            new Date()
+            "134eb251c5f98bbbc2a345b3d0a33ad10437919899571bd158114097d54b30cf"
         );
 
         // insert legit user
@@ -75,10 +67,8 @@ public class UserTests {
 
         User userDupe = new User(
             "username2", 
-            "avatar", 
             "email@gmail.com", 
-            "bb4eb251c5f98bbbc2a345b3d0a33ad10437919899571bd158114097d54b66aa", // this is too short
-            new Date()
+            "bb4eb251c5f98bbbc2a345b3d0a33ad10437919899571bd158114097d54b66aa"
         );
 
         // try to insert dupe user
