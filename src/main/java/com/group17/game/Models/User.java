@@ -35,6 +35,9 @@ public class User {
     @Email 
     @NotBlank 
     private String email;
+
+    @Column(name = "role")
+    private UserRole role;
     
     // sha256 hashes are exactly 64 characters
     @Column(name = "password_hash")
@@ -55,12 +58,13 @@ public class User {
     }
 
     // full constructor, has every non generated field
-    public User(String username, String avatar, String email, String hash, Date registered) {
+    public User(String username, String avatar, String email, String hash, Date registered, UserRole role) {
         this.username = username;
         this.avatar = avatar;
         this.email = email;
         this.passwordHash = hash;
         this.registered = registered;
+        this.role = role;
     }
 
     // Getters
@@ -88,6 +92,10 @@ public class User {
         return registered;
     }
 
+    public UserRole getRole() {
+        return  this.role;
+    }
+
     // Setters
     public void setId(long id) {
         this.id = id;
@@ -111,5 +119,9 @@ public class User {
 
     public void setRegistered(Date registered) {
         this.registered = registered;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 }
