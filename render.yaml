@@ -1,0 +1,36 @@
+databases:
+  - name: game-db
+    databaseName: game
+    user: game
+    plan: free
+
+services:
+  - type: web
+    name: game
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DB_HOST
+        fromDatabase:
+          name: game-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: game-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: game-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: game-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: game-db
+          property: password
