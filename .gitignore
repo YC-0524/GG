@@ -19,6 +19,12 @@ target/
 *.iml
 *.ipr
 
+### Enviornment Filess ###
+*.env
+.env*
+# keep the blank example file if there is one
+!.env.example 
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
