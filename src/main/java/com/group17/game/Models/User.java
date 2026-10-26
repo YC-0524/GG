@@ -24,7 +24,6 @@ public class User {
     private long id;
     
     @Column(name = "username")
-    @Size(min = 3)
     @NotBlank 
     private String username;
     
