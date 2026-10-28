@@ -92,6 +92,14 @@ public class AuthTests {
                 .param("email", "test@example.com")
                 .param("password", "123456789"))
                 .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/profile/*"));
+
+        // Username should not be accepted for login
+        MvcResult result = mockMvc.perform(post("/auth/login-email")
+                .with(csrf())
+                .param("email", "Username1")
+                .param("password", "123456789"))
+                .andExpect(status().is3xxRedirection())
                 .andReturn();
 
         expectLoginOrRegisterRedirect(result);
