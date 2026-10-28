@@ -2,6 +2,8 @@ package com.group17.game.Models;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -35,8 +37,10 @@ public class User {
     @NotBlank 
     private String email;
 
+    // essentially bakes in the standard dashboard
+    @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    private UserRole role;
+    private UserRole role = UserRole.USER;
     
     // sha256 hashes are exactly 64 characters
     @Column(name = "password_hash")
@@ -54,6 +58,9 @@ public class User {
         this.username = username;
         this.email = email;
         this.passwordHash = passwordHash;
+        //
+        this.role = UserRole.USER;
+        this.registered = new Date();
     }
 
     // full constructor, has every non generated field

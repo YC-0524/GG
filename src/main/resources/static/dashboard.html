@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Gang - Dashboard</title>
+</head>
+<body>
+    <h1>Game Gang</h1>
+    <h2>Dashboard</h2>
+
+    <p id="welcome">Loading profile...</p>
+
+    <!--available to all-->
+    <section>
+        <h3>Your Games</h3>
+        <p>Browse</p>
+    </section>
+
+    <!--moderators only-->
+    <section id="moderator" hidden>
+        <h3>Moderation</h3>
+        <p>Review Reports</p>
+
+        <a href="/moderator.html">Open Moderator Tools</a>
+    </section>
+
+    <!--admin only-->
+    <section id="admin" hidden>
+        <h3>Admin</h3>
+        <p>Review Users</p>
+
+        <a href="/admin.html">Open Admin Tools</a>
+    </section>
+
+
+    <script src="/js/dashboard.js" defer></script>
+</body>
+</html>
