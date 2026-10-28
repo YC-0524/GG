@@ -1,10 +1,21 @@
 package com.group17.game.Controllers;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -23,13 +34,16 @@ import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 import com.group17.game.Utilities.HashUtil;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolationException;
 
 @Controller
-@RequestMapping("/auth") // just appends /auth to other routes in here
+@RequestMapping("/auth") // just prefixes /auth to other routes in here
 public class AuthController {
     private final UserRepository userRepository;
     private final LoginConnectionRepository loginConnectionRepository;
+    private SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     // https://stackoverflow.com/questions/30528255/how-to-access-a-value-defined-in-the-application-properties-file-in-spring-boot
     @Value("${discord.oauth.client_id}")
@@ -46,11 +60,38 @@ public class AuthController {
         this.loginConnectionRepository = connectionRepository;
     }
 
+    // https://www.javaguides.net/2024/04/spring-security-authentication-manager.html
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public SecurityContext securityContextHolderStrategy() throws Exception {
+        return SecurityContextHolder.createEmptyContext();
+    }
+
+    public void buildPersistence(User user, HttpServletRequest request,
+            HttpServletResponse response) {
+        Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
+                user.getId(),
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()))); // adjust to your role type
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authentication);
+        SecurityContextHolder.setContext(context);
+        securityContextRepository.saveContext(context, request, response);
+    }
+
     @PostMapping("/register-email")
     public String registerNewAccountViaEmail(
             @RequestParam String username,
             @RequestParam String email,
-            @RequestParam String password) {
+            @RequestParam String password,
+            HttpServletRequest request,
+            HttpServletResponse response) {
         try {
             if (userRepository.findByEmail(email) != null) {
                 return "redirect:/register.html?error=Email already registered";
@@ -65,6 +106,10 @@ public class AuthController {
             User newUser = new User(username, email, passwordHash);
 
             userRepository.save(newUser);
+
+            // Generate token based off password
+            buildPersistence(newUser, request, response);
+
             return "redirect:/profile/" + newUser.getId();
         } catch (ConstraintViolationException ex) {
             // maybe make errors a little more clear
@@ -79,7 +124,8 @@ public class AuthController {
     }
 
     @GetMapping("/discord/callback")
-    public String loginWithDiscord(@RequestParam("code") String code) {
+    public String loginWithDiscord(@RequestParam("code") String code, HttpServletRequest request,
+            HttpServletResponse response) {
         RestClient restClient = RestClient.create();
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
 
@@ -127,12 +173,16 @@ public class AuthController {
                 user.setAvatar(
                         "https://cdn.discordapp.com/avatars/" + discordUser.getId() + "/" + discordUser.getAvatar());
                 userRepository.save(user);
+
                 // TODO: Remove
                 System.out.println("Temp password for " + user.getId() + ": " + tempPassword);
             } catch (ConstraintViolationException ex) {
                 return "redirect:/login.html?error=Failed to create user";
             }
         }
+
+        // Generate token based off password
+        buildPersistence(user, request, response);
 
         String loginID = "discord-" + discordUser.getId();
         LoginConnection connection = loginConnectionRepository.findByLoginID(loginID);
@@ -152,21 +202,24 @@ public class AuthController {
     @PostMapping("/login-email")
     public String registerNewAccountViaEmail(
             @RequestParam String email,
-            @RequestParam String password) {
+            @RequestParam String password,
+            HttpServletRequest request,
+            HttpServletResponse response) {
         if (password.length() < User.MINIMUM_PASSWORD_LENGTH) {
             return "redirect:/login.html?error=Invalid password";
         }
 
-        User user = userRepository.findByEmail(email.trim());
+        User user = userRepository.findByEmail(email);
         if (user == null) {
             return "redirect:/login.html?error=Account not found";
         }
 
         String hash = HashUtil.sha256Hash(password);
-        if (!hash.equals(user.getPassword_hash())) {
+        if (!hash.equals(user.getPasswordHash())) {
             return "redirect:/login.html?error=Invalid credentials";
         }
 
+        buildPersistence(user, request, response);
         return "redirect:/profile/" + user.getId();
     }
 }

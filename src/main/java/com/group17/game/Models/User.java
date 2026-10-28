@@ -90,7 +90,7 @@ public class User {
         return email;
     }
 
-    public String getPassword_hash() {
+    public String getPasswordHash() {
         return passwordHash;
     }
 
