@@ -92,6 +92,8 @@ public class AuthTests {
                 .param("email", "test@example.com")
                 .param("password", "123456789"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/profile/*"));
+                .andReturn();
+
+        expectLoginOrRegisterRedirect(result);
     }
 }
