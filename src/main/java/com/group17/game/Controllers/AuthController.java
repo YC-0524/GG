@@ -209,7 +209,7 @@ public class AuthController {
             return "redirect:/login.html?error=Invalid password";
         }
 
-        User user = userRepository.findByEmail(email);
+        User user = userRepository.findByEmail(email.trim());
         if (user == null) {
             return "redirect:/login.html?error=Account not found";
         }
