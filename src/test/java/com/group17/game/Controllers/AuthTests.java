@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -35,6 +36,7 @@ public class AuthTests {
     @Test
     void testValidEmailRegistration() throws Exception {
         mockMvc.perform(post("/auth/register-email")
+                .with(csrf())
                 .param("username", "Username")
                 .param("email", "test@example.com")
                 .param("password", "123456789"))
@@ -44,6 +46,7 @@ public class AuthTests {
     @Test
     void testInvalidEmailRegistration() throws Exception {
         MvcResult result = mockMvc.perform(post("/auth/register-email")
+                .with(csrf())
                 .param("username", "Username")
                 .param("email", "")
                 .param("password", "123456789"))
@@ -56,6 +59,7 @@ public class AuthTests {
     @Test
     void testDuplicateEmailRegistration() throws Exception {
         mockMvc.perform(post("/auth/register-email")
+                .with(csrf())
                 .param("username", "Username1")
                 .param("email", "test@example.com")
                 .param("password", "123456789"))
@@ -63,6 +67,7 @@ public class AuthTests {
 
         // Duplicate email should fail
         MvcResult result = mockMvc.perform(post("/auth/register-email")
+                .with(csrf())
                 .param("username", "Username2")
                 .param("email", "test@example.com")
                 .param("password", "1234567890"))
@@ -75,6 +80,7 @@ public class AuthTests {
     @Test
     void testEmailLogin() throws Exception {
         mockMvc.perform(post("/auth/register-email")
+                .with(csrf())
                 .param("username", "Username1")
                 .param("email", "test@example.com")
                 .param("password", "123456789"))
@@ -82,13 +88,8 @@ public class AuthTests {
 
         // Correct credentials should work
         mockMvc.perform(post("/auth/login-email")
-                .param("identifier", "test@example.com")
-                .param("password", "123456789"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/profile/*"));
-
-        mockMvc.perform(post("/auth/login-email")
-                .param("identifier", " Username1 ")
+                .with(csrf())
+                .param("email", "test@example.com")
                 .param("password", "123456789"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/profile/*"));

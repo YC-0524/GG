@@ -1,6 +1,7 @@
 package com.group17.game.Controllers;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -37,12 +39,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolationException;
 
 @Controller
-@RequestMapping("/auth") // just appends /auth to other routes in here
+@RequestMapping("/auth") // just prefixes /auth to other routes in here
 public class AuthController {
     private final UserRepository userRepository;
     private final LoginConnectionRepository loginConnectionRepository;
     private SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
-    private AuthenticationManager authenticationManager;
 
     // https://stackoverflow.com/questions/30528255/how-to-access-a-value-defined-in-the-application-properties-file-in-spring-boot
     @Value("${discord.oauth.client_id}")
@@ -73,17 +74,15 @@ public class AuthController {
 
     public void buildPersistence(User user, HttpServletRequest request,
             HttpServletResponse response) {
-        UsernamePasswordAuthenticationToken token = UsernamePasswordAuthenticationToken.unauthenticated(user.getId(),
-                user.getPasswordHash());
-        Authentication authentication = authenticationManager.authenticate(token);
-        try {
-            SecurityContext context = securityContextHolderStrategy();
-            context.setAuthentication(authentication);
-            SecurityContextHolder.setContext(context);
-            securityContextRepository.saveContext(context, request, response);
-        } catch (Exception ex) {
-            System.out.println("Error updating security context: " + ex);
-        }
+        Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
+                user.getId(),
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()))); // adjust to your role type
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authentication);
+        SecurityContextHolder.setContext(context);
+        securityContextRepository.saveContext(context, request, response);
     }
 
     @PostMapping("/register-email")
