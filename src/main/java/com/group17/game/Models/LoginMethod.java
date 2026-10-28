@@ -4,5 +4,6 @@ public enum LoginMethod {
     EMAIL,
     DISCORD,
     GOOGLE,
+    USERNAME,
     // more later
 }

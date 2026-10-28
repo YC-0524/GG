@@ -151,15 +151,19 @@ public class AuthController {
 
     @PostMapping("/login-email")
     public String registerNewAccountViaEmail(
-            @RequestParam String email,
+            @RequestParam String identifier,
             @RequestParam String password) {
         if (password.length() < User.MINIMUM_PASSWORD_LENGTH) {
             return "redirect:/login.html?error=Invalid password";
         }
 
-        User user = userRepository.findByEmail(email);
+        String loginId = identifier.trim();
+
+        User user = loginId.contains("@")
+            ? userRepository.findByEmail(loginId)
+            : userRepository.findByUsername(loginId);
         if (user == null) {
-            return "redirect:/login.html?error=No matching Email";
+            return "redirect:/login.html?error=Account not found";
         }
 
         String hash = HashUtil.sha256Hash(password);

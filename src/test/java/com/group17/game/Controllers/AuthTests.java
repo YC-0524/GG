@@ -1,6 +1,7 @@
 package com.group17.game.Controllers;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -10,9 +11,11 @@ import org.springframework.test.web.servlet.MvcResult;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 public class AuthTests {
 
     @Autowired
@@ -79,8 +82,15 @@ public class AuthTests {
 
         // Correct credentials should work
         mockMvc.perform(post("/auth/login-email")
-                .param("email", "test@example.com")
+                .param("identifier", "test@example.com")
                 .param("password", "123456789"))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/profile/*"));
+
+        mockMvc.perform(post("/auth/login-email")
+                .param("identifier", " Username1 ")
+                .param("password", "123456789"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/profile/*"));
     }
 }
