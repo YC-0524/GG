@@ -7,7 +7,7 @@
 </head>
 <body>
     <a href="/">Home</a>
-    <form action="/auth/register-email" method="POST">
+    <form th:action="@{/auth/register-email}" method="POST">
         <input type="text" placeholder="Your username..." name="username" required id="username">
         <input type="email" placeholder="Your email..." required name="email" id="email">
         <input type="password" name="password" id="password" required placeholder="Your password...">

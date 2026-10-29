@@ -30,10 +30,10 @@
             <div class="divider"><span>or log in with email</span></div>
             <p class="error-message" id="login-error" role="alert" hidden></p>
 
-            <form action="/auth/login-email" method="POST">
+            <form th:action="@{/auth/login-email}" method="POST">
                 <div class="form-field">
-                    <label for="identifier">Email or username</label>
-                    <input type="text" id="identifier" name="identifier" placeholder="Email or username" autocomplete="username" required>
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required>
                 </div>
 
                 <div class="form-field">
@@ -52,7 +52,7 @@
                 <button class="login-button" type="submit">Let's play</button>
             </form>
 
-            <p class="signup-note">Don't have an account yet? <a href="/register.html">Create an account</a></p>
+            <p class="signup-note">Don't have an account yet? <a href="/auth/register">Create an account</a></p>
         </section>
     </main>
 </body>
