@@ -9,16 +9,28 @@ import static org.springframework.security.test.web.servlet.response.SecurityMoc
 
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.group17.game.Models.ChangePasswordFlow;
+import com.group17.game.Models.ChangePasswordFlowRepository;
+import com.group17.game.Models.User;
+import com.group17.game.Models.UserRepository;
+import com.group17.game.Utilities.HashUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+
+import java.util.Date;
+
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 
 @SpringBootTest
@@ -29,15 +41,20 @@ public class AuthTests {
     @Autowired
     MockMvc mockMvc;
 
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    ChangePasswordFlowRepository passwordFlowRepository;
+
     // helper to check if the redirect URL contains
     // either "login" or "register"
     private void expectLoginOrRegisterRedirect(MvcResult result) {
         String url = result.getResponse().getRedirectedUrl();
 
         assertTrue(
-            url != null && (url.contains("login") || url.contains("register")),
-            "Expected redirect URL to contain 'login' or 'register', but was: " + url
-        );
+                url != null && (url.contains("login") || url.contains("register")),
+                "Expected redirect URL to contain 'login' or 'register', but was: " + url);
     }
 
     @Test
@@ -134,5 +151,43 @@ public class AuthTests {
                 .andExpect(unauthenticated());
 
         assertTrue(session.isInvalid(), "Expected session to be invalidated after logout");
+    }
+
+    @Test
+    @Transactional
+    void testPasswordReset() throws Exception {
+        // This test manually creates a reset object, normally this would be handled in
+        // a controller
+        userRepository.deleteAll();
+
+        mockMvc.perform(post("/auth/register-email")
+                .with(csrf())
+                .param("username", "Username1")
+                .param("email", "test@example.com")
+                .param("password", "123456789"))
+                .andExpect(status().is3xxRedirection());
+
+        User user = userRepository.findAll().get(0);
+        assertNotNull(user);
+
+        String previousHash = user.getPasswordHash();
+        String secretKey = HashUtil.sha256Hash("test");
+
+        ChangePasswordFlow flow = new ChangePasswordFlow(user.getId(), true, secretKey, new Date());
+        passwordFlowRepository.save(flow);
+
+        assertTrue(passwordFlowRepository.existsById(flow.getID()));
+
+        // Correct credentials should work
+        mockMvc.perform(post("/auth/set-password")
+                .with(csrf())
+                .param("newPassword", "12345678")
+                .param("confirmPassword", "12345678")
+                .param("secretKey", secretKey))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/dashboard"));
+
+        user = userRepository.findAll().get(0);
+        assertNotEquals(user.getPasswordHash(), previousHash);
     }
 }
