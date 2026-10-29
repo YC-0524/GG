@@ -85,6 +85,16 @@ public class AuthController {
         securityContextRepository.saveContext(context, request, response);
     }
 
+    @GetMapping("/login")
+    public String loginPage() {
+        return "login";
+    }
+
+    @GetMapping("/register")
+    public String registerPage() {
+        return "register";
+    }
+
     @PostMapping("/register-email")
     public String registerNewAccountViaEmail(
             @RequestParam String username,
@@ -94,11 +104,11 @@ public class AuthController {
             HttpServletResponse response) {
         try {
             if (userRepository.findByEmail(email) != null) {
-                return "redirect:/register.html?error=Email already registered";
+                return "redirect:/register?error=Email already registered";
             }
 
             if (password.length() < User.MINIMUM_PASSWORD_LENGTH) {
-                return "redirect:/register.html?error=Password too short";
+                return "redirect:/register?error=Password too short";
             }
 
             // converts plain text into something more secure
@@ -114,7 +124,7 @@ public class AuthController {
         } catch (ConstraintViolationException ex) {
             // maybe make errors a little more clear
             System.out.println("Register account exception: " + ex);
-            return "redirect:/register.html?error=Invalid user details";
+            return "redirect:/register?error=Invalid user details";
         }
     }
 
@@ -143,7 +153,7 @@ public class AuthController {
                 .body(DiscordTokenResponse.class);
 
         if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
-            return "redirect:/login.html?error=Discord token failed";
+            return "redirect:/login?error=Discord token failed";
         }
 
         // 2. Use that token to get the User's info
@@ -154,7 +164,7 @@ public class AuthController {
                 .body(DiscordUserResponse.class);
 
         if (discordUser.getEmail() == null || discordUser.getEmail().length() <= 0) {
-            return "redirect:/login.html?error=Discord email missing";
+            return "redirect:/login?error=Discord email missing";
         }
 
         User user = userRepository.findByEmail(discordUser.getEmail());
@@ -177,7 +187,7 @@ public class AuthController {
                 // TODO: Remove
                 System.out.println("Temp password for " + user.getId() + ": " + tempPassword);
             } catch (ConstraintViolationException ex) {
-                return "redirect:/login.html?error=Failed to create user";
+                return "redirect:/login?error=Failed to create user";
             }
         }
 
@@ -192,7 +202,7 @@ public class AuthController {
                         new Date());
                 loginConnectionRepository.save(connection);
             } catch (ConstraintViolationException ex) {
-                return "redirect:/login.html?error=Failed to create connection";
+                return "redirect:/login?error=Failed to create connection";
             }
         }
 
@@ -206,17 +216,17 @@ public class AuthController {
             HttpServletRequest request,
             HttpServletResponse response) {
         if (password.length() < User.MINIMUM_PASSWORD_LENGTH) {
-            return "redirect:/login.html?error=Invalid password";
+            return "redirect:/login?error=Invalid password";
         }
 
         User user = userRepository.findByEmail(email);
         if (user == null) {
-            return "redirect:/login.html?error=Account not found";
+            return "redirect:/login?error=Account not found";
         }
 
         String hash = HashUtil.sha256Hash(password);
         if (!hash.equals(user.getPasswordHash())) {
-            return "redirect:/login.html?error=Invalid credentials";
+            return "redirect:/login?error=Invalid credentials";
         }
 
         buildPersistence(user, request, response);
