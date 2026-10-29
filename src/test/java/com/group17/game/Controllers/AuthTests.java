@@ -88,7 +88,6 @@ public class AuthTests {
 
         // Correct credentials should work
         mockMvc.perform(post("/auth/login-email")
-                .with(csrf())
                 .param("email", "test@example.com")
                 .param("password", "123456789"))
                 .andExpect(status().is3xxRedirection())

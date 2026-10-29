@@ -12,9 +12,7 @@ public class SecurityConfig {
         // permit certain requests depending on the current auth state
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/profile/**",
-                                "/login.html", "/register.html", "/**",
-                                "/css/**", "/js/**", "/images/**")
+                        .requestMatchers("/**")
                         .permitAll()
                         .anyRequest().authenticated());
         return http.build();
