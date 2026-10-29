@@ -27,12 +27,15 @@ import org.springframework.web.client.RestClient;
 
 import com.group17.game.DTOs.DiscordTokenResponse;
 import com.group17.game.DTOs.DiscordUserResponse;
+import com.group17.game.Models.ChangePasswordFlow;
+import com.group17.game.Models.ChangePasswordFlowRepository;
 import com.group17.game.Models.LoginConnection;
 import com.group17.game.Models.LoginConnectionRepository;
 import com.group17.game.Models.LoginMethod;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 import com.group17.game.Utilities.HashUtil;
+import com.group17.game.Utilities.PasswordFlows;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -43,6 +46,7 @@ import jakarta.validation.ConstraintViolationException;
 public class AuthController {
     private final UserRepository userRepository;
     private final LoginConnectionRepository loginConnectionRepository;
+    private final ChangePasswordFlowRepository changePasswordFlowRepository;
     private SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     // https://stackoverflow.com/questions/30528255/how-to-access-a-value-defined-in-the-application-properties-file-in-spring-boot
@@ -55,15 +59,21 @@ public class AuthController {
     @Value("${discord.oauth.oauth_uri}")
     private String DISCORD_OAUTH_URI;
 
-    public AuthController(UserRepository userRepo, LoginConnectionRepository connectionRepository) {
+    public AuthController(
+        UserRepository userRepo, 
+        LoginConnectionRepository connectionRepository, 
+        ChangePasswordFlowRepository changePasswordFlowRepository
+    ) {
         this.userRepository = userRepo;
         this.loginConnectionRepository = connectionRepository;
+        this.changePasswordFlowRepository = changePasswordFlowRepository;
     }
 
     // https://www.javaguides.net/2024/04/spring-security-authentication-manager.html
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
-            throws Exception {
+    public AuthenticationManager authenticationManager(
+        AuthenticationConfiguration authenticationConfiguration
+    ) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
@@ -76,13 +86,26 @@ public class AuthController {
             HttpServletResponse response) {
         Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
                 user.getId(),
-                null,
-                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()))); // adjust to your role type
+                user.getPasswordHash(),
+                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()))); 
 
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
         securityContextRepository.saveContext(context, request, response);
+    }
+
+    public void forceResetPasswordFlow(User user, String tempPassword) {
+        Random random = new Random();
+        Date now = new Date();
+        ChangePasswordFlow newFlow = new ChangePasswordFlow(
+            user.getId(), 
+            true, 
+            HashUtil.sha256Hash(now.toString() + random.nextInt(Integer.MIN_VALUE, Integer.MAX_VALUE)),
+            now
+        );
+
+        changePasswordFlowRepository.save(newFlow);
     }
 
     @GetMapping("/login")
@@ -93,6 +116,45 @@ public class AuthController {
     @GetMapping("/register")
     public String registerPage() {
         return "register";
+    }
+
+    @GetMapping("/set-password")
+    public String passwordFlowPage() {
+        return "passwordFlow";
+    }
+
+    @PostMapping("/set-password")
+    public String updatePasswordFromFlow(
+        @RequestParam String newPassword, 
+        @RequestParam String confirmPassword,
+        @RequestParam String secretKey) {
+
+        if (!newPassword.equals(confirmPassword)) {
+            return "redirect:/auth/set-password?error=Passwords must be the same";
+        }
+
+        ChangePasswordFlow flow = changePasswordFlowRepository.findBySecretKey(secretKey);
+        if (flow == null) {
+            return "redirect:/";
+        }  
+
+        // check if this request is actually a one we can verify
+        if (!flow.getSecretKey().equals(secretKey)) {
+            return "redirect:/";
+        }
+
+        // find the user from the request, not the session
+        User user = userRepository.findById(flow.getID()).get();
+        if (user == null) {
+            return "redirect:/";
+        }
+
+        // we know that this is the actual user now, so lets set a new password
+        user.setPasswordHash(HashUtil.sha256Hash(newPassword));
+        flow.setActive(false);
+        changePasswordFlowRepository.save(flow);
+
+        return "redirect:/dashboard";
     }
 
     @PostMapping("/register-email")
@@ -171,21 +233,18 @@ public class AuthController {
         if (user == null) {
             // create new user
 
-            // we need to generate a temporary password that the user can then set
-            // TODO: make this something like "adjective noun 123" and then store a
-            // temporary "PassowrdLoginFlow" entity
-            Random random = new Random();
-            Long tempPassword = random.nextLong();
+            String temporaryPassword = PasswordFlows.generateTemporaryPassowrd();
             try {
                 user = new User(discordUser.getUsername(), discordUser.getEmail(),
-                        HashUtil.sha256Hash(tempPassword.toString()));
+                        HashUtil.sha256Hash(temporaryPassword));
                 // https://docs.discord.com/developers/reference#image-formatting
                 user.setAvatar(
                         "https://cdn.discordapp.com/avatars/" + discordUser.getId() + "/" + discordUser.getAvatar());
                 userRepository.save(user);
 
-                // TODO: Remove
-                System.out.println("Temp password for " + user.getId() + ": " + tempPassword);
+                forceResetPasswordFlow(user, temporaryPassword);
+
+                System.out.println("Temp password for " + user.getId() + ": " + temporaryPassword);
             } catch (ConstraintViolationException ex) {
                 return "redirect:/login?error=Failed to create user";
             }
