@@ -2,7 +2,6 @@ package com.group17.game.Controllers;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -35,7 +34,6 @@ import com.group17.game.Models.LoginMethod;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 import com.group17.game.Utilities.HashUtil;
-import com.group17.game.Utilities.PasswordFlows;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -95,14 +93,11 @@ public class AuthController {
         securityContextRepository.saveContext(context, request, response);
     }
 
-    public void forceResetPasswordFlow(User user, String tempPassword) {
-        Random random = new Random();
-        Date now = new Date();
+    public void forceResetPasswordFlow(User user) {
         ChangePasswordFlow newFlow = new ChangePasswordFlow(
             user.getId(), 
             true, 
-            HashUtil.sha256Hash(now.toString() + random.nextInt(Integer.MIN_VALUE, Integer.MAX_VALUE)),
-            now
+            HashUtil.sha256Hash(HashUtil.generateRandomHash())
         );
 
         changePasswordFlowRepository.save(newFlow);
@@ -234,18 +229,15 @@ public class AuthController {
         if (user == null) {
             // create new user
 
-            String temporaryPassword = PasswordFlows.generateTemporaryPassowrd();
             try {
                 user = new User(discordUser.getUsername(), discordUser.getEmail(),
-                        HashUtil.sha256Hash(temporaryPassword));
+                        HashUtil.sha256Hash(HashUtil.generateRandomHash()));
                 // https://docs.discord.com/developers/reference#image-formatting
                 user.setAvatar(
                         "https://cdn.discordapp.com/avatars/" + discordUser.getId() + "/" + discordUser.getAvatar());
                 userRepository.save(user);
 
-                forceResetPasswordFlow(user, temporaryPassword);
-
-                System.out.println("Temp password for " + user.getId() + ": " + temporaryPassword);
+                forceResetPasswordFlow(user);
             } catch (ConstraintViolationException ex) {
                 return "redirect:/auth/login?error=Failed to create user";
             }
