@@ -183,7 +183,7 @@ public class AuthController {
             // Generate token based off password
             buildPersistence(newUser, request, response);
 
-            return "redirect:/profile/" + newUser.getId();
+            return "redirect:/dashboard";
         } catch (ConstraintViolationException ex) {
             // maybe make errors a little more clear
             System.out.println("Register account exception: " + ex);
@@ -266,7 +266,7 @@ public class AuthController {
             }
         }
 
-        return "redirect:/profile/" + user.getId();
+        return "redirect:/dashboard";
     }
 
     @PostMapping("/login-email")
@@ -290,6 +290,6 @@ public class AuthController {
         }
 
         buildPersistence(user, request, response);
-        return "redirect:/profile/" + user.getId();
+        return "redirect:/dashboard";
     }
 }

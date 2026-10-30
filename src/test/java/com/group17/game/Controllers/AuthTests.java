@@ -31,8 +31,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Date;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -116,7 +114,7 @@ public class AuthTests {
                 .param("email", "test@example.com")
                 .param("password", "123456789"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/profile/*"));
+                .andExpect(view().name("redirect:/dashboard"));
 
         // Username should not be accepted for login
         MvcResult result = mockMvc.perform(post("/auth/login-email")
