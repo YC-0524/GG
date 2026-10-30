@@ -3,15 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Gang Register</title>
+    <meta name="theme-color" content="#0b0c16">
+    <title>Register | Game Gang</title>
+    <link rel="stylesheet" href="/css/login.css">
+    <script src="/js/login.js" defer></script>
 </head>
 <body>
-    <a href="/">Home</a>
-    <form th:action="@{/auth/register-email}" method="POST">
-        <input type="text" placeholder="Your username..." name="username" required id="username">
-        <input type="email" placeholder="Your email..." required name="email" id="email">
-        <input type="password" name="password" id="password" required placeholder="Your password...">
-        <button type="submit">Register</button>
-    </form>
+    <main class="login-page">
+        <section class="login-card" aria-labelledby="register-title">
+            <a class="brand" href="/" aria-label="Game Gang home">
+                <span class="brand-mark" aria-hidden="true">GG</span>
+                <span class="brand-name">GAME GANG</span>
+            </a>
+
+            <header class="login-heading">
+                <h1 id="login-title">Create an account</h1>
+                <p>Join the Game Gang community.</p>
+            </header>
+
+            <a class="discord-button" href="/auth/discord">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M19.7 5.1a18 18 0 0 0-4.4-1.4l-.6 1.2a16 16 0 0 0-5.4 0l-.6-1.2a18 18 0 0 0-4.4 1.4C1.5 9.3.7 13.5 1.1 17.6a18 18 0 0 0 5.4 2.7l1.1-1.9-1.7-.8.4-.3a13.6 13.6 0 0 0 11.4 0l.4.3-1.7.8 1.1 1.9a18 18 0 0 0 5.4-2.7c.5-4.8-.8-8.9-3.2-12.5ZM8.4 14.9c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Zm7.2 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Z"/>
+                </svg>
+                Continue with Discord
+            </a>
+
+            <div class="divider"><span>or register with email</span></div>
+            <p class="error-message" id="register-error" role="alert" hidden></p>
+
+            <form th:action="@{/auth/register-email}" method="POST">
+                <div class="form-field">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Choose a username" autocomplete="username" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="password">Password</label>
+                    <div class="password-field">
+                        <input type="password" id="password" name="password" placeholder="Create a password" autocomplete="new-password" required>
+                        <button class="password-toggle" type="button" aria-label="Show password" aria-controls="password" aria-pressed="false">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <button class="login-button" type="submit">Create account</button>
+            </form>
+
+            <p class="signup-note">Already have an account? <a href="/auth/login">Log in</a></p>
+        </section>
+    </main>
 </body>
 </html>
