@@ -12,7 +12,7 @@ passwordToggle.addEventListener('click', () => {
 const error = new URLSearchParams(window.location.search).get('error');
 
 if (error) {
-    const errorMessage = document.getElementById('login-error');
+    const errorMessage = document.getElementById('error-message');
 
     errorMessage.textContent = error;
     errorMessage.hidden = false;

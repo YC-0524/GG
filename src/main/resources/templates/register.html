@@ -17,7 +17,7 @@
             </a>
 
             <header class="login-heading">
-                <h1 id="login-title">Create an account</h1>
+                <h1 id="register-title">Create an account</h1>
                 <p>Join the Game Gang community.</p>
             </header>
 
@@ -29,7 +29,7 @@
             </a>
 
             <div class="divider"><span>or register with email</span></div>
-            <p class="error-message" id="register-error" role="alert" hidden></p>
+            <p class="error-message" id="error-message" role="alert" hidden></p>
 
             <form th:action="@{/auth/register-email}" method="POST">
                 <div class="form-field">
