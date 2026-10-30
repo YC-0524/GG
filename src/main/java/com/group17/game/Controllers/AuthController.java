@@ -134,7 +134,7 @@ public class AuthController {
         }
 
         ChangePasswordFlow flow = changePasswordFlowRepository.findBySecretKey(secretKey);
-        if (flow == null) {
+        if (flow == null || !flow.isActive()) {
             return "redirect:/";
         }  
 
@@ -144,7 +144,7 @@ public class AuthController {
         }
 
         // find the user from the request, not the session
-        User user = userRepository.findById(flow.getID()).get();
+        User user = userRepository.findById(flow.getUserID()).get();
         if (user == null) {
             return "redirect:/";
         }
@@ -152,6 +152,7 @@ public class AuthController {
         // we know that this is the actual user now, so lets set a new password
         user.setPasswordHash(HashUtil.sha256Hash(newPassword));
         flow.setActive(false);
+        userRepository.save(user);
         changePasswordFlowRepository.save(flow);
 
         return "redirect:/dashboard";

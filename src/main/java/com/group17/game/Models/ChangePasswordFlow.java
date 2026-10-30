@@ -36,6 +36,14 @@ public class ChangePasswordFlow {
     // empty constructor, needed for springboot initializers
     public ChangePasswordFlow() {}
 
+    // initialize date in constructor
+    public ChangePasswordFlow(long userID, boolean active, String secretKey) {
+        this.userID = userID;
+        this.active = active;
+        this.secretKey = secretKey;
+        this.created = new Date();
+    }
+
     public ChangePasswordFlow(long userID, boolean active, String secretKey, Date date) {
         this.userID = userID;
         this.active = active;
