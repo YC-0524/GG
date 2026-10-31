@@ -119,8 +119,8 @@ public class User {
         this.email = email;
     }
 
-    public void setPassword_hash(String password_hash) {
-        this.passwordHash = password_hash;
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     public void setRegistered(Date registered) {
