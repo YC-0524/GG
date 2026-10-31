@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="sideNavigation" class="side-navigation">
+        <link rel="stylesheet" th:href="@{/css/sideNav.css}">
+        <section>
+            <a href="/dashboard">Dashboard</a>
+        </section>
+        <section>
+            <a href="/profile/me">My Profile</a>
+            <div th:replace="~{logout :: logoutButton}"></div>
+        </section>
+    </div>
+</body>
+</html>

@@ -1,0 +1,10 @@
+.side-navigation {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100vh;
+}
+
+.side-navigation > a {
+    padding: 1rem 2rem;
+}

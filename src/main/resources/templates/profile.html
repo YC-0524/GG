@@ -4,17 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text></title>
+    <title th:text="${profile.username} + ' | GAMG GANG'">Proifle | GAME GANG</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/profile.css">
 </head>
 
 <body>
     <div class="app-container">
-        <nav>
-            <div th:replace="~{logout :: logoutButton}"></div>
-            <a href="/dashboard">Dashboard</a>
-        </nav>
+        <nav th:replace="~{sideNavigation :: sideNavigation}"></nav>
         <div class="profile-container">
             <section class="profile-splash">
                 <img class="profile-avatar" th:if="${#strings.isEmpty(profile.avatar)}" src="/img/person.svg" alt="Default Avatar" />
