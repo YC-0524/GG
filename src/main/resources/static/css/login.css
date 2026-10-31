@@ -310,3 +310,63 @@ button:focus-visible {
         transition: none;
     }
 }
+
+/* Main page layout */
+.home-container {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: stretch;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100svh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 0;
+}
+
+/* Full-height image panel */
+.home-container .example-image {
+    width: 100%;
+    align-self: stretch;
+    background-color: #171328;
+    background-image: url("/images/image.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Existing logo, text, and links */
+.home-container .welcome-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    margin: 0;
+    padding: 48px 32px;
+    border: 0;
+    border-radius: 0;
+    background: #211b33;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+}
+
+/* Stack the sections on smaller screens */
+@media (max-width: 760px) {
+    .home-container {
+        grid-template-columns: 1fr;
+        min-height: 100svh;
+    }
+
+    .home-container .example-image {
+        min-height: 35svh;
+    }
+
+    .home-container .welcome-panel {
+        min-height: 65svh;
+        padding: 36px 24px;
+    }
+}
