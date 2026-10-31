@@ -14,7 +14,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/**")
                         .permitAll()
-                        .anyRequest().authenticated());
+                        .anyRequest().authenticated())
+
+                .logout(logout -> logout
+                        .logoutUrl("/auth/logout")
+                        .logoutSuccessUrl("/auth/login")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID"));
         return http.build();
     }
 }
