@@ -35,6 +35,7 @@ import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 import com.group17.game.Utilities.HashUtil;
 
+import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolationException;
@@ -192,8 +193,12 @@ public class AuthController {
     }
 
     @GetMapping("/discord/callback")
-    public String loginWithDiscord(@RequestParam("code") String code, HttpServletRequest request,
-            HttpServletResponse response) {
+    public String loginWithDiscord(@Nullable @RequestParam("code") String code, HttpServletRequest request,
+            HttpServletResponse response, @Nullable @RequestParam("error") String error) {  
+        if (error != null || code == null) {
+            return "redirect:/auth/login?error=Cancelled login";
+        }
+
         RestClient restClient = RestClient.create();
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
 
