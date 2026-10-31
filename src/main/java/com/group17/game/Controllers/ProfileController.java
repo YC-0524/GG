@@ -2,14 +2,13 @@ package com.group17.game.Controllers;
 
 import java.util.Optional;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.group17.game.Models.CurrentUser;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 
@@ -23,15 +22,8 @@ public class ProfileController {
     }
 
     @GetMapping("/me")
-    public String getUserProfile(Model model) {
-        // TODO: abstract this to a global config
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            return "redirect:/profile/search?error=Invalid authentication";
-        }
-        
-        long userID = (long)auth.getPrincipal();
-        return "redirect:/profile/" + userID;
+    public String getUserProfile(Model model, @CurrentUser User user) {
+        return "redirect:/profile/" + user.getId();
     }
 
     @GetMapping("/search")
