@@ -26,6 +26,11 @@ a {
 button,
 input {
     font: inherit;
+    border: none;
+    outline: none;
+    border: 1px solid var(--field-border);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
 }
 
 button,
@@ -47,4 +52,10 @@ button:focus-visible {
 .app-container {
     display: flex;
     flex-direction: row;
+}
+
+.content-container {
+    display: flex;
+    flex-direction: column;
+    padding: 3rem;
 }

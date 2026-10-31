@@ -2,7 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
     <form th:fragment="logoutButton" th:action="@{/auth/logout}" method="POST">
-        <button type="submit">Log out</button>
+        <button type="submit" style="display: flex; align-items: center; gap: 0.5rem;">
+            <img src="/images/logout.svg" alt="Logout" />
+            <span>Log out</span>
+        </button>
     </form>
 </body>
 </html>

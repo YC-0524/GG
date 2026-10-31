@@ -14,7 +14,7 @@
         <nav th:replace="~{sideNavigation :: sideNavigation}"></nav>
         <div class="profile-container">
             <section class="profile-splash">
-                <img class="profile-avatar" th:if="${#strings.isEmpty(profile.avatar)}" src="/img/person.svg" alt="Default Avatar" />
+                <img class="profile-avatar" th:if="${#strings.isEmpty(profile.avatar)}" src="/images/person.svg" alt="Default Avatar" />
                 <img class="profile-avatar" th:unless="${#strings.isEmpty(profile.avatar)}" th:src="@{${profile.avatar}}" alt="User Avatar" />
                 <h1 th:text="${profile.username}">John Doe</h1>
             </section>

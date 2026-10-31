@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <title>Game Gang - Dashboard</title>
     <link rel="stylesheet" href="/css/player-cards.css">
 </head>
+
 <body>
     <div class="dashboard-layout">
         <aside class="sidebar" aria-label="Sidebar">
@@ -42,45 +44,48 @@
             <header class="dashboard-header">
                 <h2>Dashboard</h2>
             </header>
-    <!-- Actual registered players; the current user is excluded. -->
-    <section class="match-section" aria-labelledby="match-title">
-        <h2 id="match-title">Find Your Gaming Partner</h2>
+            <!-- Actual registered players; the current user is excluded. -->
+            <section class="match-section" aria-labelledby="match-title">
+                <h2 id="match-title">Find Your Gaming Partner</h2>
 
-        <div class="player-card-stack">
-            <article class="player-card" th:each="player, state : ${players}"
-                     th:hidden="${!state.first}"
-                     th:attr="aria-labelledby=|player-name-${player.id}|,data-player-id=${player.id}">
-                <div class="player-avatar" aria-hidden="true">
-                    <span th:text="${player.initials}">?</span>
-                    <img th:if="${player.avatar != null}" th:src="${player.avatar}" alt="">
+                <div class="player-card-stack">
+                    <article class="player-card" th:each="player, state : ${players}" th:hidden="${!state.first}"
+                        th:attr="aria-labelledby=|player-name-${player.id}|,data-player-id=${player.id}">
+                        <div class="player-avatar" aria-hidden="true">
+                            <span th:text="${player.initials}">?</span>
+                            <img th:if="${player.avatar != null}" th:src="${player.avatar}" alt="">
+                        </div>
+                        <h3 th:id="|player-name-${player.id}|" th:text="${player.username}">Player</h3>
+                        <a th:href="@{/profile/{id}(id=${player.id})}">View profile</a>
+                    </article>
                 </div>
-                <h3 th:id="|player-name-${player.id}|" th:text="${player.username}">Player</h3>
-                <a th:href="@{/profile/{id}(id=${player.id})}">View profile</a>
-            </article>
-        </div>
 
-        <div class="match-actions">
-            <button type="button" class="match-action" id="pass-button" th:disabled="${#lists.isEmpty(players)}">
-                <span class="action-circle" aria-hidden="true">
-                    <svg viewBox="0 0 48 48" focusable="false">
-                        <path d="M12 12L36 36M36 12L12 36" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
-                    </svg>
-                </span>
-                <span>Pass</span>
-            </button>
-            <button type="button" class="match-action" id="like-button" th:disabled="${#lists.isEmpty(players)}">
-                <span class="action-circle" aria-hidden="true">
-                    <svg viewBox="0 0 48 48" focusable="false">
-                        <path d="M24 42L7 25C-5 12 13-2 24 11C35-2 53 12 41 25Z" fill="currentColor"/>
-                    </svg>
-                </span>
-                <span>Like</span>
-            </button>
-            <button type="button" id="restart-button" hidden>View again</button>
-        </div>
-        <p id="match-status" role="status"
-           th:text="${#lists.isEmpty(players)} ? 'No more players to recommend right now.' : 'Browse players with Pass.'"></p>
-    </section>
+                <div class="match-actions">
+                    <button type="button" class="match-action" id="pass-button"
+                        th:disabled="${#lists.isEmpty(players)}">
+                        <span class="action-circle" aria-hidden="true">
+                            <svg viewBox="0 0 48 48" focusable="false">
+                                <path d="M12 12L36 36M36 12L12 36" fill="none" stroke="currentColor" stroke-width="8"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </span>
+                        <span>Pass</span>
+                    </button>
+                    <button type="button" class="match-action" id="like-button"
+                        th:disabled="${#lists.isEmpty(players)}">
+                        <span class="action-circle" aria-hidden="true">
+                            <svg viewBox="0 0 48 48" focusable="false">
+                                <path d="M24 42L7 25C-5 12 13-2 24 11C35-2 53 12 41 25Z" fill="currentColor" />
+                            </svg>
+                        </span>
+                        <span>Like</span>
+                    </button>
+                    <button type="button" id="restart-button" hidden>View again</button>
+                </div>
+                <p id="match-status" role="status"
+                    th:text="${#lists.isEmpty(players)} ? 'No more players to recommend right now.' : 'Browse players with Pass.'">
+                </p>
+            </section>
 
         </main>
         <aside class="preferences" aria-labelledby="preferences-title">
@@ -98,23 +103,32 @@
                 </div>
                 <div class="preference-field">
                     <label for="age-range">Age Range</label>
-                    <select id="age-range"><option>Any</option></select>
+                    <select id="age-range">
+                        <option>Any</option>
+                    </select>
                 </div>
                 <div class="preference-field">
                     <label for="region">Region</label>
-                    <select id="region"><option>Any</option></select>
+                    <select id="region">
+                        <option>Any</option>
+                    </select>
                 </div>
                 <div class="preference-field">
                     <label for="play-time">Play Time</label>
-                    <select id="play-time"><option>Any</option></select>
+                    <select id="play-time">
+                        <option>Any</option>
+                    </select>
                 </div>
                 <div class="preference-field">
                     <label for="mic-preference">Mic Preference</label>
-                    <select id="mic-preference"><option>Any</option></select>
+                    <select id="mic-preference">
+                        <option>Any</option>
+                    </select>
                 </div>
             </fieldset>
         </aside>
     </div>
     <script src="/js/dashboard.js" defer></script>
 </body>
+
 </html>

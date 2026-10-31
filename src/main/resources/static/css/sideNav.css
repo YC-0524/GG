@@ -3,8 +3,35 @@
     flex-direction: column;
     justify-content: space-between;
     height: 100vh;
+    border-right: 1px solid var(--field-border);
+    min-width: 200px;
 }
 
-.side-navigation > a {
+.side-navigation h1 {
+    text-align: center;
+    margin: 0;
+}
+
+.side-navigation a, .side-navigation button {
     padding: 1rem 2rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    width: 100%;
+    gap: 0.5rem;
+    transition: 0.5s ease all;
+    background-color: transparent !important;
+    border-radius: 0;
+}
+
+.side-navigation a > img, .side-navigation button > img {
+    width: 24px;
+    height: 24px;
+}
+
+.side-navigation a:hover, .side-navigation button:hover {
+    background-color: var(--accent) !important;
+    cursor: pointer;
 }
