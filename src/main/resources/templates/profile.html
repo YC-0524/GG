@@ -1,12 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile</title>
+    <title th:text></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/profile.css">
 </head>
+
 <body>
-    <div th:replace="~{logout :: logoutButton}"></div>
-    
+    <div class="app-container">
+        <nav>
+            <div th:replace="~{logout :: logoutButton}"></div>
+            <a href="/dashboard">Dashboard</a>
+        </nav>
+        <div class="profile-container">
+            <section class="profile-splash">
+                <img class="profile-avatar" th:if="${#strings.isEmpty(profile.avatar)}" src="/img/person.svg" alt="Default Avatar" />
+                <img class="profile-avatar" th:unless="${#strings.isEmpty(profile.avatar)}" th:src="@{${profile.avatar}}" alt="User Avatar" />
+                <h1 th:text="${profile.username}">John Doe</h1>
+            </section>
+            <section class="profile-section">
+                <span th:text="'Joined GG on ' + ${#dates.format(profile.registered, 'yyyy-MM-dd')}"></span>
+            </section>
+        </div>
+    </div>
 </body>
+
 </html>
