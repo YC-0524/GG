@@ -1,0 +1,50 @@
+:root {
+    color-scheme: dark;
+    --page-background: #0b0c16;
+    --text-primary: #f6f3ff;
+    --text-secondary: #bcb5d1;
+    --accent: #bda1ff;
+    --field-border: #514565;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--text-primary);
+    background: var(--page-background);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+button,
+a {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+button {
+    cursor: pointer;
+}
+
+a:focus-visible,
+button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: row;
+}
