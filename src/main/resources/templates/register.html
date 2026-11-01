@@ -1,17 +1,130 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Gang Register</title>
+    <title>Game Gang | Register</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #101014;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 420px;
+            padding: 35px;
+            background: #1c1c24;
+            border-radius: 15px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        p {
+            text-align: center;
+            color: #aaa;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background: #292932;
+            color: white;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 8px;
+            background: #5865F2;
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        a {
+            color: #7289ff;
+        }
+
+        #error {
+            color: #ff6464;
+            text-align: center;
+        }
+    </style>
 </head>
+
 <body>
-    <a href="/">Home</a>
-    <form th:action="@{/auth/register-email}" method="POST">
-        <input type="text" placeholder="Your username..." name="username" required id="username">
-        <input type="email" placeholder="Your email..." required name="email" id="email">
-        <input type="password" name="password" id="password" required placeholder="Your password...">
-        <button type="submit">Register</button>
+
+<div class="container">
+
+    <h1>Create Account</h1>
+    <p>Join Game Gang today</p>
+
+    <div id="error"></div>
+
+    <form action="/auth/register-email" method="POST">
+
+        <input
+            type="text"
+            name="username"
+            placeholder="Username"
+            required
+        >
+
+        <input
+            type="email"
+            name="email"
+            placeholder="Email address"
+            required
+        >
+
+        <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            minlength="8"
+            required
+        >
+
+        <button type="submit">Create Account</button>
+
     </form>
+
+    <p>
+        Already have an account?
+        <a href="/auth/login">Login</a>
+    </p>
+
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
+
+    if (error) {
+        document.getElementById("error").textContent =
+            error.replaceAll("+", " ");
+    }
+</script>
+
 </body>
 </html>

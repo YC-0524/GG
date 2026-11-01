@@ -1,3 +1,4 @@
+
 package com.group17.game.Config;
 
 import org.springframework.context.annotation.Bean;
@@ -7,14 +8,30 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig {
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        // permit certain requests depending on the current auth state
+    public SecurityFilterChain filterChain(
+            HttpSecurity http,
+            GoogleLoginSuccessHandler googleLoginSuccessHandler)
+            throws Exception {
+
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/**")
-                        .permitAll()
-                        .anyRequest().authenticated());
+                        .requestMatchers(
+                                "/",
+                                "/login",
+                                "/error",
+                                "/auth/**",
+                                "/oauth2/**",
+                                "/login/oauth2/**"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
+
+                .oauth2Login(oauth -> oauth
+                        .successHandler(googleLoginSuccessHandler)
+                );
+
         return http.build();
     }
 }

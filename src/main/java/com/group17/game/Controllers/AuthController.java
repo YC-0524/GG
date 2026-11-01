@@ -1,15 +1,13 @@
+
 package com.group17.game.Controllers;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -39,62 +37,71 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolationException;
 
 @Controller
-@RequestMapping("/auth") // just prefixes /auth to other routes in here
+@RequestMapping("/auth")
 public class AuthController {
+
     private final UserRepository userRepository;
     private final LoginConnectionRepository loginConnectionRepository;
-    private SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
-    // https://stackoverflow.com/questions/30528255/how-to-access-a-value-defined-in-the-application-properties-file-in-spring-boot
+    private final SecurityContextRepository securityContextRepository =
+            new HttpSessionSecurityContextRepository();
+
     @Value("${discord.oauth.client_id}")
-    private String DISCORD_CLIENT_ID;
+    private String discordClientId;
+
     @Value("${discord.oauth.client_secret}")
-    private String DISCORD_CLIENT_SECRET;
+    private String discordClientSecret;
+
     @Value("${discord.oauth.redirect_uri}")
-    private String DISCORD_REDIRECT_URI;
+    private String discordRedirectUri;
+
     @Value("${discord.oauth.oauth_uri}")
-    private String DISCORD_OAUTH_URI;
+    private String discordOauthUri;
 
-    public AuthController(UserRepository userRepo, LoginConnectionRepository connectionRepository) {
-        this.userRepository = userRepo;
-        this.loginConnectionRepository = connectionRepository;
+    public AuthController(
+            UserRepository userRepository,
+            LoginConnectionRepository loginConnectionRepository) {
+
+        this.userRepository = userRepository;
+        this.loginConnectionRepository = loginConnectionRepository;
     }
 
-    // https://www.javaguides.net/2024/04/spring-security-authentication-manager.html
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
-            throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
-    }
-
-    @Bean
-    public SecurityContext securityContextHolderStrategy() throws Exception {
-        return SecurityContextHolder.createEmptyContext();
-    }
-
-    public void buildPersistence(User user, HttpServletRequest request,
+    private void buildPersistence(
+            User user,
+            HttpServletRequest request,
             HttpServletResponse response) {
-        Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
-                user.getId(),
-                null,
-                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()))); // adjust to your role type
 
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        Authentication authentication =
+                UsernamePasswordAuthenticationToken.authenticated(
+                        user.getId(),
+                        null,
+                        List.of(new SimpleGrantedAuthority(
+                                "ROLE_" + user.getRole())));
+
+        SecurityContext context =
+                SecurityContextHolder.createEmptyContext();
+
         context.setAuthentication(authentication);
+
         SecurityContextHolder.setContext(context);
-        securityContextRepository.saveContext(context, request, response);
+
+        securityContextRepository.saveContext(
+                context, request, response);
     }
 
+    // LOGIN PAGE
     @GetMapping("/login")
     public String loginPage() {
-        return "login";
+        return "redirect:/login.html";
     }
 
+    // REGISTRATION PAGE
     @GetMapping("/register")
     public String registerPage() {
-        return "register";
+        return "redirect:/register.html";
     }
 
+    // EMAIL REGISTRATION
     @PostMapping("/register-email")
     public String registerNewAccountViaEmail(
             @RequestParam String username,
@@ -102,134 +109,170 @@ public class AuthController {
             @RequestParam String password,
             HttpServletRequest request,
             HttpServletResponse response) {
+
+        email = email.trim().toLowerCase();
+
+        if (userRepository.findByEmail(email) != null) {
+            return "redirect:/register.html?error=Email+already+registered";
+        }
+
+        if (password.length() < User.MINIMUM_PASSWORD_LENGTH) {
+            return "redirect:/register.html?error=Password+too+short";
+        }
+
         try {
-            if (userRepository.findByEmail(email) != null) {
-                return "redirect:/register?error=Email already registered";
-            }
-
-            if (password.length() < User.MINIMUM_PASSWORD_LENGTH) {
-                return "redirect:/register?error=Password too short";
-            }
-
-            // converts plain text into something more secure
             String passwordHash = HashUtil.sha256Hash(password);
-            User newUser = new User(username, email, passwordHash);
+
+            User newUser = new User(
+                    username.trim(),
+                    email,
+                    passwordHash
+            );
 
             userRepository.save(newUser);
 
-            // Generate token based off password
             buildPersistence(newUser, request, response);
 
             return "redirect:/profile/" + newUser.getId();
+
         } catch (ConstraintViolationException ex) {
-            // maybe make errors a little more clear
-            System.out.println("Register account exception: " + ex);
-            return "redirect:/register?error=Invalid user details";
+            return "redirect:/register.html?error=Invalid+user+details";
         }
     }
 
+    // DISCORD REDIRECT
     @GetMapping("/discord")
     public String redirectToDiscord() {
-        return "redirect:" + DISCORD_OAUTH_URI;
+        return "redirect:" + discordOauthUri;
     }
 
+    // DISCORD CALLBACK
     @GetMapping("/discord/callback")
-    public String loginWithDiscord(@RequestParam("code") String code, HttpServletRequest request,
+    public String loginWithDiscord(
+            @RequestParam("code") String code,
+            HttpServletRequest request,
             HttpServletResponse response) {
-        RestClient restClient = RestClient.create();
-        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
 
-        form.add("grant_type", "authorization_code");
-        form.add("code", code);
-        form.add("client_id", DISCORD_CLIENT_ID);
-        form.add("client_secret", DISCORD_CLIENT_SECRET);
-        form.add("redirect_uri", DISCORD_REDIRECT_URI);
+        try {
+            RestClient restClient = RestClient.create();
 
-        DiscordTokenResponse tokenResponse = restClient.post()
-                .uri("https://discord.com/api/v10/oauth2/token")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(form)
-                .retrieve()
-                .body(DiscordTokenResponse.class);
+            MultiValueMap<String, String> form =
+                    new LinkedMultiValueMap<>();
 
-        if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
-            return "redirect:/login?error=Discord token failed";
-        }
+            form.add("grant_type", "authorization_code");
+            form.add("code", code);
+            form.add("client_id", discordClientId);
+            form.add("client_secret", discordClientSecret);
+            form.add("redirect_uri", discordRedirectUri);
 
-        // 2. Use that token to get the User's info
-        DiscordUserResponse discordUser = restClient.get()
-                .uri("https://discord.com/api/users/@me")
-                .header("Authorization", "Bearer " + tokenResponse.getAccessToken())
-                .retrieve()
-                .body(DiscordUserResponse.class);
+            DiscordTokenResponse tokenResponse =
+                    restClient.post()
+                            .uri("https://discord.com/api/v10/oauth2/token")
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .body(form)
+                            .retrieve()
+                            .body(DiscordTokenResponse.class);
 
-        if (discordUser.getEmail() == null || discordUser.getEmail().length() <= 0) {
-            return "redirect:/login?error=Discord email missing";
-        }
+            if (tokenResponse == null ||
+                    tokenResponse.getAccessToken() == null) {
+                return "redirect:/login.html?error=Discord+authentication+failed";
+            }
 
-        User user = userRepository.findByEmail(discordUser.getEmail());
-        if (user == null) {
-            // create new user
+            DiscordUserResponse discordUser =
+                    restClient.get()
+                            .uri("https://discord.com/api/users/@me")
+                            .header(
+                                    "Authorization",
+                                    "Bearer " + tokenResponse.getAccessToken()
+                            )
+                            .retrieve()
+                            .body(DiscordUserResponse.class);
 
-            // we need to generate a temporary password that the user can then set
-            // TODO: make this something like "adjective noun 123" and then store a
-            // temporary "PassowrdLoginFlow" entity
-            Random random = new Random();
-            Long tempPassword = random.nextLong();
-            try {
-                user = new User(discordUser.getUsername(), discordUser.getEmail(),
-                        HashUtil.sha256Hash(tempPassword.toString()));
-                // https://docs.discord.com/developers/reference#image-formatting
-                user.setAvatar(
-                        "https://cdn.discordapp.com/avatars/" + discordUser.getId() + "/" + discordUser.getAvatar());
+            if (discordUser == null ||
+                    discordUser.getEmail() == null ||
+                    discordUser.getEmail().isBlank()) {
+                return "redirect:/login.html?error=Discord+email+missing";
+            }
+
+            String email = discordUser.getEmail().trim().toLowerCase();
+
+            User user = userRepository.findByEmail(email);
+
+            if (user == null) {
+
+                String temporaryPassword =
+                        UUID.randomUUID().toString();
+
+                user = new User(
+                        discordUser.getUsername(),
+                        email,
+                        HashUtil.sha256Hash(temporaryPassword)
+                );
+
+                if (discordUser.getAvatar() != null) {
+                    user.setAvatar(
+                            "https://cdn.discordapp.com/avatars/"
+                            + discordUser.getId()
+                            + "/" + discordUser.getAvatar()
+                    );
+                }
+
                 userRepository.save(user);
-
-                // TODO: Remove
-                System.out.println("Temp password for " + user.getId() + ": " + tempPassword);
-            } catch (ConstraintViolationException ex) {
-                return "redirect:/login?error=Failed to create user";
             }
-        }
 
-        // Generate token based off password
-        buildPersistence(user, request, response);
+            String loginID = "discord-" + discordUser.getId();
 
-        String loginID = "discord-" + discordUser.getId();
-        LoginConnection connection = loginConnectionRepository.findByLoginID(loginID);
-        if (connection == null) {
-            try {
-                connection = new LoginConnection(loginID, user.getId(), user.getEmail(), LoginMethod.DISCORD,
-                        new Date());
+            LoginConnection connection =
+                    loginConnectionRepository.findByLoginID(loginID);
+
+            if (connection == null) {
+
+                connection = new LoginConnection(
+                        loginID,
+                        user.getId(),
+                        user.getEmail(),
+                        LoginMethod.DISCORD,
+                        new Date()
+                );
+
                 loginConnectionRepository.save(connection);
-            } catch (ConstraintViolationException ex) {
-                return "redirect:/login?error=Failed to create connection";
             }
-        }
 
-        return "redirect:/profile/" + user.getId();
+            buildPersistence(user, request, response);
+
+            return "redirect:/profile/" + user.getId();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+
+            return "redirect:/login.html?error=Discord+login+failed";
+        }
     }
 
+    // EMAIL LOGIN
     @PostMapping("/login-email")
-    public String registerNewAccountViaEmail(
+    public String loginWithEmail(
             @RequestParam String email,
             @RequestParam String password,
             HttpServletRequest request,
             HttpServletResponse response) {
-        if (password.length() < User.MINIMUM_PASSWORD_LENGTH) {
-            return "redirect:/login?error=Invalid password";
-        }
 
-        User user = userRepository.findByEmail(email.trim());
+        User user = userRepository.findByEmail(
+                email.trim().toLowerCase()
+        );
+
         if (user == null) {
-            return "redirect:/login?error=Account not found";
+            return "redirect:/login.html?error=Invalid+credentials";
         }
 
         String hash = HashUtil.sha256Hash(password);
+
         if (!hash.equals(user.getPasswordHash())) {
-            return "redirect:/login?error=Invalid credentials";
+            return "redirect:/login.html?error=Invalid+credentials";
         }
 
         buildPersistence(user, request, response);
+
         return "redirect:/profile/" + user.getId();
     }
 }
