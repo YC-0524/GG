@@ -76,7 +76,7 @@ class DashboardTests {
         User viewer = register("LonePlayer");
         String html = mockMvc.perform(get("/dashboard").with(authentication(login(viewer))))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-        assertTrue(html.contains("No other players have registered yet."));
+        assertTrue(html.contains("No more players to recommend right now."));
         assertTrue(html.contains("id=\"pass-button\" disabled"));
     }
 

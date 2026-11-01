@@ -26,7 +26,7 @@ button, select, input { font: inherit; }
     display: grid;
     grid-template-columns: 220px minmax(0, 1fr) 300px;
     min-height: 100svh;
-    max-width: 1600px;
+    width: 100%;
     margin: 0 auto;
 }
 
@@ -63,7 +63,7 @@ button, select, input { font: inherit; }
 .dashboard-main { min-width: 0; padding: 32px clamp(20px, 3vw, 48px); }
 .dashboard-header h2 { margin: 0; font-size: 16px; color: var(--accent-color); }
 .dashboard-header p { margin: 8px 0 24px; color: var(--muted-text); }
-.match-section { max-width: 560px; margin: 0 auto; }
+.match-section { width: 100%; margin: 0 auto; }
 .match-section h2 { margin: 0 0 28px; font-size: clamp(24px, 2.5vw, 34px); line-height: 1.2; }
 
 /* Preferences are disabled until real filtering is connected. */
@@ -228,7 +228,7 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid
 /* Fit all three columns within a normal laptop viewport. */
 @media (min-width: 1000px) {
     .dashboard-layout {
-        grid-template-columns: 190px minmax(0, 1fr) 280px;
+        grid-template-columns: clamp(190px, 15vw, 300px) minmax(0, 1fr) clamp(260px, 22vw, 440px);
     }
 
     .sidebar { gap: 14px; padding: 20px 16px; }
@@ -255,11 +255,16 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid
     .match-section h2 { margin-bottom: 14px; font-size: 26px; }
     .player-card-stack {
         /* Reserve room for the header, title and action buttons. */
-        width: min(100%, calc((100svh - 270px) * 0.8 + 48px));
+        width: min(100%, 48vw);
         margin: 0 auto;
         padding-left: 48px;
     }
-    .player-card { min-height: 240px; padding: 20px; }
+    .player-card {
+        min-height: 240px;
+        height: calc(100svh - 270px);
+        aspect-ratio: auto;
+        padding: 20px;
+    }
     .player-card h3 { margin-bottom: 6px; font-size: 26px; }
     .match-actions { margin-top: 14px; }
 

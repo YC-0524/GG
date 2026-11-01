@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>Game Gang - Dashboard</title>
     <link rel="stylesheet" href="/css/player-cards.css">
 </head>
@@ -39,7 +41,6 @@
         <main class="dashboard-main">
             <header class="dashboard-header">
                 <h2>Dashboard</h2>
-                <p id="welcome" th:text="|Welcome ${currentUsername}!|">Welcome!</p>
             </header>
     <!-- Actual registered players; the current user is excluded. -->
     <section class="match-section" aria-labelledby="match-title">
@@ -48,7 +49,7 @@
         <div class="player-card-stack">
             <article class="player-card" th:each="player, state : ${players}"
                      th:hidden="${!state.first}"
-                     th:attr="aria-labelledby=|player-name-${player.id}|">
+                     th:attr="aria-labelledby=|player-name-${player.id}|,data-player-id=${player.id}">
                 <div class="player-avatar" aria-hidden="true">
                     <span th:text="${player.initials}">?</span>
                     <img th:if="${player.avatar != null}" th:src="${player.avatar}" alt="">
@@ -67,7 +68,7 @@
                 </span>
                 <span>Pass</span>
             </button>
-            <button type="button" class="match-action" id="like-button" disabled>
+            <button type="button" class="match-action" id="like-button" th:disabled="${#lists.isEmpty(players)}">
                 <span class="action-circle" aria-hidden="true">
                     <svg viewBox="0 0 48 48" focusable="false">
                         <path d="M24 42L7 25C-5 12 13-2 24 11C35-2 53 12 41 25Z" fill="currentColor"/>
@@ -78,7 +79,7 @@
             <button type="button" id="restart-button" hidden>View again</button>
         </div>
         <p id="match-status" role="status"
-           th:text="${#lists.isEmpty(players)} ? 'No other players have registered yet.' : 'Browse players with Pass.'"></p>
+           th:text="${#lists.isEmpty(players)} ? 'No more players to recommend right now.' : 'Browse players with Pass.'"></p>
     </section>
 
         </main>

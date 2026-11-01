@@ -1,26 +1,30 @@
 document.addEventListener("DOMContentLoaded", () => {
     const cards = Array.from(document.querySelectorAll(".player-card"));
     const passButton = document.getElementById("pass-button");
+    const likeButton = document.getElementById("like-button");
     const restartButton = document.getElementById("restart-button");
     const status = document.getElementById("match-status");
     const recentIndices = [];
+    const likedIndices = new Set();
+    const availableCount = () => cards.length - likedIndices.size;
 
     let queuedIndex;
+    let currentIndex;
+    let savingLike = false;
 
     function chooseNextIndex() {
-        // With fewer than three players, avoid as many repeats as possible.
-        const historyLimit = Math.min(2, cards.length - 1);
-        const excludedIndices = historyLimit > 0
-            ? recentIndices.slice(-historyLimit)
-            : [];
-        const candidates = cards
-            .map((card, index) => index)
-            .filter(index => !excludedIndices.includes(index));
+        const available = cards.map((card, index) => index)
+            .filter(index => !likedIndices.has(index));
+        // Keep recent history only for players still eligible for recommendation.
+        const historyLimit = Math.min(2, Math.max(0, available.length - 1));
+        const recentAvailable = recentIndices.filter(index => !likedIndices.has(index));
+        const excludedIndices = historyLimit > 0 ? recentAvailable.slice(-historyLimit) : [];
+        const candidates = available.filter(index => !excludedIndices.includes(index));
         return candidates[Math.floor(Math.random() * candidates.length)];
     }
 
     function showRandomCard() {
-        const currentIndex = queuedIndex ?? chooseNextIndex();
+        currentIndex = queuedIndex ?? chooseNextIndex();
 
         if (currentIndex !== undefined) {
             recentIndices.push(currentIndex);
@@ -28,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // Choose once so the preview becomes the next main card on Pass.
-        queuedIndex = cards.length > 1 ? chooseNextIndex() : undefined;
+        queuedIndex = availableCount() > 1 ? chooseNextIndex() : undefined;
         cards.forEach((card, index) => {
             const isCurrent = index === currentIndex;
             const isPreview = index === queuedIndex;
@@ -38,10 +42,11 @@ document.addEventListener("DOMContentLoaded", () => {
             card.setAttribute("aria-hidden", String(!isCurrent));
         });
 
-        passButton.disabled = cards.length < 2;
+        passButton.disabled = availableCount() < 2;
+        likeButton.disabled = availableCount() === 0;
         restartButton.hidden = true;
-        status.textContent = cards.length === 0
-            ? "No other players have registered yet."
+        status.textContent = availableCount() === 0
+            ? "No more players to recommend right now."
             : "";
     }
 
@@ -52,6 +57,34 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     passButton.addEventListener("click", showRandomCard);
+
+    likeButton.addEventListener("click", async () => {
+        if (savingLike || currentIndex === undefined) return;
+        savingLike = true;
+        likeButton.disabled = true;
+        passButton.disabled = true;
+        likeButton.setAttribute("aria-busy", "true");
+        const token = document.querySelector('meta[name="_csrf"]')?.content;
+        const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+        try {
+            const response = await fetch(`/dashboard/players/${cards[currentIndex].dataset.playerId}/like`, {
+                method: "POST",
+                credentials: "same-origin",
+                headers: token && header ? { [header]: token } : {}
+            });
+            if (response.status !== 204) throw new Error("Like failed");
+            likedIndices.add(currentIndex);
+            if (queuedIndex !== undefined && likedIndices.has(queuedIndex)) queuedIndex = undefined;
+            showRandomCard();
+        } catch (error) {
+            status.textContent = "Could not save your Like. Please try again or sign in again.";
+        } finally {
+            savingLike = false;
+            likeButton.disabled = availableCount() === 0;
+            passButton.disabled = availableCount() < 2;
+            likeButton.removeAttribute("aria-busy");
+        }
+    });
 
     showRandomCard();
 });
