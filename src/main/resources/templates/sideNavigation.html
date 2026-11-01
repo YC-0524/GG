@@ -1,30 +1,36 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <body>
-    <div th:fragment="sideNavigation" class="side-navigation">
+    <div th:fragment="sideNavigation" class="sidebar">
         <link rel="stylesheet" th:href="@{/css/sideNav.css}" />
-        <section>
-            <h1>GG</h1>
-            <a href="/dashboard">
-                <img src="/images/search.svg" alt="Match Icon" />
-                <span>Match</span>
-            </a>
-            <a href="/dashboard/party-search">
-                <img src="/images/group.svg" alt="Find Party" />
-                <span>Find Party</span>
-            </a>
-            <a href="/profile/search">
-                <img src="/images/profileSearch.svg" alt="Search Profiles" />
-                <span>Profile Search</span>
-            </a>
+        <a class="brand" href="/" aria-label="Game Gang home">
+            <span class="brand-mark" aria-hidden="true">GG</span>
+            <span class="brand-name">GAME GANG</span>
+        </a>
+        <h1>Game Gang</h1>
+        <nav aria-label="Main navigation">
+            <a class="nav-link active" href="/dashboard" aria-current="page">Match</a>
+            <a class="nav-link" href="/profile/me">Profile</a>
+        </nav>
+        <section class="sidebar-section">
+            <h3>Your Games</h3>
+            <p>Browse</p>
         </section>
-        <section>
-            <a href="/profile/me">
-                <img src="/images/person.svg" alt="Profile Icon" />
-                <span>My Profile</span>
-            </a>
+        <section class="sidebar-section" id="moderator" th:hidden="${user == null || user.role.name() != 'MODERATOR'}">
+            <h3>Moderation</h3>
+            <p>Review Reports</p>
+            <a href="/dashboard/moderator">Open Moderator Tools</a>
+        </section>
+        <section class="sidebar-section" id="admin" th:hidden="${user == null || user.role.name() != 'ADMIN'}">
+            <h3>Admin</h3>
+            <p>Review Users</p>
+            <a href="/dashboard/admin">Open Admin Tools</a>
+        </section>
+        <div class="logout-area">
             <div th:replace="~{logout :: logoutButton}"></div>
-        </section>
+        </div>
     </div>
 </body>
+
 </html>

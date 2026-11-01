@@ -25,31 +25,6 @@
 
 /* Temporary text branding until a final GG logo is selected. */
 
-.brand {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: fit-content;
-    margin: 0 auto;
-}
-
-.brand-mark {
-    color: var(--accent);
-    font-size: 44px;
-    font-weight: 900;
-    font-style: italic;
-    letter-spacing: -5px;
-    line-height: 1.1;
-    padding-right: 5px;
-}
-
-.brand-name {
-    margin-top: 8px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 2.4px;
-}
-
 .login-heading {
     margin: 25px 0 28px;
     text-align: center;
@@ -145,7 +120,7 @@
     width: 100%;
     min-height: 49px;
     padding: 12px 14px;
-    border: 1px solid var(--field-border);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     background: rgb(12 13 26 / 58%);
     color: var(--text-primary);

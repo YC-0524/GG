@@ -1,6 +1,5 @@
 package com.group17.game.Controllers;
 
-import com.group17.game.DTOs.PlayerCard;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 import org.junit.jupiter.api.Test;

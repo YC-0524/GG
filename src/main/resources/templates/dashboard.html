@@ -7,39 +7,13 @@
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>Game Gang - Dashboard</title>
-    <link rel="stylesheet" href="/css/player-cards.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/playerCards.css">
 </head>
 
 <body>
     <div class="dashboard-layout">
-        <aside class="sidebar" aria-label="Sidebar">
-            <a class="brand" href="/" aria-label="Game Gang home">
-                <span class="brand-mark" aria-hidden="true">GG</span>
-                <span class="brand-name">GAME GANG</span>
-            </a>
-            <h1>Game Gang</h1>
-            <nav aria-label="Main navigation">
-                <a class="nav-link active" href="/dashboard" aria-current="page">Match</a>
-                <a class="nav-link" href="/profile/me">Profile</a>
-            </nav>
-            <section class="sidebar-section">
-                <h3>Your Games</h3>
-                <p>Browse</p>
-            </section>
-            <section class="sidebar-section" id="moderator" th:hidden="${!showModerator}">
-                <h3>Moderation</h3>
-                <p>Review Reports</p>
-                <a href="/dashboard/moderator">Open Moderator Tools</a>
-            </section>
-            <section class="sidebar-section" id="admin" th:hidden="${!showAdmin}">
-                <h3>Admin</h3>
-                <p>Review Users</p>
-                <a href="/dashboard/admin">Open Admin Tools</a>
-            </section>
-            <div class="logout-area">
-                <div th:replace="~{logout :: logoutButton}"></div>
-            </div>
-        </aside>
+        <nav th:replace="~{sideNavigation :: sideNavigation}"></nav>
         <main class="dashboard-main">
             <header class="dashboard-header">
                 <h2>Dashboard</h2>

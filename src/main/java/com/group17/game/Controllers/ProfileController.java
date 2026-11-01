@@ -14,6 +14,8 @@ import com.group17.game.Models.CurrentUser;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 
+import jakarta.annotation.Nullable;
+
 @Controller
 @RequestMapping("/profile") // prefixes /profile to other routes in here
 public class ProfileController {
@@ -55,16 +57,17 @@ public class ProfileController {
     }
 
     @GetMapping("/{userID}")
-    public String getUserProfile(@PathVariable("userID") long userID, Model model) {
-        Optional<User> userOption = userRepository.findById(userID);
-        if (userOption.isEmpty()) {
+    public String getUserProfile(@PathVariable("userID") long userID, Model model, @Nullable @CurrentUser User user) {
+        Optional<User> profileOption = userRepository.findById(userID);
+        if (profileOption.isEmpty()) {
             return "redirect:/profile/search?error=User doesn't exist";
         }
 
-        User user = userOption.get();
-        user.setPasswordHash("");
-        user.setEmail("");
-        model.addAttribute("profile", user);
+        User profile = profileOption.get();
+        profile.setPasswordHash("");
+        profile.setEmail("");
+        model.addAttribute("profile", profile);
+        model.addAttribute("user", user);
         return "profile";
     }
 }
