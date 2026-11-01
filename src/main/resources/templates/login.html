@@ -2,130 +2,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Set the page character encoding and responsive viewport. -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Set the browser tab title. -->
     <title>Game Gang | Login</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #101014;
-            color: white;
-            font-family: Arial, sans-serif;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 420px;
-            padding: 35px;
-            background: #1c1c24;
-            border-radius: 15px;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        p {
-            text-align: center;
-            color: #aaa;
-        }
-
-        input {
-            width: 100%;
-            padding: 14px;
-            margin: 10px 0;
-            border: 1px solid #444;
-            border-radius: 8px;
-            background: #292932;
-            color: white;
-        }
-
-        button, .discord {
-            display: block;
-            width: 100%;
-            padding: 14px;
-            margin-top: 15px;
-            border: none;
-            border-radius: 8px;
-            background: #5865F2;
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            cursor: pointer;
-            font-size: 15px;
-        }
-
-        .register {
-            color: #7289ff;
-        }
-
-        #error {
-            color: #ff6464;
-            text-align: center;
-        }
-    </style>
+    <!-- Load the shared login page stylesheet. -->
+    <link rel="stylesheet" href="/css/login.css">
 </head>
 
 <body>
 
-<div class="container">
+    <!-- Main login page container. -->
+    <main class="login-page">
+        <section class="login-card">
 
-    <h1>Welcome Back</h1>
-    <p>Sign in to Game Gang</p>
+            <!-- Game Gang branding. -->
+            <div class="brand">
+                <div class="brand-mark">GG</div>
+                <div class="brand-name">GAME GANG</div>
+            </div>
 
-    <div id="error"></div>
+            <!-- Login heading. -->
+            <div class="login-heading">
+                <h1>Welcome Back</h1>
+                <p>Sign in to Game Gang</p>
+            </div>
 
-    <form action="/auth/login-email" method="POST">
+            <!-- Display login errors when an error is present. -->
+            <p class="error-message" id="error-message" role="alert" hidden></p>
 
-        <input
-            type="email"
-            name="email"
-            placeholder="Email address"
-            required
-        >
+            <!-- Google sign-in option. -->
+            <a class="google-button" href="/oauth2/authorization/google">
+                <!-- Google logo. -->
+                <svg viewBox="0 0 48 48" aria-hidden="true">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 38.04 46.98 31.93 46.98 24.55z"/>
+                    <path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.88.93 7.55 2.56 10.78l7.97-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.14 1.45-4.88 2.3-8.18 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                Continue with Google
+            </a>
 
-        <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            required
-        >
+            <!-- Discord sign-in option. -->
+            <a class="discord-button" href="/auth/discord">
+                Continue with Discord
+            </a>
 
-        <button type="submit">Login</button>
+            <!-- Separate social login from email login. -->
+            <div class="divider">
+                <span>or log in with email</span>
+            </div>
 
-    </form>
+            <!-- Email and password login form. -->
+            <form action="/auth/login-email" method="POST">
 
-    <a class="discord" href="/auth/discord">
-        Continue with Discord
-    </a>
+                <!-- Email input field. -->
+                <div class="form-field">
+                    <label for="email">Email address</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="Enter your email"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
 
-    <p>
-        Don't have an account?
-        <a class="register" href="/auth/register">Register</a>
-    </p>
+                <!-- Password input field. -->
+                <div class="form-field">
+                    <label for="password">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
 
-</div>
+                <!-- Submit the login form. -->
+                <button class="login-button" type="submit">
+                    Login
+                </button>
+            </form>
 
-<script>
-    const params = new URLSearchParams(window.location.search);
-    const error = params.get("error");
+            <!-- Link to the registration page. -->
+            <p class="signup-note">
+                Don't have an account?
+                <a href="/auth/register">Register</a>
+            </p>
 
-    if (error) {
-        document.getElementById("error").textContent =
-            error.replaceAll("+", " ");
-    }
-</script>
+        </section>
+    </main>
+
+    <script>
+        // Read the error message from the URL.
+        const params = new URLSearchParams(window.location.search);
+        const error = params.get("error");
+
+        // Display the error message if one exists.
+        if (error) {
+            const errorElement = document.getElementById("error-message");
+
+            errorElement.textContent = error.replaceAll("+", " ");
+            errorElement.hidden = false;
+        }
+    </script>
 
 </body>
 </html>
-

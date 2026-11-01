@@ -48,7 +48,7 @@ public class ProfileController {
         }
 
         User user = userOption.get();
-        user.setPassword_hash("");
+        user.setPasswordHash("");
         model.addAttribute("profile", user);
         return "profile";
     }

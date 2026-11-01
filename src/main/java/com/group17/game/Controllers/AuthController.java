@@ -1,4 +1,3 @@
-
 package com.group17.game.Controllers;
 
 import java.util.Date;
@@ -25,6 +24,8 @@ import org.springframework.web.client.RestClient;
 
 import com.group17.game.DTOs.DiscordTokenResponse;
 import com.group17.game.DTOs.DiscordUserResponse;
+import com.group17.game.Models.ChangePasswordFlow;
+import com.group17.game.Models.ChangePasswordFlowRepository;
 import com.group17.game.Models.LoginConnection;
 import com.group17.game.Models.LoginConnectionRepository;
 import com.group17.game.Models.LoginMethod;
@@ -32,6 +33,7 @@ import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 import com.group17.game.Utilities.HashUtil;
 
+import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolationException;
@@ -42,7 +44,9 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final LoginConnectionRepository loginConnectionRepository;
+    private final ChangePasswordFlowRepository changePasswordFlowRepository;
 
+    // Store the authentication context in the user's HTTP session.
     private final SecurityContextRepository securityContextRepository =
             new HttpSessionSecurityContextRepository();
 
@@ -58,15 +62,19 @@ public class AuthController {
     @Value("${discord.oauth.oauth_uri}")
     private String discordOauthUri;
 
+    // Inject the repositories needed for authentication and password resets.
     public AuthController(
             UserRepository userRepository,
-            LoginConnectionRepository loginConnectionRepository) {
+            LoginConnectionRepository loginConnectionRepository,
+            ChangePasswordFlowRepository changePasswordFlowRepository) {
 
         this.userRepository = userRepository;
         this.loginConnectionRepository = loginConnectionRepository;
+        this.changePasswordFlowRepository = changePasswordFlowRepository;
     }
 
-    private void buildPersistence(
+    // Authenticate a user and save their login information in the session.
+    public void buildPersistence(
             User user,
             HttpServletRequest request,
             HttpServletResponse response) {
@@ -78,30 +86,78 @@ public class AuthController {
                         List.of(new SimpleGrantedAuthority(
                                 "ROLE_" + user.getRole())));
 
-        SecurityContext context =
-                SecurityContextHolder.createEmptyContext();
-
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authentication);
-
         SecurityContextHolder.setContext(context);
 
-        securityContextRepository.saveContext(
-                context, request, response);
+        securityContextRepository.saveContext(context, request, response);
     }
 
-    // LOGIN PAGE
+    // Create a password-reset flow for a user who needs to set a password.
+    public void forceResetPasswordFlow(User user) {
+        ChangePasswordFlow newFlow = new ChangePasswordFlow(
+                user.getId(),
+                true,
+                HashUtil.sha256Hash(HashUtil.generateRandomHash())
+        );
+
+        changePasswordFlowRepository.save(newFlow);
+    }
+
+    // Display the login page.
     @GetMapping("/login")
     public String loginPage() {
         return "redirect:/login.html";
     }
 
-    // REGISTRATION PAGE
+    // Display the registration page.
     @GetMapping("/register")
     public String registerPage() {
         return "redirect:/register.html";
     }
 
-    // EMAIL REGISTRATION
+    // Display the password-reset page.
+    @GetMapping("/set-password")
+    public String passwordFlowPage() {
+        return "passwordFlow";
+    }
+
+    // Update a user's password using a valid password-reset flow.
+    @PostMapping("/set-password")
+    public String updatePasswordFromFlow(
+            @RequestParam String newPassword,
+            @RequestParam String confirmPassword,
+            @RequestParam String secretKey) {
+
+        if (!newPassword.equals(confirmPassword)) {
+            return "redirect:/auth/set-password?error=Passwords must be the same";
+        }
+
+        ChangePasswordFlow flow =
+                changePasswordFlowRepository.findBySecretKey(secretKey);
+
+        if (flow == null || !flow.isActive()) {
+            return "redirect:/";
+        }
+
+        // Find the user associated with the password-reset flow.
+        User user = userRepository.findById(flow.getUserID()).orElse(null);
+
+        if (user == null) {
+            return "redirect:/";
+        }
+
+        // Save the new password and deactivate the reset flow.
+        user.setPasswordHash(HashUtil.sha256Hash(newPassword));
+        flow.setActive(false);
+
+        userRepository.save(user);
+        changePasswordFlowRepository.save(flow);
+
+        return "redirect:/dashboard";
+    }
+
+    // Register a new account using an email address and password.
     @PostMapping("/register-email")
     public String registerNewAccountViaEmail(
             @RequestParam String username,
@@ -121,6 +177,7 @@ public class AuthController {
         }
 
         try {
+            // Hash the password before saving the new user.
             String passwordHash = HashUtil.sha256Hash(password);
 
             User newUser = new User(
@@ -130,7 +187,6 @@ public class AuthController {
             );
 
             userRepository.save(newUser);
-
             buildPersistence(newUser, request, response);
 
             return "redirect:/profile/" + newUser.getId();
@@ -140,25 +196,30 @@ public class AuthController {
         }
     }
 
-    // DISCORD REDIRECT
+    // Redirect the user to Discord's OAuth login page.
     @GetMapping("/discord")
     public String redirectToDiscord() {
         return "redirect:" + discordOauthUri;
     }
 
-    // DISCORD CALLBACK
+    // Handle the callback after Discord authentication.
     @GetMapping("/discord/callback")
     public String loginWithDiscord(
-            @RequestParam("code") String code,
+            @Nullable @RequestParam("code") String code,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response,
+            @Nullable @RequestParam("error") String error) {
+
+        // Handle a cancelled or unsuccessful Discord login.
+        if (error != null || code == null) {
+            return "redirect:/auth/login?error=Cancelled login";
+        }
 
         try {
             RestClient restClient = RestClient.create();
 
-            MultiValueMap<String, String> form =
-                    new LinkedMultiValueMap<>();
-
+            // Prepare the authorization-code exchange request.
+            MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
             form.add("grant_type", "authorization_code");
             form.add("code", code);
             form.add("client_id", discordClientId);
@@ -178,6 +239,7 @@ public class AuthController {
                 return "redirect:/login.html?error=Discord+authentication+failed";
             }
 
+            // Retrieve the authenticated Discord user's information.
             DiscordUserResponse discordUser =
                     restClient.get()
                             .uri("https://discord.com/api/users/@me")
@@ -195,38 +257,49 @@ public class AuthController {
             }
 
             String email = discordUser.getEmail().trim().toLowerCase();
-
-            User user = userRepository.findByEmail(email);
-
-            if (user == null) {
-
-                String temporaryPassword =
-                        UUID.randomUUID().toString();
-
-                user = new User(
-                        discordUser.getUsername(),
-                        email,
-                        HashUtil.sha256Hash(temporaryPassword)
-                );
-
-                if (discordUser.getAvatar() != null) {
-                    user.setAvatar(
-                            "https://cdn.discordapp.com/avatars/"
-                            + discordUser.getId()
-                            + "/" + discordUser.getAvatar()
-                    );
-                }
-
-                userRepository.save(user);
-            }
-
             String loginID = "discord-" + discordUser.getId();
 
+            // Check whether this Discord account is already linked.
             LoginConnection connection =
                     loginConnectionRepository.findByLoginID(loginID);
 
-            if (connection == null) {
+            User user;
 
+            if (connection != null) {
+                user = userRepository.findById(connection.getUserID()).orElse(null);
+
+                if (user == null) {
+                    return "redirect:/auth/login?error=Linked account not found";
+                }
+            } else {
+                // Reuse an existing account with the same email if available.
+                user = userRepository.findByEmail(email);
+
+                if (user == null) {
+                    // Create a new user with a random temporary password.
+                    String temporaryPassword = UUID.randomUUID().toString();
+
+                    user = new User(
+                            discordUser.getUsername(),
+                            email,
+                            HashUtil.sha256Hash(temporaryPassword)
+                    );
+
+                    if (discordUser.getAvatar() != null) {
+                        user.setAvatar(
+                                "https://cdn.discordapp.com/avatars/"
+                                        + discordUser.getId()
+                                        + "/" + discordUser.getAvatar()
+                        );
+                    }
+
+                    userRepository.save(user);
+
+                    // Require the newly created Discord user to set a password.
+                    forceResetPasswordFlow(user);
+                }
+
+                // Link the Discord account to the application user.
                 connection = new LoginConnection(
                         loginID,
                         user.getId(),
@@ -244,12 +317,11 @@ public class AuthController {
 
         } catch (Exception ex) {
             ex.printStackTrace();
-
             return "redirect:/login.html?error=Discord+login+failed";
         }
     }
 
-    // EMAIL LOGIN
+    // Authenticate an existing user using their email and password.
     @PostMapping("/login-email")
     public String loginWithEmail(
             @RequestParam String email,
@@ -265,6 +337,7 @@ public class AuthController {
             return "redirect:/login.html?error=Invalid+credentials";
         }
 
+        // Compare the submitted password hash with the stored password hash.
         String hash = HashUtil.sha256Hash(password);
 
         if (!hash.equals(user.getPasswordHash())) {

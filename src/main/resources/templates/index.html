@@ -3,11 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b0c16">
     <title>GAME GANG</title>
+    <link rel="stylesheet" href="/css/login.css">
 </head>
 <body>
-    <h1>GAME GANG</h1>
-    <a href="/auth/register">Register</a>
-    <a href="/auth/login">Login</a>
+    <main class="login-page home-container">
+        <div class="example-image" aria-hidden="true"></div>
+
+        <section class="login-card welcome-panel" aria-labelledby="home-title">
+            <a class="brand" href="/" aria-label="Game Gang home">
+                <span class="brand-mark" aria-hidden="true">GG</span>
+                <span class="brand-name">GAME GANG</span>
+            </a>
+            
+            <header class="login-heading">
+                <h1 id="home-title">Welcome to Game Gang</h1>
+                <p>Your next gaming adventure starts here.</p>
+            </header>
+
+            <a class="login-button" href="/auth/register">Create an account</a>
+            <div class="divider"><span>Already have an account?</span></div>
+
+            <a class="discord-button" href="/auth/login">Log in</a>
+        </section>
+
+    </main>
 </body>
 </html>
