@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Search | GAME GANG</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/search.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <nav th:replace="~{sideNavigation :: sideNavigation}"></nav>
+        <div class="content-container">
+            <h2>Profile Search</h2>
+            <form action="/profile/search">
+                <input type="text" name="usernameFilter" id="usernameFilter" placeholder="Username filter">
+                <button type="submit">Search</button>
+            </form>
+            <span th:if="${error != null && error.length >= 0}" th:text="${error}"></span>
+            <table th:if="${results != null && results.size() > 0}">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Avatar</th>
+                        <th>Username</th>
+                        <th>Profile</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr th:each="user : ${results}">
+                        <td th:text="${user.id}"></td>
+                        <td>
+                            <img class="profile-avatar" th:if="${#strings.isEmpty(user.avatar)}" src="/images/person.svg" alt="Default Avatar" />
+                            <img class="profile-avatar" th:unless="${#strings.isEmpty(user.avatar)}" th:src="@{${user.avatar}}" alt="User Avatar" />
+                        </td>
+                        <td th:text="${user.username}"></td>
+                        <td>
+                            <a th:href="@{/profile/{id}(id=${user.id})}">Visit</a>
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>
