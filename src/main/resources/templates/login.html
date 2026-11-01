@@ -1,59 +1,118 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Set the page character encoding and responsive viewport. -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0b0c16">
-    <title>Log in | Game Gang</title>
+
+    <!-- Set the browser tab title. -->
+    <title>Game Gang | Login</title>
+
+    <!-- Load the shared login page stylesheet. -->
     <link rel="stylesheet" href="/css/login.css">
-    <script src="/js/login.js" defer></script>
 </head>
+
 <body>
+
+    <!-- Main login page container. -->
     <main class="login-page">
-        <section class="login-card" aria-labelledby="login-title">
-            <a class="brand" href="/" aria-label="Game Gang home">
-                <span class="brand-mark" aria-hidden="true">GG</span>
-                <span class="brand-name">GAME GANG</span>
+        <section class="login-card">
+
+            <!-- Game Gang branding. -->
+            <div class="brand">
+                <div class="brand-mark">GG</div>
+                <div class="brand-name">GAME GANG</div>
+            </div>
+
+            <!-- Login heading. -->
+            <div class="login-heading">
+                <h1>Welcome Back</h1>
+                <p>Sign in to Game Gang</p>
+            </div>
+
+            <!-- Display login errors when an error is present. -->
+            <p class="error-message" id="error-message" role="alert" hidden></p>
+
+            <!-- Google sign-in option. -->
+            <a class="google-button" href="/oauth2/authorization/google">
+                <!-- Google logo. -->
+                <svg viewBox="0 0 48 48" aria-hidden="true">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 38.04 46.98 31.93 46.98 24.55z"/>
+                    <path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.88.93 7.55 2.56 10.78l7.97-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.14 1.45-4.88 2.3-8.18 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                Continue with Google
             </a>
 
-            <header class="login-heading">
-                <h1 id="login-title">Welcome back</h1>
-            </header>
-
+            <!-- Discord sign-in option. -->
             <a class="discord-button" href="/auth/discord">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M19.7 5.1a18 18 0 0 0-4.4-1.4l-.6 1.2a16 16 0 0 0-5.4 0l-.6-1.2a18 18 0 0 0-4.4 1.4C1.5 9.3.7 13.5 1.1 17.6a18 18 0 0 0 5.4 2.7l1.1-1.9-1.7-.8.4-.3a13.6 13.6 0 0 0 11.4 0l.4.3-1.7.8 1.1 1.9a18 18 0 0 0 5.4-2.7c.5-4.8-.8-8.9-3.2-12.5ZM8.4 14.9c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Zm7.2 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Z"/>
-                </svg>
                 Continue with Discord
             </a>
 
-            <div class="divider"><span>or log in with email</span></div>
-            <p class="error-message" id="error-message" role="alert" hidden></p>
+            <!-- Separate social login from email login. -->
+            <div class="divider">
+                <span>or log in with email</span>
+            </div>
 
-            <form th:action="@{/auth/login-email}" method="POST">
+            <!-- Email and password login form. -->
+            <form action="/auth/login-email" method="POST">
+
+                <!-- Email input field. -->
                 <div class="form-field">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+                    <label for="email">Email address</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="Enter your email"
+                        autocomplete="email"
+                        required
+                    >
                 </div>
 
+                <!-- Password input field. -->
                 <div class="form-field">
                     <label for="password">Password</label>
-                    <div class="password-field">
-                        <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
-                        <button class="password-toggle" type="button" aria-label="Show password" aria-controls="password" aria-pressed="false">
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                        </button>
-                    </div>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
                 </div>
 
-                <button class="login-button" type="submit">Let's play</button>
+                <!-- Submit the login form. -->
+                <button class="login-button" type="submit">
+                    Login
+                </button>
             </form>
 
-            <p class="signup-note">Don't have an account yet? <a href="/auth/register">Create an account</a></p>
+            <!-- Link to the registration page. -->
+            <p class="signup-note">
+                Don't have an account?
+                <a href="/auth/register">Register</a>
+            </p>
+
         </section>
     </main>
+
+    <script>
+        // Read the error message from the URL.
+        const params = new URLSearchParams(window.location.search);
+        const error = params.get("error");
+
+        // Display the error message if one exists.
+        if (error) {
+            const errorElement = document.getElementById("error-message");
+
+            errorElement.textContent = error.replaceAll("+", " ");
+            errorElement.hidden = false;
+        }
+    </script>
+
 </body>
 </html>

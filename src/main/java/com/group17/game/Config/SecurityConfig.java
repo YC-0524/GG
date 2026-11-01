@@ -12,21 +12,46 @@ import com.group17.game.Models.ChangePasswordFlowRepository;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, ChangePasswordFlowRepository passwordFlowRepository) throws Exception {
-        // permit certain requests depending on the current auth state
+    public SecurityFilterChain filterChain(
+            HttpSecurity http,
+            GoogleLoginSuccessHandler googleLoginSuccessHandler,
+            ChangePasswordFlowRepository passwordFlowRepository)
+            throws Exception {
+
         http
+                // Allow login, registration, OAuth, and error pages without authentication.
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/**")
-                        .permitAll()
-                        .anyRequest().authenticated())
-                .addFilterBefore(new PasswordResetFilter(passwordFlowRepository), UsernamePasswordAuthenticationFilter.class)
+                        .requestMatchers(
+                                "/",
+                                "/login",
+                                "/error",
+                                "/auth/**",
+                                "/oauth2/**",
+                                "/login/oauth2/**"
+                        ).permitAll()
+                        // Require authentication for all other requests.
+                        .anyRequest().authenticated()
+                )
+                // Configure Google OAuth login.
+                .oauth2Login(oauth -> oauth
+                        .successHandler(googleLoginSuccessHandler)
+                )
+                // Add the password-reset filter.
+                .addFilterBefore(
+                        new PasswordResetFilter(passwordFlowRepository),
+                        UsernamePasswordAuthenticationFilter.class
+                )
+                // Configure logout.
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
                         .logoutSuccessUrl("/auth/login")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
-                        .deleteCookies("JSESSIONID"));
+                        .deleteCookies("JSESSIONID")
+                );
+
         return http.build();
     }
 }
