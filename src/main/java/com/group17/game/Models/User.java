@@ -13,6 +13,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 import java.util.Date;
+import java.time.Instant;
 
 @Entity
 @Table(name = "users")
@@ -41,6 +42,11 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private UserRole role = UserRole.USER;
+
+    @Enumerated(EnumType.STRING)
+    private UserStatus status = UserStatus.ACTIVE;
+
+    private Instant timeoutUntil;
     
     // sha256 hashes are exactly 64 characters
     @Column(name = "password_hash")
@@ -102,6 +108,15 @@ public class User {
         return  this.role;
     }
 
+    // status getters
+    public UserStatus getStatus() {
+        return status;
+    }
+
+    public java.time.Instant getTimeoutUntil() {
+        return timeoutUntil;
+    }
+
     // Setters
     public void setId(long id) {
         this.id = id;
@@ -129,5 +144,14 @@ public class User {
 
     public void setRole(UserRole role) {
         this.role = role;
+    }
+
+    // status setters
+    public void setStatus(UserStatus status) {
+        this.status = status;
+    }
+
+    public void setTimeoutUntil(java.time.Instant timeoutUntil) {
+        this.timeoutUntil = timeoutUntil;
     }
 }

@@ -9,6 +9,74 @@
     <h1>Game Gang</h1>
     <h2>Admin Settings</h2>
 
+    <!--Lists out the users and suspension requests-->
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Registration Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.id}"></td>
+                <td th:text="${user.username}"></td>
+                <td th:text="${user.email}"></td>
+                <td th:text="${user.role}"></td>
+                <td th:text="${user.status}"></td>
+                <td th:text="${user.registered}"></td>
+                <td>
+                    <form th:if="${user.status?.name() != 'SUSPENDED'}" 
+                          th:action="@{/dashboard/admin/users/{id}/suspend(id=${user.id})}" method="post">
+                        <button type="submit">Suspend</button>
+                    </form>
+                    <form th:if="${user.status?.name() == 'SUSPENDED'}" 
+                          th:action="@{/dashboard/admin/users/{id}/unsuspend(id=${user.id})}" method="post">
+                        <button type="submit">Unsuspend</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+        
+    </table>
+
+    <h3>Pending Suspension Requests</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Request ID</th>
+                <th>Target User ID</th>
+                <th>Request by (ID)</th>
+                <th>Reason</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr th:each="req : ${requests}">
+                <td th:text="${req.id}"></td>
+                <td th:text="${req.targetedUserId}"></td>
+                <td th:text="${req.requestedById}"></td>
+                <td th:text="${req.reason}"></td>
+                <td>
+                    <form th:action="@{/dashboard/admin/requests/{id}/approve(id=${req.id})}" method="post">
+                        <button type="submit">Approve</button>
+                    </form>
+                    <form th:action="@{/dashboard/admin/requests/{id}/deny(id=${req.id})}" method="post">
+                        <button type="submit">Deny</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+
+    </table>
+
     <a href="/dashboard">Back To Dashboard</a>
 </body>
 </html>
