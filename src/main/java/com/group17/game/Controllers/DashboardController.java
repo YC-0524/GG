@@ -1,45 +1,31 @@
 package com.group17.game.Controllers;
 
-<<<<<<< HEAD
+import java.util.List;
+
+import com.group17.game.DTOs.UserSummary;
+import com.group17.game.Models.RequestStatus;
+import com.group17.game.Models.SuspensionRequestRepository;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 import com.group17.game.Models.UserRole;
-import org.springframework.security.core.Authentication;
-=======
-import java.util.List;
 
->>>>>>> origin/main
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-<<<<<<< HEAD
-=======
-
-import com.group17.game.DTOs.UserSummary;
-import com.group17.game.Models.RequestStatus;
-import com.group17.game.Models.User;
-import com.group17.game.Models.UserRepository;
-import com.group17.game.Models.SuspensionRequestRepository;
-import com.group17.game.Models.UserRole;
->>>>>>> origin/main
 
 @Controller
 @RequestMapping("/dashboard")
 public class DashboardController {
     private final UserRepository userRepository;
-<<<<<<< HEAD
-
-    public DashboardController(UserRepository userRepository) {
-        this.userRepository = userRepository;
-=======
     private final SuspensionRequestRepository requestRepository;
 
-    // necessary constructor
-    public DashboardController(UserRepository userRepository, SuspensionRequestRepository requestRepository) {
+    public DashboardController(
+            UserRepository userRepository,
+            SuspensionRequestRepository requestRepository) {
         this.userRepository = userRepository;
         this.requestRepository = requestRepository;
->>>>>>> origin/main
     }
 
     @GetMapping("")
