@@ -2,6 +2,7 @@ package com.group17.game.Controllers;
 
 import java.util.Date;
 import java.util.List;
+import java.time.Instant;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -34,6 +35,7 @@ import com.group17.game.Models.LoginMethod;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 import com.group17.game.Utilities.HashUtil;
+import com.group17.game.Models.UserStatus;
 
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
@@ -92,6 +94,26 @@ public class AuthController {
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
         securityContextRepository.saveContext(context, request, response);
+    }
+
+    // returns why login was blocked
+    private String getLoginBlockReason(User user) {
+        if (user.getStatus() == UserStatus.SUSPENDED) {
+            return "Account suspended";
+        }
+
+        if (user.getStatus() == UserStatus.TIMED_OUT) {
+            Instant until = user.getTimeoutUntil();
+            if (until != null && Instant.now().isBefore(until)) {
+                return "Account timed out";
+            }
+
+            user.setStatus(UserStatus.ACTIVE);
+            user.setTimeoutUntil(null);
+            userRepository.save(user);
+        }
+
+        return null;
     }
 
     public void forceResetPasswordFlow(User user) {
@@ -246,6 +268,11 @@ public class AuthController {
             } catch (ConstraintViolationException ex) {
                 return "redirect:/auth/login?error=Failed to create user";
             }
+        }
+
+        String blockReason = getLoginBlockReason(user);
+        if (blockReason != null) {
+            return "redirect:/auth/login?error=" + blockReason;
         }
 
         // Generate token based off password

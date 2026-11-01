@@ -10,6 +10,40 @@
     <h2>Moderation Tools</h2>
     <div th:replace="~{logout :: logoutButton}"></div>
 
+    <!--Lists out users and possible moderator actions-->
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.id}"></td>
+                <td th:text="${user.username}"></td>
+                <td th:text="${user.status}"></td>
+                <td>
+                    <form th:action="@{/dashboard/moderator/users/{id}/timeout(id=${user.id})}" method="post">
+                        <input type="number" name="minutes" min="1" max="10080" value="30" required></input>
+                        <button type="submit">Time out (minutes)</button>
+                    </form>
+                    <form th:action="@{/dashboard/moderator/users/{id}/clean(id=${user.id})}" method="post">
+                        <button type="submit">Clean user</button>
+                    </form>
+                    <form th:action="@{/dashboard/moderator/users/{id}/request-suspension(id=${user.id})}" method="post">
+                        <input type="text" name="reason" placeholder="reason" required>
+                        <button type="submit">Request Suspension</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+        
+    </table>
+
     <a href="/dashboard">Back To Dashboard</a>
 </body>
 </html>
