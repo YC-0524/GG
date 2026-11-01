@@ -3,38 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>Game Gang - Dashboard</title>
+    <link rel="stylesheet" href="/css/player-cards.css">
 </head>
 <body>
-    <h1>Game Gang</h1>
-    <h2>Dashboard</h2>
-    <div th:replace="~{logout :: logoutButton}"></div>
+    <div class="dashboard-layout">
+        <aside class="sidebar" aria-label="Sidebar">
+            <a class="brand" href="/" aria-label="Game Gang home">
+                <span class="brand-mark" aria-hidden="true">GG</span>
+                <span class="brand-name">GAME GANG</span>
+            </a>
+            <h1>Game Gang</h1>
+            <nav aria-label="Main navigation">
+                <a class="nav-link active" href="/dashboard" aria-current="page">Match</a>
+                <a class="nav-link" href="/profile/me">Profile</a>
+            </nav>
+            <section class="sidebar-section">
+                <h3>Your Games</h3>
+                <p>Browse</p>
+            </section>
+            <section class="sidebar-section" id="moderator" th:hidden="${!showModerator}">
+                <h3>Moderation</h3>
+                <p>Review Reports</p>
+                <a href="/dashboard/moderator">Open Moderator Tools</a>
+            </section>
+            <section class="sidebar-section" id="admin" th:hidden="${!showAdmin}">
+                <h3>Admin</h3>
+                <p>Review Users</p>
+                <a href="/dashboard/admin">Open Admin Tools</a>
+            </section>
+            <div class="logout-area">
+                <div th:replace="~{logout :: logoutButton}"></div>
+            </div>
+        </aside>
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <h2>Dashboard</h2>
+            </header>
+    <!-- Actual registered players; the current user is excluded. -->
+    <section class="match-section" aria-labelledby="match-title">
+        <h2 id="match-title">Find Your Gaming Partner</h2>
 
-    <p id="welcome">Loading profile...</p>
+        <div class="player-card-stack">
+            <article class="player-card" th:each="player, state : ${players}"
+                     th:hidden="${!state.first}"
+                     th:attr="aria-labelledby=|player-name-${player.id}|,data-player-id=${player.id}">
+                <div class="player-avatar" aria-hidden="true">
+                    <span th:text="${player.initials}">?</span>
+                    <img th:if="${player.avatar != null}" th:src="${player.avatar}" alt="">
+                </div>
+                <h3 th:id="|player-name-${player.id}|" th:text="${player.username}">Player</h3>
+                <a th:href="@{/profile/{id}(id=${player.id})}">View profile</a>
+            </article>
+        </div>
 
-    <!--available to all-->
-    <section>
-        <h3>Your Games</h3>
-        <p>Browse</p>
+        <div class="match-actions">
+            <button type="button" class="match-action" id="pass-button" th:disabled="${#lists.isEmpty(players)}">
+                <span class="action-circle" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" focusable="false">
+                        <path d="M12 12L36 36M36 12L12 36" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <span>Pass</span>
+            </button>
+            <button type="button" class="match-action" id="like-button" th:disabled="${#lists.isEmpty(players)}">
+                <span class="action-circle" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" focusable="false">
+                        <path d="M24 42L7 25C-5 12 13-2 24 11C35-2 53 12 41 25Z" fill="currentColor"/>
+                    </svg>
+                </span>
+                <span>Like</span>
+            </button>
+            <button type="button" id="restart-button" hidden>View again</button>
+        </div>
+        <p id="match-status" role="status"
+           th:text="${#lists.isEmpty(players)} ? 'No more players to recommend right now.' : 'Browse players with Pass.'"></p>
     </section>
 
-    <!--moderators only-->
-    <section id="moderator" hidden>
-        <h3>Moderation</h3>
-        <p>Review Reports</p>
-
-        <a href="/moderator">Open Moderator Tools</a>
-    </section>
-
-    <!--admin only-->
-    <section id="admin" hidden>
-        <h3>Admin</h3>
-        <p>Review Users</p>
-
-        <a href="/admin">Open Admin Tools</a>
-    </section>
-
-
+        </main>
+        <aside class="preferences" aria-labelledby="preferences-title">
+            <h2 id="preferences-title">My Preferences</h2>
+            <p class="preferences-note" id="preferences-note">Filters are coming soon.</p>
+            <fieldset disabled aria-describedby="preferences-note">
+                <legend>Game Genres</legend>
+                <div class="genre-options">
+                    <label><input type="checkbox" name="genre" value="RPG"> RPG</label>
+                    <label><input type="checkbox" name="genre" value="FPS"> FPS</label>
+                    <label><input type="checkbox" name="genre" value="MOBA"> MOBA</label>
+                    <label><input type="checkbox" name="genre" value="Co-op"> Co-op</label>
+                    <label><input type="checkbox" name="genre" value="Survival"> Survival</label>
+                    <label><input type="checkbox" name="genre" value="Casual"> Casual</label>
+                </div>
+                <div class="preference-field">
+                    <label for="age-range">Age Range</label>
+                    <select id="age-range"><option>Any</option></select>
+                </div>
+                <div class="preference-field">
+                    <label for="region">Region</label>
+                    <select id="region"><option>Any</option></select>
+                </div>
+                <div class="preference-field">
+                    <label for="play-time">Play Time</label>
+                    <select id="play-time"><option>Any</option></select>
+                </div>
+                <div class="preference-field">
+                    <label for="mic-preference">Mic Preference</label>
+                    <select id="mic-preference"><option>Any</option></select>
+                </div>
+            </fieldset>
+        </aside>
+    </div>
     <script src="/js/dashboard.js" defer></script>
 </body>
 </html>
