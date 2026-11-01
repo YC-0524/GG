@@ -59,8 +59,22 @@
         </div>
 
         <div class="match-actions">
-            <button type="button" id="pass-button" th:disabled="${#lists.isEmpty(players)}">Pass</button>
-            <button type="button" id="like-button" disabled>Like</button>
+            <button type="button" class="match-action" id="pass-button" th:disabled="${#lists.isEmpty(players)}">
+                <span class="action-circle" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" focusable="false">
+                        <path d="M12 12L36 36M36 12L12 36" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <span>Pass</span>
+            </button>
+            <button type="button" class="match-action" id="like-button" disabled>
+                <span class="action-circle" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" focusable="false">
+                        <path d="M24 42L7 25C-5 12 13-2 24 11C35-2 53 12 41 25Z" fill="currentColor"/>
+                    </svg>
+                </span>
+                <span>Like</span>
+            </button>
             <button type="button" id="restart-button" hidden>View again</button>
         </div>
         <p id="match-status" role="status"
