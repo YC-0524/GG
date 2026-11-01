@@ -215,7 +215,7 @@ public class AuthController {
 
         String blockReason = getLoginBlockReason(user);
         if (blockReason != null) {
-            return "redirect:/login/error=" + blockReason;
+            return "redirect:/login?error=" + blockReason;
         }
 
         // Generate token based off password
