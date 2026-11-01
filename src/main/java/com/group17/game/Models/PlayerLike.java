@@ -26,4 +26,21 @@ public class PlayerLike {
         this.sender = sender;
         this.target = target;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public User getSender() {
+        return sender;
+    }
+
+    public User getTarget() {
+        return target;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
 }
