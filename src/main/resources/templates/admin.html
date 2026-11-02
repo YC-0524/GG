@@ -41,6 +41,11 @@
                           th:action="@{/dashboard/admin/users/{id}/unsuspend(id=${user.id})}" method="post">
                         <button type="submit">Unsuspend</button>
                     </form>
+                    <form th:if="${user.role.name() != 'ADMIN'}"
+                          th:action="@{/dashboard/admin/users/{id}/delete(id=${user.id})}" method="post"
+                          onsubmit="return confirm('Permanently delete this user? This action cannot be undone.')">
+                        <button type="submit">Delete</button>
+                    </form>
                 </td>
             </tr>
         </tbody>

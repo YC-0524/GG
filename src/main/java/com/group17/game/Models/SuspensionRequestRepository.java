@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface SuspensionRequestRepository extends JpaRepository<SuspensionRequest, Long> {
     List<SuspensionRequest> findByStatus(RequestStatus status);
     List<SuspensionRequest> findByTargetUserIdAndStatus(Long targetUserId, RequestStatus status);
+    void deleteByTargetUserId(Long targetUserId);
 }

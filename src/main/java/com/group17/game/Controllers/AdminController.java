@@ -5,12 +5,21 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.group17.game.Models.*;
+import com.group17.game.Models.LoginConnectionRepository;
+import com.group17.game.Models.PlayerLikeRepository;
+import com.group17.game.Models.RequestStatus;
+import com.group17.game.Models.SuspensionRequest;
+import com.group17.game.Models.SuspensionRequestRepository;
+import com.group17.game.Models.User;
+import com.group17.game.Models.UserRepository;
+import com.group17.game.Models.UserRole;
+import com.group17.game.Models.UserStatus;
 import com.group17.game.Utilities.AccessService;
 
 
@@ -20,11 +29,16 @@ public class AdminController {
     private final UserRepository userRepository;
     private final SuspensionRequestRepository requestRepository;
     private final AccessService access;
+    private final LoginConnectionRepository loginConnectionRepository;
+    private final PlayerLikeRepository playerLikeRepository;
 
-    public AdminController(UserRepository userRepository, SuspensionRequestRepository requestRepository, AccessService access) {
+    public AdminController(UserRepository userRepository, SuspensionRequestRepository requestRepository, AccessService access, 
+        LoginConnectionRepository loginConnectionRepository, PlayerLikeRepository playerLikeRepository) {
         this.userRepository = userRepository;
         this.requestRepository = requestRepository;
         this.access = access;
+        this.loginConnectionRepository = loginConnectionRepository;
+        this.playerLikeRepository = playerLikeRepository;
     }
 
     // suspends user
@@ -84,6 +98,27 @@ public class AdminController {
         request.setStatus(RequestStatus.DENIED);
         requestRepository.save(request);
         
+        return "redirect:/dashboard/admin";
+    }
+
+    @PostMapping("/users/{id}/delete")
+    @Transactional
+    public String delete(@PathVariable Long id, Authentication auth) {
+        User actor = access.requireRole(auth, UserRole.ADMIN);
+        User target = findUser(id);
+        // can't delete yourself
+        access.assertCanModerate(actor, target);
+
+        if (target.getRole() == UserRole.ADMIN) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        loginConnectionRepository.deleteByUserID(id);
+        requestRepository.deleteByTargetUserId(id);
+        playerLikeRepository.deleteBySenderId(id);
+        playerLikeRepository.deleteByTargetId(id);
+
+        userRepository.delete(target);
         return "redirect:/dashboard/admin";
     }
 
