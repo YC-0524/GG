@@ -1,6 +1,7 @@
 /* Dashboard layout */
 :root {
     color-scheme: dark;
+    --site-font: system-ui, sans-serif;
     --page-background: #0c0e1c;
     --panel-background: #121426;
     --border-color: #2c2948;
@@ -8,18 +9,13 @@
     --accent-color: #b79aff;
 }
 
-* { box-sizing: border-box; }
-
 body {
-    margin: 0;
     background: var(--page-background);
     color: #f6f3ff;
-    font-family: system-ui, sans-serif;
     line-height: 1.5;
 }
 
 a { color: var(--accent-color); }
-button, select, input { font: inherit; }
 [hidden] { display: none !important; }
 
 .dashboard-layout {
@@ -39,15 +35,8 @@ button, select, input { font: inherit; }
     background: var(--panel-background);
 }
 
-.brand {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-decoration: none;
-}
-
-.brand-mark { font-size: 56px; font-weight: 900; font-style: italic; line-height: 1; }
-.brand-name { margin-top: 12px; font-size: 13px; font-weight: 700; letter-spacing: 4px; }
+.brand-mark { font-size: 56px; line-height: 1; }
+.brand-name { margin-top: 12px; font-size: 13px; letter-spacing: 4px; }
 .sidebar h1 { margin: 0; font-size: 22px; }
 .sidebar nav { display: grid; gap: 10px; }
 .nav-link { padding: 14px 18px; border: 1px solid transparent; border-radius: 12px; text-decoration: none; font-weight: 600; }
@@ -78,7 +67,6 @@ button, select, input { font: inherit; }
 .preference-field { display: grid; gap: 8px; padding: 16px 0; border-top: 1px solid var(--border-color); }
 .preference-field label { color: var(--muted-text); font-size: 15px; }
 .preference-field select { width: 100%; padding: 10px; border: 1px solid #40365e; border-radius: 8px; background: #19172b; color: #ddd5f3; opacity: 1; }
-a:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 4px; }
 
 /* Leave space on the left for the next card behind the main card. */
 .player-card-stack {
@@ -212,7 +200,6 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid
 .match-action:not(:disabled):active .action-circle { transform: scale(0.95); }
 .match-action:disabled { opacity: 0.65; cursor: not-allowed; }
 .match-action:focus-visible { outline: 2px solid #d5bfff; outline-offset: 5px; border-radius: 12px; }
-#restart-button { padding: 10px 20px; border: 1px solid #a47ae5; border-radius: 8px; background: #30245c; color: white; font: inherit; }
 
 @media (prefers-reduced-motion: reduce) {
     .action-circle { transition: none; }

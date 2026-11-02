@@ -6,6 +6,7 @@
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>Game Gang - Dashboard</title>
+    <link rel="stylesheet" href="/css/common.css">
     <link rel="stylesheet" href="/css/player-cards.css">
 </head>
 <body>
@@ -76,7 +77,6 @@
                 </span>
                 <span>Like</span>
             </button>
-            <button type="button" id="restart-button" hidden>View again</button>
         </div>
         <p id="match-status" role="status"
            th:text="${#lists.isEmpty(players)} ? 'No more players to recommend right now.' : 'Browse players with Pass.'"></p>
