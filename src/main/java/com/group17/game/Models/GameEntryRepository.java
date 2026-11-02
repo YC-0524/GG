@@ -1,0 +1,9 @@
+package com.group17.game.Models;
+
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface GameEntryRepository extends JpaRepository<GameEntry, Long> {
+    List<GameEntry> findByUserIdOrderByGameNameAsc(Long userId);
+    boolean existsByUserIdAndGameName(Long userId, String gameName);
+}

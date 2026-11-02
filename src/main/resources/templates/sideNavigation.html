@@ -24,7 +24,7 @@
         </nav>
         <section class="sidebar-section">
             <h3>Your Games</h3>
-            <p>Browse</p>
+            <a href="/games">Manage My Games</a>
         </section>
         <section class="sidebar-section" id="moderator" th:hidden="${user == null || user.role.name() != 'MODERATOR'}">
             <h3>Moderation</h3>

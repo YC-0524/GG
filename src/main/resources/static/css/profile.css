@@ -30,3 +30,36 @@
     height: 5rem;
     border-radius: 50%;
 }
+
+.profile-games-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.profile-games-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.profile-games {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.profile-games li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.profile-games li:last-child {
+    border-bottom: none;
+}
+
+.muted-text {
+    margin: 0;
+    color: var(--muted-text);
+}

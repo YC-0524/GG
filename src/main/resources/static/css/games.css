@@ -1,0 +1,112 @@
+.games-container {
+    flex: 1;
+    max-width: 60rem;
+}
+
+.add-game-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem;
+}
+
+.add-game-form .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1 1 12rem;
+}
+
+.add-game-form label {
+    color: var(--muted-text);
+    font-size: 0.9rem;
+}
+
+select {
+    font: inherit;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--panel-background);
+    color: inherit;
+}
+
+#add-game-button {
+    background: var(--accent-color);
+    color: var(--page-background);
+    font-weight: 600;
+}
+
+#add-game-button:disabled,
+select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.form-message {
+    margin: 0;
+    color: var(--muted-text);
+}
+
+.form-message:empty {
+    display: none;
+}
+
+.form-message.error {
+    color: #ff8a9a;
+}
+
+.games-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.games-table th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    background: var(--panel-background);
+    color: var(--muted-text);
+}
+
+.games-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.game-actions,
+.edit-game-form {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.game-actions {
+    justify-content: flex-end;
+}
+
+.game-actions form,
+.edit-game-form {
+    margin: 0;
+}
+
+.link-button {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--accent-color);
+}
+
+.remove-game-form[data-confirming="true"] .link-button {
+    color: #ff8a9a;
+    font-weight: 600;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
