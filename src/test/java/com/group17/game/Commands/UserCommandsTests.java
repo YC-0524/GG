@@ -1,6 +1,7 @@
 package com.group17.game.Commands;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,5 +51,31 @@ class UserCommandsTest {
         String result = userCommands.userUpgrade(1L, "ADMIN");
         assertThat(result).isEqualTo("User 1 is now ADMIN");
         verify(accessService).upgrade(1L, "ADMIN");
+    }
+
+    @Test
+    void userUpgradeReturnsEarlyResult() {
+        assertFalse(userRepo.existsById(1L));
+
+        when(accessService.upgrade(1L, "ADMIN")).thenReturn("Failed to find user with specified ID 1");
+
+        String result = userCommands.userUpgrade(1L, "ADMIN");
+        assertThat(result).isEqualTo("Failed to find user with specified ID 1");
+        verify(accessService).upgrade(1L, "ADMIN");
+    }
+
+    @Test
+    void userUpgradeReturnsExceptionResult() {
+        User user = new User("Test", "test@test.com", HashUtil.generateRandomHash());
+        userRepo.save(user);
+
+        assertTrue(userRepo.existsById(user.getId()));
+        assertTrue(user.getRole() == UserRole.USER);
+
+        when(accessService.upgrade(1L, "INVALID")).thenReturn("Failed to find role with specified name INVALID");
+
+        String result = userCommands.userUpgrade(1L, "INVALID");
+        assertThat(result).isEqualTo("Failed to find role with specified name INVALID");
+        verify(accessService).upgrade(1L, "INVALID");
     }
 }
