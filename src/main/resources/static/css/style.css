@@ -123,4 +123,18 @@ button:focus-visible {
         margin-top: 6px;
         font-size: 11px;
     }
+
+    .logout-area button {
+        padding: 8px;
+    }
+}
+
+@media (max-width: 640px) {
+    .brand {
+        align-items: flex-start;
+    }
+
+    .brand-mark {
+        font-size: 40px;
+    }
 }
