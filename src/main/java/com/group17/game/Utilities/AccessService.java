@@ -26,7 +26,8 @@ public class AccessService {
         }
 
         Long userId = (Long) auth.getPrincipal();
-        User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
         if (!List.of(allowed).contains(user.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
@@ -41,8 +42,11 @@ public class AccessService {
             return "Failed to find user with specified ID " + id;
         }
 
-        UserRole role = UserRole.valueOf(roleName);
-        if (role == null) {
+        UserRole role;
+
+        try {
+            role = UserRole.valueOf(roleName.toUpperCase());
+        } catch (IllegalArgumentException e) {
             return "Failed to find role with specified name " + roleName;
         }
 
