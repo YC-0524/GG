@@ -1,9 +1,9 @@
 package com.group17.game.Models;
 
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import java.util.List;
 import com.group17.game.DTOs.PlayerCard;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -20,4 +20,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
             + "and not exists (select l.id from PlayerLike l "
             + "where l.sender.id = :userId and l.target.id = u.id) order by u.id")
     List<PlayerCard> findPlayerCardsExcluding(@Param("userId") Long userId);
+    List<User> findByUsernameContaining(String username);
 }

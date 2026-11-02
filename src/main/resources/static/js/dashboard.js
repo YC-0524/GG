@@ -2,7 +2,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const cards = Array.from(document.querySelectorAll(".player-card"));
     const passButton = document.getElementById("pass-button");
     const likeButton = document.getElementById("like-button");
-    const restartButton = document.getElementById("restart-button");
     const status = document.getElementById("match-status");
     const recentIndices = [];
     const likedIndices = new Set();
@@ -13,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let savingLike = false;
 
     function chooseNextIndex() {
-        const available = cards.map((card, index) => index)
+        const available = Array.from(cards.keys())
             .filter(index => !likedIndices.has(index));
         // Keep recent history only for players still eligible for recommendation.
         const historyLimit = Math.min(2, Math.max(0, available.length - 1));
@@ -44,7 +43,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         passButton.disabled = availableCount() < 2;
         likeButton.disabled = availableCount() === 0;
-        restartButton.hidden = true;
         status.textContent = availableCount() === 0
             ? "No more players to recommend right now."
             : "";
