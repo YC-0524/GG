@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.group17.game.Models.GameEntryRepository;
 import com.group17.game.Models.LoginConnectionRepository;
 import com.group17.game.Models.PlayerLikeRepository;
 import com.group17.game.Models.RequestStatus;
@@ -31,14 +32,16 @@ public class AdminController {
     private final AccessService access;
     private final LoginConnectionRepository loginConnectionRepository;
     private final PlayerLikeRepository playerLikeRepository;
+    private final GameEntryRepository gameEntryRepository;
 
     public AdminController(UserRepository userRepository, SuspensionRequestRepository requestRepository, AccessService access, 
-        LoginConnectionRepository loginConnectionRepository, PlayerLikeRepository playerLikeRepository) {
+        LoginConnectionRepository loginConnectionRepository, PlayerLikeRepository playerLikeRepository, GameEntryRepository gameEntryRepository) {
         this.userRepository = userRepository;
         this.requestRepository = requestRepository;
         this.access = access;
         this.loginConnectionRepository = loginConnectionRepository;
         this.playerLikeRepository = playerLikeRepository;
+        this.gameEntryRepository = gameEntryRepository;
     }
 
     // suspends user
@@ -117,6 +120,7 @@ public class AdminController {
         requestRepository.deleteByTargetUserId(id);
         playerLikeRepository.deleteBySenderId(id);
         playerLikeRepository.deleteByTargetId(id);
+        gameEntryRepository.deleteByUserId(id);
 
         userRepository.delete(target);
         return "redirect:/dashboard/admin";
