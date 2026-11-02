@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <div th:fragment="sideNavigation" class="sidebar">
+        <link rel="stylesheet" th:href="@{/css/sideNav.css}" />
+        <a class="brand" href="/" aria-label="Game Gang home">
+            <span class="brand-mark" aria-hidden="true">GG</span>
+            <span class="brand-name">GAME GANG</span>
+        </a>
+        <nav aria-label="Main navigation">
+            <a class="nav-link active" href="/dashboard" aria-current="page">
+                <img src="/images/group.svg" alt="Match Icon">
+                <span>Match</span>
+            </a>
+            <a class="nav-link" href="/profile/me">
+                <img src="/images/person.svg" alt="Profile Picture" />
+                <span>My Profile</span>
+            </a>
+            <a class="nav-link" href="/profile/search">
+                <img src="/images/profileSearch.svg" alt="User Search" />
+                <span>Search Users</span>
+            </a>
+        </nav>
+        <section class="sidebar-section">
+            <h3>Your Games</h3>
+            <p>Browse</p>
+        </section>
+        <section class="sidebar-section" id="moderator" th:hidden="${user == null || user.role.name() != 'MODERATOR'}">
+            <h3>Moderation</h3>
+            <p>Review Reports</p>
+            <a href="/dashboard/moderator">Open Moderator Tools</a>
+        </section>
+        <section class="sidebar-section" id="admin" th:hidden="${user == null || user.role.name() != 'ADMIN'}">
+            <h3>Admin</h3>
+            <p>Review Users</p>
+            <a href="/dashboard/admin">Open Admin Tools</a>
+        </section>
+        <div class="logout-area">
+            <div th:replace="~{logout :: logoutButton}"></div>
+        </div>
+    </div>
+</body>
+
+</html>

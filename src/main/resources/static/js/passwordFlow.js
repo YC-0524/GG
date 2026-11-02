@@ -24,4 +24,4 @@ confirmPass.addEventListener("input", () => {
 })
 
 loading.style.display = "none";
-form.style.display = "block";
+form.style.display = "flex";
