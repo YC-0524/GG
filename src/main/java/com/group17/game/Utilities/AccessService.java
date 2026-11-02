@@ -35,6 +35,21 @@ public class AccessService {
         return user;
     }
 
+    public String upgrade(long id, String roleName) {
+        User user = userRepository.findById(id).get();
+        if (user == null) {
+            return "Failed to find user with specified ID " + id;
+        }
+
+        UserRole role = UserRole.valueOf(roleName);
+        if (role == null) {
+            return "Failed to find role with specified name " + roleName;
+        }
+
+        user.setRole(role);
+        userRepository.save(user);
+        return "Upgraded user " + id + " to role " + role;
+    }
 
     public void assertCanModerate(User actor, User target) {
         // can't ban/timeout yourself
