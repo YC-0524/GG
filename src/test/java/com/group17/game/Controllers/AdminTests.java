@@ -23,6 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.group17.game.Models.GameEntry;
+import com.group17.game.Models.GameEntryRepository;
 import com.group17.game.Models.LoginConnection;
 import com.group17.game.Models.LoginConnectionRepository;
 import com.group17.game.Models.LoginMethod;
@@ -53,6 +55,7 @@ class AdminTests {
     @Autowired SuspensionRequestRepository requests;
     @Autowired LoginConnectionRepository connections;
     @Autowired PlayerLikeRepository likes;
+    @Autowired GameEntryRepository games;
 
     // helper functions
     private User register(String name, UserRole role) {
@@ -164,6 +167,8 @@ class AdminTests {
         SuspensionRequest aboutBystander = fileRequest(bystander, mod);
         likes.saveAndFlush(new PlayerLike(victim, bystander));
         likes.saveAndFlush(new PlayerLike(bystander, victim));
+        games.saveAndFlush(new GameEntry(victim, "Valorant", "Gold 2"));
+        games.saveAndFlush(new GameEntry(bystander, "Valorant", "Silver 1"));
 
         mockMvc.perform(post(ADMIN + "/users/" + victim.getId() + "/delete")
                         .with(csrf()).with(loginAs(admin)))
@@ -178,6 +183,8 @@ class AdminTests {
         assertTrue(users.existsById(bystander.getId()));
         assertNotNull(connections.findByLoginID("discord-bystander"));
         assertTrue(requests.existsById(aboutBystander.getId()));
+        assertTrue(games.findByUserIdOrderByGameNameAsc(victim.getId()).isEmpty());
+        assertEquals(1, games.findByUserIdOrderByGameNameAsc(bystander.getId()).size());
     }
 
     // can't act on oneself or other admins
