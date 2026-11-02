@@ -19,6 +19,7 @@ public class SecurityConfig {
             ChangePasswordFlowRepository passwordFlowRepository) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/games", "/games/**").authenticated()
                         .requestMatchers("/auth/**", "/profile/**").permitAll()
                         .requestMatchers("/me", "/profile/me").authenticated()
                         .anyRequest().permitAll())

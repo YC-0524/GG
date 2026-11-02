@@ -22,6 +22,19 @@
                 <span th:text="'Role: ' + ${profile.role.name()}" style="text-transform: capitalize !important;"></span>
                 <span th:text="'Joined GG on ' + ${#dates.format(profile.registered, 'yyyy-MM-dd')}"></span>
             </section>
+            <section class="profile-section">
+                <div class="profile-games-header">
+                    <h2>Games</h2>
+                    <a th:if="${isOwner}" th:href="@{/games}">Manage games</a>
+                </div>
+                <p th:if="${#lists.isEmpty(games)}" class="muted-text">No games added yet</p>
+                <ul th:unless="${#lists.isEmpty(games)}" class="profile-games">
+                    <li th:each="game : ${games}">
+                        <span th:text="${game.gameName}">Valorant</span>
+                        <span class="muted-text" th:text="${game.rank}">Gold 2</span>
+                    </li>
+                </ul>
+            </section>
         </div>
     </div>
 </body>
