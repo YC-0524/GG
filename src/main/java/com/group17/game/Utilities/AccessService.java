@@ -1,6 +1,7 @@
 package com.group17.game.Utilities;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -26,7 +27,8 @@ public class AccessService {
         }
 
         Long userId = (Long) auth.getPrincipal();
-        User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
         if (!List.of(allowed).contains(user.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
@@ -35,6 +37,25 @@ public class AccessService {
         return user;
     }
 
+    public String upgrade(long id, String roleName) {
+        Optional<User> optionalUser = userRepository.findById(id);
+        if (optionalUser.isEmpty()) {
+            return "Failed to find user with specified ID " + id;
+        }
+        User user = optionalUser.get();
+
+        UserRole role;
+
+        try {
+            role = UserRole.valueOf(roleName.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return "Failed to find role with specified name " + roleName;
+        }
+
+        user.setRole(role);
+        userRepository.save(user);
+        return "Upgraded user " + id + " to role " + role;
+    }
 
     public void assertCanModerate(User actor, User target) {
         // can't ban/timeout yourself
