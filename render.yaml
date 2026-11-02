@@ -34,3 +34,12 @@ services:
         fromDatabase:
           name: game-db
           property: password
+      # Staff accounts, created on startup by StaffAccountSeeder. Set in the Render dashboard.
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: MODERATOR_EMAIL
+        sync: false
+      - key: MODERATOR_PASSWORD
+        sync: false
