@@ -1,6 +1,7 @@
 package com.group17.game.Config;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -38,8 +39,8 @@ public class PasswordResetFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain chain) throws ServletException, IOException {
+            HttpServletResponse response,
+            FilterChain chain) throws ServletException, IOException {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -47,18 +48,30 @@ public class PasswordResetFilter extends OncePerRequestFilter {
                 && auth.isAuthenticated()
                 && !(auth instanceof AnonymousAuthenticationToken)) {
 
-            Long userId = (Long)auth.getPrincipal();
-            if (userId == null) {
-                return;
-            }
+            Long userId = extractUserId(auth);
 
-            if (passwordFlowRepository.existsByUserIDAndActiveTrue(userId)) {
-                ChangePasswordFlow flow = passwordFlowRepository.findByUserIDAndActiveTrue(userId);
-                response.sendRedirect(request.getContextPath() + SET_PASSWORD_PATH + "?key=" + flow.getSecretKey());
-                return;
+            if (userId != null) {
+                Optional<ChangePasswordFlow> flow = passwordFlowRepository.findByUserIDAndActiveTrue(userId);
+
+                if (flow.isPresent()) {
+                    response.sendRedirect(request.getContextPath()
+                            + SET_PASSWORD_PATH + "?key=" + flow.get().getSecretKey());
+                    return;
+                }
             }
         }
 
         chain.doFilter(request, response);
+    }
+
+    private Long extractUserId(Authentication auth) {
+        Object principal = auth.getPrincipal();
+        if (principal instanceof Long l)
+            return l;
+        try {
+            return Long.parseLong(auth.getName());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

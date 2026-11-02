@@ -64,7 +64,6 @@ public class User {
         this.username = username;
         this.email = email;
         this.passwordHash = passwordHash;
-        //
         this.role = UserRole.USER;
         this.registered = new Date();
     }

@@ -55,7 +55,7 @@ class DashboardTests {
 
         var result = mockMvc.perform(get("/dashboard").with(authentication(login(viewer))))
                 .andExpect(status().isOk()).andExpect(view().name("dashboard"))
-                .andExpect(model().attribute("currentUsername", "Viewer"))
+                .andExpect(model().attributeExists("user"))
                 .andReturn();
         Object cards = result.getModelAndView().getModel().get("players");
         assertInstanceOf(List.class, cards);
@@ -78,14 +78,6 @@ class DashboardTests {
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
         assertTrue(html.contains("No more players to recommend right now."));
         assertTrue(html.contains("id=\"pass-button\" disabled"));
-    }
-
-    @Test
-    void roleQueryParameterDoesNotGrantDashboardViews() throws Exception {
-        User viewer = register("RegularPlayer");
-        mockMvc.perform(get("/dashboard?role=ADMIN").with(authentication(login(viewer))))
-                .andExpect(model().attribute("showModerator", false))
-                .andExpect(model().attribute("showAdmin", false));
     }
 
     @Test

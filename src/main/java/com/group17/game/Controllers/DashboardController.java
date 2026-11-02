@@ -3,6 +3,7 @@ package com.group17.game.Controllers;
 import java.util.List;
 
 import com.group17.game.DTOs.UserSummary;
+import com.group17.game.Models.CurrentUser;
 import com.group17.game.Models.RequestStatus;
 import com.group17.game.Models.SuspensionRequestRepository;
 import com.group17.game.Models.User;
@@ -29,26 +30,20 @@ public class DashboardController {
     }
 
     @GetMapping("")
-    public String showDashboardPage(Authentication authentication, Model model) {
+    public String showDashboardPage(Authentication authentication, Model model, @CurrentUser User user) {
         // The login controller stores the database user ID as the principal.
         if (authentication == null || !authentication.isAuthenticated()
                 || !(authentication.getPrincipal() instanceof Long userId)) {
             return "redirect:/auth/login";
         }
 
-        User currentUser = userRepository.findById(userId).orElse(null);
-        if (currentUser == null) return "redirect:/auth/login";
-
-        model.addAttribute("currentUsername", currentUser.getUsername());
-        model.addAttribute("showModerator", currentUser.getRole() == UserRole.MODERATOR
-                || currentUser.getRole() == UserRole.ADMIN);
-        model.addAttribute("showAdmin", currentUser.getRole() == UserRole.ADMIN);
+        model.addAttribute("user", user);
         model.addAttribute("players", userRepository.findPlayerCardsExcluding(userId));
         return "dashboard";
     }
 
     @GetMapping("/moderator")
-    public String showModeratorTools(org.springframework.security.core.Authentication authentication, Model model) {
+    public String showModeratorTools(org.springframework.security.core.Authentication authentication, Model model, @CurrentUser User user) {
         // ensures user is logged in
         if (authentication == null ||
             !authentication.isAuthenticated() ||
@@ -66,12 +61,13 @@ public class DashboardController {
         
         List<UserSummary> users = userRepository.findAll().stream().map(this::toSummary).toList();
 
+        model.addAttribute("user", user);
         model.addAttribute("users", users);
         return "moderator";
     }
 
     @GetMapping("/admin")
-    public String showAdminTools(org.springframework.security.core.Authentication authentication, Model model) {
+    public String showAdminTools(org.springframework.security.core.Authentication authentication, Model model, @CurrentUser User user) {
         // ensures user is logged in
         if (authentication == null ||
             !authentication.isAuthenticated() ||
@@ -89,6 +85,7 @@ public class DashboardController {
         
         List<UserSummary> users = userRepository.findAll().stream().map(this::toSummary).toList();
 
+        model.addAttribute("user", user);
         model.addAttribute("users", users);
         model.addAttribute("requests", requestRepository.findByStatus(RequestStatus.PENDING));
 
