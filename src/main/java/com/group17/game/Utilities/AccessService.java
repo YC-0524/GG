@@ -1,6 +1,7 @@
 package com.group17.game.Utilities;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -37,10 +38,11 @@ public class AccessService {
     }
 
     public String upgrade(long id, String roleName) {
-        User user = userRepository.findById(id).get();
-        if (user == null) {
+        Optional<User> optionalUser = userRepository.findById(id);
+        if (optionalUser.isEmpty()) {
             return "Failed to find user with specified ID " + id;
         }
+        User user = optionalUser.get();
 
         UserRole role;
 
