@@ -1,0 +1,35 @@
+/* Shared foundations and Game Gang branding. Load before page styles. */
+:root {
+    --site-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: var(--site-font);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input, select { font: inherit; }
+
+button, a {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+button { cursor: pointer; }
+
+a:focus-visible, button:focus-visible, select:focus-visible {
+    outline: 2px solid var(--accent, var(--accent-color, #bda1ff));
+    outline-offset: 4px;
+}
+
+.brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+}
+
+.brand-mark {
+    font-weight: 900;
+    font-style: italic;
+}
+
+.brand-name { font-weight: 700; }

@@ -1,3 +1,21 @@
+/* Colors and base styles */
+
+:root {
+    color-scheme: dark;
+    --page-background: #0b0c16;
+    --text-primary: #f6f3ff;
+    --text-secondary: #bcb5d1;
+    --accent: #bda1ff;
+    --field-border: #514565;
+    color: var(--text-primary);
+    background: var(--page-background);
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
 /* Centered glass card; the page background is intentionally a solid color. */
 
 .login-page {
@@ -24,6 +42,25 @@
 }
 
 /* Temporary text branding until a final GG logo is selected. */
+
+.brand {
+    width: fit-content;
+    margin: 0 auto;
+}
+
+.brand-mark {
+    color: var(--accent);
+    font-size: 44px;
+    letter-spacing: -5px;
+    line-height: 1.1;
+    padding-right: 5px;
+}
+
+.brand-name {
+    margin-top: 8px;
+    font-size: 11px;
+    letter-spacing: 2.4px;
+}
 
 .login-heading {
     margin: 25px 0 28px;
@@ -120,7 +157,7 @@
     width: 100%;
     min-height: 49px;
     padding: 12px 14px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--field-border);
     border-radius: 8px;
     background: rgb(12 13 26 / 58%);
     color: var(--text-primary);
