@@ -19,6 +19,7 @@
                 <h1 th:text="${profile.username}">John Doe</h1>
             </section>
             <section class="profile-section">
+                <span th:text="'Role: ' + ${profile.role.name()}" style="text-transform: capitalize !important;"></span>
                 <span th:text="'Joined GG on ' + ${#dates.format(profile.registered, 'yyyy-MM-dd')}"></span>
             </section>
         </div>
