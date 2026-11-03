@@ -1,6 +1,8 @@
 
 package com.group17.game.Config;
 
+import java.io.IOException;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -20,13 +22,12 @@ import com.group17.game.Models.LoginConnectionRepository;
 import com.group17.game.Models.LoginMethod;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
+import com.group17.game.Models.UserStatus;
 import com.group17.game.Utilities.HashUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
 
 @Component
 public class GoogleLoginSuccessHandler implements AuthenticationSuccessHandler {
@@ -43,6 +44,30 @@ public class GoogleLoginSuccessHandler implements AuthenticationSuccessHandler {
 
         this.userRepository = userRepository;
         this.loginConnectionRepository = loginConnectionRepository;
+    }
+
+    // Returns why Google login was blocked.
+    // Uses the same account-status rules as AuthController.
+    private String getLoginBlockReason(User user) {
+
+        if (user.getStatus() == UserStatus.SUSPENDED) {
+            return "Account suspended";
+        }
+
+        if (user.getStatus() == UserStatus.TIMED_OUT) {
+            Instant until = user.getTimeoutUntil();
+
+            if (until != null && Instant.now().isBefore(until)) {
+                return "Account timed out";
+            }
+
+            // The timeout has expired, so reactivate the account.
+            user.setStatus(UserStatus.ACTIVE);
+            user.setTimeoutUntil(null);
+            userRepository.save(user);
+        }
+
+        return null;
     }
 
     @Override
@@ -132,8 +157,18 @@ public class GoogleLoginSuccessHandler implements AuthenticationSuccessHandler {
 
                 userRepository.save(user);
             }
+        }
 
-            // Create the Google login connection.
+        // Check whether the account is suspended or timed out.
+        String blockReason = getLoginBlockReason(user);
+
+        if (blockReason != null) {
+            response.sendRedirect("/auth/login?error=" + blockReason);
+            return;
+        }
+
+        // Create the Google login connection if one does not exist.
+        if (connection == null) {
             connection = new LoginConnection(
                     loginID,
                     user.getId(),
@@ -170,7 +205,7 @@ public class GoogleLoginSuccessHandler implements AuthenticationSuccessHandler {
                 response
         );
 
-        // Redirect to the user's GG profile.
-        response.sendRedirect("/profile/" + user.getId());
+        // Redirect to the GG dashboard after successful login.
+        response.sendRedirect("/dashboard");
     }
 }
