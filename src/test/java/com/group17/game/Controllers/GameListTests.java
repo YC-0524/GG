@@ -63,7 +63,6 @@ class GameListTests {
     }
 
     // US 10
-
     @Test
     void addedGameShowsInMyGamesAndOnProfile() throws Exception {
         User player = register("Player");
@@ -122,7 +121,6 @@ class GameListTests {
     }
 
     // US 11
-
     @Test
     void ownerCanChangeRank() throws Exception {
         User player = register("Player");
@@ -168,7 +166,6 @@ class GameListTests {
     }
 
     // US 12
-
     @Test
     void otherPlayersSeeMyGamesWithoutEditing() throws Exception {
         User owner = register("Owner"), visitor = register("Visitor");
@@ -186,5 +183,59 @@ class GameListTests {
         User owner = register("Owner"), visitor = register("Visitor");
         mockMvc.perform(get("/profile/" + owner.getId()).with(authentication(login(visitor))))
                 .andExpect(content().string(containsString("No games added yet")));
+    }
+
+    // US23
+    @Test
+    void newGameIsFindableByDefault() throws Exception {
+        User player = register("Player");
+        addGame(player, "Valorant", "Gold 2");
+        assertTrue(entries.findByUserIdOrderByGameNameAsc(player.getId()).get(0).isSearchable());
+    }
+
+    @Test
+    void ownerCanTurnFindMeOffAndOn() throws Exception {
+        User player = register("Player");
+        GameEntry entry = entries.saveAndFlush(new GameEntry(player, "Valorant", "Gold 2"));
+
+        mockMvc.perform(post("/games/" + entry.getId() + "/searchable")
+                .param("searchable", "false")
+                .with(authentication(login(player)))
+                .with(csrf()))
+                .andExpect(redirectedUrl("/games"));
+        assertEquals(false, entries.findById(entry.getId()).get().isSearchable());
+
+        mockMvc.perform(post("/games/" + entry.getId() + "/searchable")
+                .param("searchable", "true")
+                .with(authentication(login(player)))
+                .with(csrf()))
+                .andExpect(redirectedUrl("/games"));
+        assertTrue(entries.findById(entry.getId()).get().isSearchable());
+    }
+
+    @Test
+    void cannotChangeSomeoneElsesFindMeSwitch() throws Exception {
+        User owner = register("Owner"), other = register("Other");
+        GameEntry entry = entries.saveAndFlush(new GameEntry(owner, "Valorant", "Gold 2"));
+
+        mockMvc.perform(post("/games/" + entry.getId() + "/searchable")
+                .param("searchable", "false")
+                .with(authentication(login(other)))
+                .with(csrf()))
+                .andExpect(status().isForbidden());
+        assertTrue(entries.findById(entry.getId()).get().isSearchable());
+    }
+
+    @Test
+    void playersWithSwitchOffAreNotFoundThroughThatGame() throws Exception {
+        User shown = register("Shown"), hidden = register("Hidden");
+        entries.saveAndFlush(new GameEntry(shown, "Valorant", "Gold 2"));
+        GameEntry hiddenEntry = new GameEntry(hidden, "Valorant", "Gold 3");
+        hiddenEntry.setSearchable(false);
+        entries.saveAndFlush(hiddenEntry);
+
+        List<GameEntry> found = entries.findByGameNameAndSearchableTrue("Valorant");
+        assertEquals(1, found.size());
+        assertEquals("Shown", found.get(0).getUser().getUsername());
     }
 }

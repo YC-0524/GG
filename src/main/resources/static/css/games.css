@@ -24,11 +24,41 @@
 
 select {
     font: inherit;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 2.75rem 0.5rem 1rem;
     border: 1px solid var(--border-color);
     border-radius: 0.5rem;
-    background: var(--panel-background);
     color: inherit;
+    appearance: none;          
+    -webkit-appearance: none;
+    background: var(--panel-background);
+    cursor: pointer;
+}
+
+.select-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+.select-wrap select {
+    width: 100%;
+}
+
+/* The arrow */
+.select-wrap::after {
+    content: "";
+    position: absolute;
+    right: 1rem;                       
+    top: 50%;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-right: 2px solid var(--muted-text);
+    border-bottom: 2px solid var(--muted-text);
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;              
+}
+
+.select-wrap:has(select:disabled)::after {
+    opacity: 0.5;
 }
 
 #add-game-button {
@@ -109,4 +139,51 @@ select:disabled {
     overflow: hidden;
     clip: rect(0 0 0 0);
     white-space: nowrap;
+}
+
+.search-toggle-form {
+    margin: 0;
+}
+
+.search-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--muted-text);
+}
+
+.search-toggle-track {
+    position: relative;
+    width: 2.5rem;
+    height: 1.4rem;
+    border-radius: 999px;
+    background: var(--border-color);
+    transition: background 0.15s;
+}
+
+.search-toggle-thumb {
+    position: absolute;
+    top: 0.2rem;
+    left: 0.2rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: var(--muted-text);
+    transition: transform 0.15s, background 0.15s;
+}
+
+.search-toggle[aria-checked="true"] {
+    color: inherit;
+}
+
+.search-toggle[aria-checked="true"] .search-toggle-track {
+    background: var(--accent-color);
+}
+
+.search-toggle[aria-checked="true"] .search-toggle-thumb {
+    transform: translateX(1.1rem);
+    background: var(--page-background);
 }
