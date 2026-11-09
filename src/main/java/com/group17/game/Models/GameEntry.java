@@ -19,6 +19,9 @@ public class GameEntry {
     @Column(name = "game_rank", nullable = false)
     private String rank;
 
+    @Column(name = "searchable", columnDefinition = "boolean not null default true")
+    private boolean searchable = true;
+
     protected GameEntry() {}
 
     public GameEntry(User user, String gameName, String rank) {
@@ -45,5 +48,13 @@ public class GameEntry {
 
     public void setRank(String rank) {
         this.rank = rank;
+    }
+    
+    public boolean isSearchable() {
+        return searchable;
+    }
+
+    public void setSearchable(boolean searchable) {
+        this.searchable = searchable;
     }
 }
