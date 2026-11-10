@@ -2,20 +2,25 @@ package com.group17.game.DTOs;
 
 import java.util.Locale;
 
+import com.group17.game.Models.ActivityStatus;
+
 // Public profile fields only; never expose a User entity to the player cards.
 public class PlayerCard {
     private final Long id;
     private final String username;
     private final String avatar;
+    private final ActivityStatus activityStatus;
 
-    public PlayerCard(Long id, String username, String avatar) {
+    public PlayerCard(Long id, String username, String avatar, ActivityStatus activityStatus) {
         this.id = id;
         this.username = username;
         this.avatar = avatar;
+        this.activityStatus = activityStatus;
     }
 
     public Long getId() { return id; }
     public String getUsername() { return username; }
+    public ActivityStatus getActivityStatus() { return this.activityStatus; }
 
     public String getAvatar() {
         if (avatar == null) return null;

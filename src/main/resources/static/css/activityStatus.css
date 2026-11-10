@@ -16,3 +16,15 @@
     color: white;
     border-color: #2563eb;
 }
+
+.activity-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.orb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+}
