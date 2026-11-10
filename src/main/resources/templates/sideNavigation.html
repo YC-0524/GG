@@ -23,7 +23,7 @@
             </a>
         </nav>
         <section class="sidebar-section" th:if="${user != null}">
-            <div th:replace="~{activityStatus :: activityStatus(${user.activityStatus})}"></div>
+            <div th:replace="~{activityStatusChange :: activityStatusChange(${user.activityStatus})}"></div>
         </section>
         <section class="sidebar-section">
             <h3>Your Games</h3>

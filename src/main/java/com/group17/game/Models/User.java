@@ -60,6 +60,9 @@ public class User {
     @Column(name = "registered")
     private Date registered;
 
+    @Column(name = "last_seen")
+    private Date lastSeen;
+
     // empty constructor, needed for springboot initializers
     public User() {}
 
@@ -69,15 +72,17 @@ public class User {
         this.passwordHash = passwordHash;
         this.role = UserRole.USER;
         this.registered = new Date();
+        this.lastSeen = new Date();
     }
 
     // full constructor, has every non generated field
-    public User(String username, String avatar, String email, String hash, Date registered, UserRole role) {
+    public User(String username, String avatar, String email, String hash, Date registered, Date lastSeen, UserRole role) {
         this.username = username;
         this.avatar = avatar;
         this.email = email;
         this.passwordHash = hash;
         this.registered = registered;
+        this.lastSeen = lastSeen;
         this.role = role;
     }
 
@@ -104,6 +109,10 @@ public class User {
 
     public Date getRegistered() {
         return registered;
+    }
+
+    public Date getLastSeen() {
+        return this.lastSeen;
     }
 
     public UserRole getRole() {
@@ -150,6 +159,10 @@ public class User {
 
     public void setRegistered(Date registered) {
         this.registered = registered;
+    }
+
+    public void setLastSeen(Date seen) {
+        this.lastSeen = seen;
     }
 
     public void setRole(UserRole role) {

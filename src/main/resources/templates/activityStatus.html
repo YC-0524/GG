@@ -1,26 +1,17 @@
 <body>
     <div th:fragment="activityStatus(currentStatus)">
-        <link rel="stylesheet" th:href="@{/css/activityStatus.css}" />
-
-        <form th:action="@{/profile/me/status}" method="post" class="status-selector">
-
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-
-            <button type="submit" name="status" value="Online"
-                th:classappend="${currentStatus.name() == 'ONLINE'} ? ' active' : ''">
-                Online
-            </button>
-
-            <button type="submit" name="status" value="AFK"
-                th:classappend="${currentStatus.name() == 'AFK'} ? ' active' : ''">
-                AFK
-            </button>
-
-            <button type="submit" name="status" value="Offline"
-                th:classappend="${currentStatus.name() == 'OFFLINE'} ? ' active' : ''">
-                Offline
-            </button>
-        </form>
+        <div class="activity-status" th:hidden="${currentStatus.name() != 'OFFLINE'}">
+            <div class="orb" style="background-color: gray;"></div>
+            <span>Offline</span>
+        </div>
+        <div class="activity-status" th:hidden="${currentStatus.name() != 'AFK'}">
+            <div class="orb" style="background-color: orangered;"></div>
+            <span>AFK</span>
+        </div>
+        <div class="activity-status" th:hidden="${currentStatus.name() != 'ONLINE'}">
+            <div class="orb" style="background-color: greenyellow;"></div>
+            <span>Online</span>
+        </div>
     </div>
 
 </body>
