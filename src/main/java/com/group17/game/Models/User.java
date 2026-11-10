@@ -43,10 +43,13 @@ public class User {
     @Column(name = "role")
     private UserRole role = UserRole.USER;
 
+    private Instant timeoutUntil;
+
     @Enumerated(EnumType.STRING)
     private UserStatus status = UserStatus.ACTIVE;
 
-    private Instant timeoutUntil;
+    @Enumerated(EnumType.STRING)
+    private ActivityStatus activityStatus = ActivityStatus.OFFLINE;
     
     // sha256 hashes are exactly 64 characters
     @Column(name = "password_hash")
@@ -116,9 +119,17 @@ public class User {
         return timeoutUntil;
     }
 
+    public ActivityStatus getActivityStatus() {
+        return this.activityStatus;
+    }
+
     // Setters
     public void setId(long id) {
         this.id = id;
+    }
+
+    public void setActivityStatus(ActivityStatus newStatus) {
+        this.activityStatus = newStatus;
     }
 
     public void setUsername(String username) {
