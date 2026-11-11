@@ -10,7 +10,7 @@
 
 <body>
     <div class="app-container">
-        <nav th:replace="~{sideNavigation :: sideNavigation}"></nav>
+        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav='moderator')}"></nav>
         <div class="content-container">
             <h2>Moderation Tools</h2>
             <!--Lists out users and possible moderator actions-->

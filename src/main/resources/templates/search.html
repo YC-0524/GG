@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Games | GAME GANG</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/gameSearch.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav='search')}"></nav>
+        <div class="content-container game-search-container">
+            <h2>Search Games</h2>
+
+            <form class="game-search" id="game-search" th:action="@{/search}" method="get" role="search">
+                <label for="game-search-input" class="visually-hidden">Search games</label>
+                <div class="game-search-bar">
+                    <img src="/images/search.svg" alt="" aria-hidden="true">
+                    <input type="search" id="game-search-input" name="game" placeholder="Search games"
+                        autocomplete="off" aria-controls="game-search-panel" aria-expanded="false"
+                        th:autofocus="${selectedGame == null}">
+                </div>
+
+                <div class="game-search-panel" id="game-search-panel" hidden>
+                    <section class="game-group" th:unless="${#lists.isEmpty(recentGames)}">
+                        <h3>Recently viewed</h3>
+                        <ul>
+                            <li th:each="game : ${recentGames}">
+                                <a class="game-option" th:href="@{/search(game=${game})}" th:attr="data-name=${game}">
+                                    <span class="game-icon" aria-hidden="true"></span>
+                                    <span th:text="${game}">Valorant</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <section class="game-group" data-recommendations th:unless="${#lists.isEmpty(otherGames)}">
+                        <h3>Recommended games</h3>
+                        <ul>
+                            <li th:each="game : ${otherGames}"
+                                th:attr="data-recommendation-order=${recommendedGames.indexOf(game)}"
+                                th:hidden="${!recommendedGames.contains(game)}">
+                                <a class="game-option" th:href="@{/search(game=${game})}" th:attr="data-name=${game}">
+                                    <span class="game-icon" aria-hidden="true"></span>
+                                    <span th:text="${game}">Minecraft</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <p class="game-search-empty" id="game-search-empty" hidden>No games found</p>
+                </div>
+            </form>
+
+            <p class="form-message error" th:if="${error}" th:text="${error}" role="alert"></p>
+
+            <!-- The game the player picked, with the players who play it -->
+            <section class="game-players" th:if="${selectedGame != null}">
+                <h3 th:text="|Players who play ${selectedGame}|">Players who play Valorant</h3>
+                <p class="form-message" th:if="${#lists.isEmpty(players)}">No other players have listed this game yet</p>
+                <ul th:unless="${#lists.isEmpty(players)}">
+                    <li th:each="entry : ${players}">
+                        <a th:href="@{/profile/{id}(id=${entry.user.id})}" th:text="${entry.user.username}">Player</a>
+                        <span th:text="${entry.rank}">Gold 2</span>
+                    </li>
+                </ul>
+            </section>
+        </div>
+    </div>
+    <script src="/js/gameSearch.js" defer></script>
+</body>
+
+</html>

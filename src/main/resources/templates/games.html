@@ -11,7 +11,7 @@
 
 <body>
     <div class="app-container">
-        <nav th:replace="~{sideNavigation :: sideNavigation}"></nav>
+        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav='games')}"></nav>
         <div class="content-container games-container">
             <h2>My Games</h2>
 
@@ -27,9 +27,11 @@
                 </div>
                 <div class="field">
                     <label for="game-rank">Current rank</label>
-                    <select id="game-rank" name="rank" disabled>
-                        <option value="Unranked">Unranked</option>
-                    </select>
+                    <span class="select-wrap">
+                        <select id="game-rank" name="rank" disabled>
+                            <option value="Unranked">Unranked</option>
+                        </select>
+                    </span>
                 </div>
                 <button type="submit" id="add-game-button" disabled>Add game</button>
             </form>
@@ -43,6 +45,7 @@
                     <tr>
                         <th>Game</th>
                         <th>Rank</th>
+                        <th>Show In Matches?</th>
                         <th><span class="visually-hidden">Actions</span></th>
                     </tr>
                 </thead>
@@ -50,8 +53,35 @@
                     <tr th:each="entry : ${entries}">
                         <td th:text="${entry.gameName}">Valorant</td>
 
-                        <!-- Normal row -->
+                        <!-- Rank: plain text, or a rank picker while this row is being edited.
+                             The picker sits in the Rank column but belongs to the Save form in the
+                             last column through its form="..." attribute. -->
                         <td th:if="${editId != entry.id}" th:text="${entry.rank}">Gold 2</td>
+                        <td th:if="${editId == entry.id}">
+                            <span class="select-wrap">
+                                <select name="rank"
+                                    th:attr="form=|edit-game-${entry.id}|,aria-label=|Rank for ${entry.gameName}|">
+                                    <option value="Unranked" th:selected="${entry.rank == 'Unranked'}">Unranked</option>
+                                    <option th:each="rank : ${catalog[entry.gameName]}" th:value="${rank}"
+                                        th:text="${rank}" th:selected="${rank == entry.rank}"></option>
+                                </select>
+                            </span>
+                        </td>
+
+                        <!-- Show in matches switch (US23), shown in both modes -->
+                        <td>
+                            <form th:action="@{/games/{id}/searchable(id=${entry.id})}" method="post"
+                                class="search-toggle-form">
+                                <input type="hidden" name="searchable" th:value="${!entry.searchable}">
+                                <button type="submit" class="search-toggle" role="switch"
+                                    th:attr="aria-checked=${entry.searchable},aria-label=|Show me in matches for ${entry.gameName}|">
+                                    <span class="search-toggle-track"><span class="search-toggle-thumb"></span></span>
+                                    <span th:text="${entry.searchable} ? 'On' : 'Off'">On</span>
+                                </button>
+                            </form>
+                        </td>
+
+                        <!-- Actions: Edit/Remove, or Save/Cancel while editing -->
                         <td th:if="${editId != entry.id}">
                             <div class="game-actions">
                                 <a th:href="@{/games(edit=${entry.id})}">Edit</a>
@@ -61,15 +91,9 @@
                                 </form>
                             </div>
                         </td>
-
-                        <!-- Row being edited -->
-                        <td th:if="${editId == entry.id}" colspan="2">
-                            <form th:action="@{/games/{id}/edit(id=${entry.id})}" method="post" class="edit-game-form">
-                                <select name="rank" th:attr="aria-label=|Rank for ${entry.gameName}|">
-                                    <option value="Unranked" th:selected="${entry.rank == 'Unranked'}">Unranked</option>
-                                    <option th:each="rank : ${catalog[entry.gameName]}" th:value="${rank}"
-                                        th:text="${rank}" th:selected="${rank == entry.rank}"></option>
-                                </select>
+                        <td th:if="${editId == entry.id}">
+                            <form th:id="|edit-game-${entry.id}|" th:action="@{/games/{id}/edit(id=${entry.id})}"
+                                method="post" class="game-actions edit-game-form">
                                 <button type="submit">Save</button>
                                 <a th:href="@{/games}">Cancel</a>
                             </form>

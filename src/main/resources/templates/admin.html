@@ -10,7 +10,7 @@
 
 <body>
     <div class="app-container">
-        <nav th:replace="~{sideNavigation :: sideNavigation}"></nav>
+        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav='admin')}"></nav>
         <div class="content-container">
             <h2>Admin Tools</h2>
             <!--Lists out the users and suspension requests-->
