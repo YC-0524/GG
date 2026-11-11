@@ -5,11 +5,12 @@ import java.util.HashSet;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "users")
@@ -42,11 +43,11 @@ public class ProfileTag {
     @Column(name = "user_id")
     private long userId;
 
-    @Column(name = "tag")
-    @NotBlank
+    @Column(name = "tag_text") // SQL does not let columns be called "tag"
     private String tag;
 
     @Column(name = "tag_type")
+    @Enumerated(EnumType.STRING)
     private ProfileTagType tagType;
 
     public ProfileTag() {
