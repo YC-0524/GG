@@ -16,6 +16,9 @@ import org.springframework.web.server.ResponseStatusException;
 import com.group17.game.Models.ActivityStatus;
 import com.group17.game.Models.CurrentUser;
 import com.group17.game.Models.GameEntryRepository;
+import com.group17.game.Models.ProfileTag;
+import com.group17.game.Models.ProfileTagRepository;
+import com.group17.game.Models.ProfileTagType;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 
@@ -27,10 +30,12 @@ import jakarta.servlet.http.HttpServletRequest;
 public class ProfileController {
     private final UserRepository userRepository;
     private final GameEntryRepository gameEntryRepository;
+    private final ProfileTagRepository profileTagRepository;
 
-    public ProfileController(UserRepository userRepo, GameEntryRepository gameEntryRepo) {
+    public ProfileController(UserRepository userRepo, GameEntryRepository gameEntryRepo, ProfileTagRepository profileTagRepository) {
         this.userRepository = userRepo;
         this.gameEntryRepository = gameEntryRepo;
+        this.profileTagRepository = profileTagRepository;
     }
 
     @GetMapping("/me")
@@ -97,8 +102,46 @@ public class ProfileController {
         model.addAttribute("profile", profile);
         model.addAttribute("user", user);
         model.addAttribute("games", gameEntryRepository.findByUserIdOrderByGameNameAsc(userID));
+        model.addAttribute("tags", profileTagRepository.findAllByUserId(user.getId()));
         // Only the owner gets a link to edit their list
         model.addAttribute("isOwner", user != null && user.getId() == userID);
         return "profile";
+    }
+
+    @PostMapping("/me/tag")
+    public ProfileTag addTagToUserProfile(@RequestParam String tag, @RequestParam String tagType, @CurrentUser User user) { 
+        if (!ProfileTag.ALLOWED_TAGS.contains(tag)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
+        ProfileTagType type;
+
+        try {
+            type = ProfileTagType.valueOf(tagType);
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
+        Optional<ProfileTag> existingTag = profileTagRepository.findByUserIdAndTag(user.getId(), tag);
+        if (existingTag.isPresent()) {
+            // user already has this tag
+            return existingTag.get();
+        }
+
+        ProfileTag newTag = new ProfileTag(user.getId(), tag, type);
+        profileTagRepository.save(newTag);
+        
+        return newTag;
+    }
+
+    @GetMapping ("/{userID}/tags")
+    public List<ProfileTag> addTagToUserProfile(@PathVariable("userID") long userID, Model model) { 
+        Optional<User> user = userRepository.findById(userID);
+        if (user.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
+        List<ProfileTag> tags = profileTagRepository.findAllByUserId(userID);
+        return tags;
     }
 }
