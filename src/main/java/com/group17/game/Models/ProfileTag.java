@@ -11,9 +11,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
-@Table(name = "users")
+@Table(name = "profile_tags")
 public class ProfileTag {
     // text can only be one of these
     public static HashSet<String> ALLOWED_TAGS = new HashSet<>(Arrays.asList(
@@ -43,7 +44,8 @@ public class ProfileTag {
     @Column(name = "user_id")
     private long userId;
 
-    @Column(name = "tag_text") // SQL does not let columns be called "tag"
+    @Column(name = "tag")
+    @NotBlank
     private String tag;
 
     @Column(name = "tag_type")
