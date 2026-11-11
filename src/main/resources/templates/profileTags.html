@@ -1,0 +1,7 @@
+<body>
+    <div class="profile-tags" th:fragment="profileTags(tags)">
+        <div class="tag" th:each="tag : ${tags}">
+            <span th:text="${tag}">Co-Op</span>
+        </div>
+    </div>
+</body>
