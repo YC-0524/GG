@@ -18,16 +18,27 @@ document.addEventListener("DOMContentLoaded", () => {
         input.setAttribute("aria-expanded", "false");
     }
 
-    // Typing narrows each list; a list with no matches is hidden.
+    // Show three recommendations by default; typing searches the entire catalog.
     function filter() {
         const query = input.value.trim().toLowerCase();
         let anyMatch = false;
 
         groups.forEach(group => {
             let groupMatch = false;
-            group.querySelectorAll("li").forEach(item => {
+            const recommendations = group.hasAttribute("data-recommendations");
+            const items = Array.from(group.querySelectorAll("li"));
+            if (recommendations) {
+                group.querySelector("h3").textContent = query ? "Other games" : "Recommended games";
+                items.sort((a, b) => query
+                    ? a.querySelector(".game-option").dataset.name.localeCompare(b.querySelector(".game-option").dataset.name)
+                    : Number(a.dataset.recommendationOrder) - Number(b.dataset.recommendationOrder));
+                items.forEach(item => group.querySelector("ul").appendChild(item));
+            }
+            items.forEach(item => {
                 const name = item.querySelector(".game-option").dataset.name.toLowerCase();
-                const match = name.includes(query);
+                const match = query
+                    ? name.includes(query)
+                    : !recommendations || Number(item.dataset.recommendationOrder) >= 0;
                 item.hidden = !match;
                 groupMatch = groupMatch || match;
             });
@@ -55,8 +66,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Arrow keys move through the list; Escape closes it.
     form.addEventListener("keydown", event => {
         if (event.key === "Escape") {
-            closePanel();
             input.focus();
+            closePanel();
             return;
         }
         if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;

@@ -11,7 +11,7 @@
 
 <body>
     <div class="app-container">
-        <nav th:replace="~{sideNavigation :: sideNavigation}"></nav>
+        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav='search')}"></nav>
         <div class="content-container game-search-container">
             <h2>Search Games</h2>
 
@@ -30,7 +30,6 @@
                         <ul>
                             <li th:each="game : ${recentGames}">
                                 <a class="game-option" th:href="@{/search(game=${game})}" th:attr="data-name=${game}">
-                                    <!-- Game icon goes here -->
                                     <span class="game-icon" aria-hidden="true"></span>
                                     <span th:text="${game}">Valorant</span>
                                 </a>
@@ -38,12 +37,13 @@
                         </ul>
                     </section>
 
-                    <section class="game-group" th:unless="${#lists.isEmpty(otherGames)}">
-                        <h3 th:text="${#lists.isEmpty(recentGames)} ? 'All games' : 'Other games'">All games</h3>
+                    <section class="game-group" data-recommendations th:unless="${#lists.isEmpty(otherGames)}">
+                        <h3>Recommended games</h3>
                         <ul>
-                            <li th:each="game : ${otherGames}">
+                            <li th:each="game : ${otherGames}"
+                                th:attr="data-recommendation-order=${recommendedGames.indexOf(game)}"
+                                th:hidden="${!recommendedGames.contains(game)}">
                                 <a class="game-option" th:href="@{/search(game=${game})}" th:attr="data-name=${game}">
-                                    <!-- Game icon goes here -->
                                     <span class="game-icon" aria-hidden="true"></span>
                                     <span th:text="${game}">Minecraft</span>
                                 </a>

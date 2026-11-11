@@ -1,6 +1,7 @@
 package com.group17.game.Controllers;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,7 +26,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/search")
 public class GameSearchController {
     static final String RECENT_GAMES = "recentGames";
-    static final int MAX_RECENT_GAMES = 5;
+    static final int MAX_RECENT_GAMES = 3;
+    static final int MAX_RECOMMENDED_GAMES = 3;
 
     private final GameEntryRepository gameEntryRepository;
 
@@ -57,6 +59,12 @@ public class GameSearchController {
         }
 
         List<String> otherGames = GameCatalog.all().keySet().stream().filter(game -> !recent.contains(game)).toList();
+        // Prefer shared genres; catalog order breaks ties and fills any remaining slots.
+        List<String> recommendedGames = otherGames.stream()
+                .sorted(Comparator.comparingInt((String game) -> similarityScore(game, recent)).reversed())
+                .limit(MAX_RECOMMENDED_GAMES)
+                .toList();
+        model.addAttribute("recommendedGames", recommendedGames);
         model.addAttribute("user", user);
         model.addAttribute("recentGames", List.copyOf(recent));
         model.addAttribute("otherGames", otherGames);
@@ -64,11 +72,28 @@ public class GameSearchController {
         return "search";
     }
 
-    @SuppressWarnings("unchecked")
     private List<String> recentGames(HttpSession session)
     {
         Object stored = session.getAttribute(RECENT_GAMES);
-        return stored instanceof List<?> list ? new ArrayList<>((List<String>) list) : new ArrayList<>();
+        List<String> recent = stored instanceof List<?> list
+                ? list.stream().filter(String.class::isInstance).map(String.class::cast)
+                        .filter(game -> GameCatalog.all().containsKey(game)).distinct()
+                        .limit(MAX_RECENT_GAMES).toList()
+                : List.of();
+        session.setAttribute(RECENT_GAMES, new ArrayList<>(recent));
+        return new ArrayList<>(recent);
+    }
+
+    private int similarityScore(String game, List<String> recent) {
+        int score = 0;
+        for (int i = 0; i < recent.size(); i++) {
+            for (String genre : GameCatalog.genres(game)) {
+                if (GameCatalog.genres(recent.get(i)).contains(genre)) {
+                    score += recent.size() - i;
+                }
+            }
+        }
+        return score;
     }
 
     private void remember(List<String> recent, String game)

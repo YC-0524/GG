@@ -28,6 +28,7 @@ import com.group17.game.Models.UserRepository;
 import com.group17.game.Utilities.GameCatalog;
 
 @SpringBootTest(properties = {
+    "spring.shell.interactive.enabled=false",
     "spring.datasource.url=jdbc:h2:mem:game-search;DB_CLOSE_DELAY=-1",
     "discord.oauth.client_id=test",
     "discord.oauth.client_secret=test",
@@ -63,6 +64,7 @@ class GameSearchTests {
         mockMvc.perform(get("/search").with(authentication(login(player))))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("recentGames", List.of()))
+                .andExpect(model().attribute("recommendedGames", List.of("Apex Legends", "League of Legends", "Minecraft")))
                 .andExpect(model().attribute("otherGames", List.copyOf(GameCatalog.all().keySet())));
     }
 
@@ -80,7 +82,7 @@ class GameSearchTests {
     }
 
     @Test
-    void onlyTheFiveLatestGamesAreKept() throws Exception {
+    void onlyTheThreeLatestGamesAreKept() throws Exception {
         User player = register("Player");
         MockHttpSession session = new MockHttpSession();
         for (String game : GameCatalog.all().keySet()) {
@@ -89,8 +91,33 @@ class GameSearchTests {
 
         mockMvc.perform(get("/search").session(session).with(authentication(login(player))))
                 .andExpect(model().attribute("recentGames", List.of(
-                        "Valorant", "Rocket League", "Overwatch 2", "Minecraft", "League of Legends")))
-                .andExpect(model().attribute("otherGames", List.of("Apex Legends")));
+                        "Valorant", "Rocket League", "Overwatch 2")))
+                .andExpect(model().attribute("otherGames", List.of("Apex Legends", "League of Legends", "Minecraft")));
+    }
+
+    @Test
+    void recommendationsPreferSimilarGenresAndExcludeRecentGames() throws Exception {
+        User player = register("Player");
+        mockMvc.perform(get("/search").param("game", "Valorant")
+                .with(authentication(login(player))))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("recommendedGames",
+                        List.of("Overwatch 2", "Apex Legends", "League of Legends")));
+    }
+
+    @Test
+    void oldSessionsAreTrimmedWithoutAnotherGameSelection() throws Exception {
+        User player = register("Player");
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(GameSearchController.RECENT_GAMES,
+                List.of("Valorant", "Minecraft", "Apex Legends", "Overwatch 2", "Rocket League"));
+        mockMvc.perform(get("/search").session(session).with(authentication(login(player))))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("recentGames", List.of("Valorant", "Minecraft", "Apex Legends")))
+                .andExpect(model().attribute("recommendedGames",
+                        List.of("Overwatch 2", "League of Legends", "Rocket League")));
+        org.junit.jupiter.api.Assertions.assertEquals(
+                List.of("Valorant", "Minecraft", "Apex Legends"), session.getAttribute(GameSearchController.RECENT_GAMES));
     }
 
     @Test

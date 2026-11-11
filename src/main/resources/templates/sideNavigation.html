@@ -2,43 +2,57 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <body>
-    <div th:fragment="sideNavigation" class="sidebar">
+    <div th:fragment="sideNavigation(selectedNav)" class="sidebar">
         <link rel="stylesheet" th:href="@{/css/sideNav.css}" />
         <a class="brand" href="/" aria-label="Game Gang home">
             <span class="brand-mark" aria-hidden="true">GG</span>
             <span class="brand-name">GAME GANG</span>
         </a>
         <nav aria-label="Main navigation">
-            <a class="nav-link active" href="/dashboard" aria-current="page">
+            <a class="nav-link" href="/dashboard"
+                th:classappend="${selectedNav == 'match' ? 'active' : ''}"
+                th:attr="aria-current=${selectedNav == 'match' ? 'page' : null}">
                 <img src="/images/group.svg" alt="Match Icon">
                 <span>Match</span>
             </a>
-            <a class="nav-link" href="/profile/me">
+            <a class="nav-link" href="/profile/me"
+                th:classappend="${selectedNav == 'profile' ? 'active' : ''}"
+                th:attr="aria-current=${selectedNav == 'profile' ? 'page' : null}">
                 <img src="/images/person.svg" alt="Profile Picture" />
                 <span>My Profile</span>
             </a>
-            <a class="nav-link" href="/profile/search">
+            <a class="nav-link" href="/profile/search"
+                th:classappend="${selectedNav == 'users' ? 'active' : ''}"
+                th:attr="aria-current=${selectedNav == 'users' ? 'page' : null}">
                 <img src="/images/profileSearch.svg" alt="User Search" />
                 <span>Search Users</span>
             </a>
-            <a class="nav-link" href="/search">
+            <a class="nav-link" href="/search"
+                th:classappend="${selectedNav == 'search' ? 'active' : ''}"
+                th:attr="aria-current=${selectedNav == 'search' ? 'page' : null}">
                 <img src="/images/search.svg" alt="Game Search" />
                 <span>Search Games</span>
             </a>
         </nav>
         <section class="sidebar-section">
             <h3>Your Games</h3>
-            <a href="/games">Manage My Games</a>
+            <a class="nav-link" href="/games"
+                th:classappend="${selectedNav == 'games' ? 'active' : ''}"
+                th:attr="aria-current=${selectedNav == 'games' ? 'page' : null}">Manage My Games</a>
         </section>
         <section class="sidebar-section" id="moderator" th:hidden="${user == null || user.role.name() != 'MODERATOR'}">
             <h3>Moderation</h3>
             <p>Review Reports</p>
-            <a href="/dashboard/moderator">Open Moderator Tools</a>
+            <a class="nav-link" href="/dashboard/moderator"
+                th:classappend="${selectedNav == 'moderator' ? 'active' : ''}"
+                th:attr="aria-current=${selectedNav == 'moderator' ? 'page' : null}">Open Moderator Tools</a>
         </section>
         <section class="sidebar-section" id="admin" th:hidden="${user == null || user.role.name() != 'ADMIN'}">
             <h3>Admin</h3>
             <p>Review Users</p>
-            <a href="/dashboard/admin">Open Admin Tools</a>
+            <a class="nav-link" href="/dashboard/admin"
+                th:classappend="${selectedNav == 'admin' ? 'active' : ''}"
+                th:attr="aria-current=${selectedNav == 'admin' ? 'page' : null}">Open Admin Tools</a>
         </section>
         <div class="logout-area">
             <div th:replace="~{logout :: logoutButton}"></div>

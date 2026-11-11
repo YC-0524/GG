@@ -11,7 +11,7 @@
 
 <body>
     <div class="app-container">
-        <nav th:replace="~{sideNavigation :: sideNavigation}"></nav>
+        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav='users')}"></nav>
         <div class="content-container">
             <h2>Profile Search</h2>
             <form action="/profile/search">
