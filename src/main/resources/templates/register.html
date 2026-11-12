@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/login.css">
     <script src="/js/login.js" defer></script>
+    <script src="/js/passwordRules.js" defer></script>
 </head>
 <body>
     <main class="login-page">
@@ -46,7 +47,7 @@
                 <div class="form-field">
                     <label for="password">Password</label>
                     <div class="password-field">
-                        <input type="password" id="password" name="password" placeholder="Create a password" autocomplete="new-password" required>
+                        <input type="password" id="password" name="password" placeholder="Create a password" autocomplete="new-password" aria-describedby="passwordRules" required>
                         <button class="password-toggle" type="button" aria-label="Show password" aria-controls="password" aria-pressed="false">
                             <svg viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
@@ -54,6 +55,32 @@
                             </svg>
                         </button>
                     </div>
+
+                    <ul class="password-rules" id="passwordRules" aria-label="Password Requirements"
+                        data-password-input="password" data-confirm-input="confirmPassword" data-match-message="password-match">
+                        <li data-rule="length"><span class="rule-text">At least 8 characters</span><span class="visually-hidden rule-status">, not met</span></li>
+                        <li data-rule="upper"><span class="rule-text">One uppercase letter</span><span class="visually-hidden rule-status">, not met</span></li>
+                        <li data-rule="lower"><span class="rule-text">One lowercase letter</span><span class="visually-hidden rule-status">, not met</span></li>
+                        <li data-rule="number"><span class="rule-text">One number</span><span class="visually-hidden rule-status">, not met</span></li>
+                        <li data-rule="symbol"><span class="rule-text">One symbol (e.g. !, @, $, #)</span><span class="visually-hidden rule-status">, not met</span></li>
+
+                    </ul>
+                </div>
+
+                <div class="form-field">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <div class="password-field">
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password"
+                               aria-describedby="password-match" required>
+
+                        <button class="password-toggle" type="button" aria-label="Show password" aria-controls="confirmPassword" aria-pressed="false">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="password-match" id="password-match" aria-live="polite"></p>
                 </div>
 
                 <button class="login-button" type="submit">Create account</button>

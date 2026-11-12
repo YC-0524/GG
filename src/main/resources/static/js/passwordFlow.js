@@ -11,17 +11,16 @@ if (secretKey == null || secretKey.length <= 0) {
     //window.location.href = "/auth/login";
 }
 
-const keyInput = document.getElementById("secretKey");
-keyInput.value = secretKey;
+document.getElementById("secretKey").value = secretKey;
 
-const newPass = document.getElementById("newPassword");
-const confirmPass = document.getElementById("confirmPassword");
-const submitButton = document.getElementById("submit");
+const error = urlParams.get("error");
 
-submitButton.disabled = true;
-confirmPass.addEventListener("input", () => {
-    submitButton.disabled = newPass.value != confirmPass.value;
-})
+if (error) {
+    const errorMessage = document.getElementById("error-message");
+
+    errorMessage.textContent = error;
+    errorMessage.hidden = false;
+}
 
 loading.style.display = "none";
 form.style.display = "flex";

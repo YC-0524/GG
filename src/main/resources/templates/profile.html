@@ -18,9 +18,13 @@
                 <img class="profile-avatar" th:unless="${#strings.isEmpty(profile.avatar)}" th:src="@{${profile.avatar}}" alt="User Avatar" />
                 <h1 th:text="${profile.username}">John Doe</h1>
             </section>
+
+            <p class="success-message" role="status" th:if="${isOwner and param.passwordChanged != null}">Your password has been updated.</p>
+
             <section class="profile-section">
                 <span th:text="'Role: ' + ${profile.role.name()}" style="text-transform: capitalize !important;"></span>
                 <span th:text="'Joined GG on ' + ${#dates.format(profile.registered, 'yyyy-MM-dd')}"></span>
+                <a th:if="${isOwner}" th:href="@{/auth/change-password}" class="button-link">Change password</a>
             </section>
             <section class="profile-section">
                 <div class="profile-games-header">
