@@ -23,9 +23,9 @@
 
             <section class="profile-section">
                 <div th:replace="~{activityStatus :: activityStatus(${user.activityStatus})}"></div>
-                <span th:text="'Role: ' + ${profile.role.name()}" style="text-transform: capitalize !important;"></span>
                 <span th:text="'Joined GG on ' + ${#dates.format(profile.registered, 'yyyy-MM-dd')}"></span>
                 <span th:replace="~{roleBadge :: roleBadge(${profile.role})}"></span>
+                <div th:replace="~{profileTags :: profileTags(${tags})}" th:hidden="{#lists.isEmpty(tags)}"></div>
                 <a th:if="${isOwner}" th:href="@{/auth/change-password}" class="button-link">Change password</a>
             </section>
             <section class="profile-section">

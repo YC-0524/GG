@@ -43,6 +43,10 @@
                 th:classappend="${selectedNav == 'games' ? 'active' : ''}"
                 th:attr="aria-current=${selectedNav == 'games' ? 'page' : null}">Manage My Games</a>
         </section>
+        <section class="sidebar-section">
+            <h3>Your Tags</h3>
+            <a href="/tags">Manage My Tags</a>
+        </section>
         <section class="sidebar-section" id="moderator" th:hidden="${user == null || user.role.name() != 'MODERATOR'}">
             <h3>Moderation</h3>
             <p>Review Reports</p>

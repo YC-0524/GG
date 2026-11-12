@@ -61,6 +61,10 @@ public class ProfileTag {
         this.tagType = type;
     }
 
+    public long getId() {
+        return this.id;
+    }
+
     public String getTag() {
         return this.tag;
     }
