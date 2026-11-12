@@ -18,7 +18,6 @@ import com.group17.game.Models.CurrentUser;
 import com.group17.game.Models.GameEntryRepository;
 import com.group17.game.Models.ProfileTag;
 import com.group17.game.Models.ProfileTagRepository;
-import com.group17.game.Models.ProfileTagType;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 
@@ -106,32 +105,6 @@ public class ProfileController {
         // Only the owner gets a link to edit their list
         model.addAttribute("isOwner", user != null && user.getId() == userID);
         return "profile";
-    }
-
-    @PostMapping("/me/tag")
-    public ProfileTag addTagToUserProfile(@RequestParam String tag, @RequestParam String tagType, @CurrentUser User user) { 
-        if (!ProfileTag.ALLOWED_TAGS.contains(tag)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-
-        ProfileTagType type;
-
-        try {
-            type = ProfileTagType.valueOf(tagType);
-        } catch (IllegalArgumentException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-
-        Optional<ProfileTag> existingTag = profileTagRepository.findByUserIdAndTag(user.getId(), tag);
-        if (existingTag.isPresent()) {
-            // user already has this tag
-            return existingTag.get();
-        }
-
-        ProfileTag newTag = new ProfileTag(user.getId(), tag, type);
-        profileTagRepository.save(newTag);
-        
-        return newTag;
     }
 
     @GetMapping ("/{userID}/tags")
