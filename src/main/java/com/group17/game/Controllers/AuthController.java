@@ -168,11 +168,11 @@ public class AuthController {
         Optional<String> passwordProblem = PasswordPolicy.validate(newPassword, confirmPassword);
         if (passwordProblem.isPresent()) {
             return "redirect:/auth/set-password?key=" + UriUtils.encodeQueryParam(secretKey, StandardCharsets.UTF_8) 
-                    + "&error" + UriUtils.encodeQueryParam(passwordProblem.get(), StandardCharsets.UTF_8);
+                    + "&error=" + UriUtils.encodeQueryParam(passwordProblem.get(), StandardCharsets.UTF_8);
         }
 
         // find the user from the request, not the session
-        User user = userRepository.findById(flow.getUserID()).get();
+        User user = userRepository.findById(flow.getUserID()).orElse(null);
         if (user == null) {
             return "redirect:/";
         }
