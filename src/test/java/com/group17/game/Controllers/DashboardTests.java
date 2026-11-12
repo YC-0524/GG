@@ -83,9 +83,22 @@ class DashboardTests {
 
     @Test
     void unsafeOrMissingAvatarUsesInitials() {
-        PlayerCard card = new PlayerCard(1L, "Player", "javascript:alert(1)", ActivityStatus.ONLINE);
+        PlayerCard card = new PlayerCard(
+            1L, 
+            "Player", 
+            "javascript:alert(1)", 
+            ActivityStatus.ONLINE, 
+            null, 
+            null
+        );
         assertNull(card.getAvatar());
         assertEquals("P", card.getInitials());
-        assertNull(new PlayerCard(2L, "Second", null, null).getAvatar());
+        assertNull(new PlayerCard(
+            2L, 
+            "Second", 
+            null, 
+             null, 
+            null, 
+            null).getAvatar());
     }
 }

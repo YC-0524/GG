@@ -1,0 +1,12 @@
+<body>
+  <!-- this is basically just profile tags but meant for games, so it reuses the same general styling -->
+  <div class="profile-tags" th:fragment="profileGames(games)">
+    <link rel="stylesheet" th:href="@{/css/profileTags.css}" />
+    <div class="tag" th:each="game : ${games}">
+      <!-- TODO: Game Icon instead of dot -->
+      <span th:text="${game.gameName}">Valorant</span>
+      <span>&middot;</span>
+      <span th:text="${game.rank}">Diamond 1</span>
+    </div>
+  </div>
+</body>

@@ -1,21 +1,53 @@
 package com.group17.game.DTOs;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 import com.group17.game.Models.ActivityStatus;
+import com.group17.game.Models.GameEntry;
+import com.group17.game.Models.ProfileTag;
+
+import jakarta.annotation.Nullable;
 
 // Public profile fields only; never expose a User entity to the player cards.
 public class PlayerCard {
     private final Long id;
     private final String username;
     private final String avatar;
-    private final ActivityStatus activityStatus;
+    private ActivityStatus activityStatus;
+    private ArrayList<ProfileTag> tags;
+    private ArrayList<GameEntry> games;
 
-    public PlayerCard(Long id, String username, String avatar, ActivityStatus activityStatus) {
+    public PlayerCard(
+        Long id, 
+        String username, 
+        String avatar, 
+        ActivityStatus activityStatus,
+        @Nullable ArrayList<ProfileTag> tags,
+        @Nullable ArrayList<GameEntry> gameEntries
+    ) {
         this.id = id;
         this.username = username;
         this.avatar = avatar;
         this.activityStatus = activityStatus;
+        this.games = gameEntries;
+        if (tags == null) {
+            this.tags = new ArrayList<>();
+        } else {
+            this.tags = tags;
+        }
+    }
+
+    public void setProfileTags(ArrayList<ProfileTag> tags) {
+        this.tags = tags;
+    }
+
+    public void setGameEntries(ArrayList<GameEntry> gameEntries) {
+        this.games = gameEntries;
+    }
+
+    public void addProfileTag(ProfileTag tag) {
+        this.tags.add(tag);
     }
 
     public Long getId() { return id; }
@@ -28,6 +60,14 @@ public class PlayerCard {
         if (avatar.startsWith("https://") || avatar.startsWith("http://")
                 || avatar.startsWith("/images/")) return avatar;
         return null;
+    }
+
+    public ArrayList<ProfileTag> getProfileTags() {
+        return this.tags;
+    }
+
+    public ArrayList<GameEntry> getGames() {
+        return this.games;
     }
 
     public String getInitials() {

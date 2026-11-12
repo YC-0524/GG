@@ -1,0 +1,18 @@
+.profile-tags {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+}
+
+.profile-tags > .tag {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem; /* If colored dot is ever added */
+    text-transform: capitalize;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+}
