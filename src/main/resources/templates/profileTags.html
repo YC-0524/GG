@@ -1,7 +1,8 @@
 <body>
-    <div class="profile-tags" th:fragment="profileTags(tags)">
-        <div class="tag" th:each="tag : ${tags}">
-            <span th:text="${tag.tag}">Co-Op</span>
-        </div>
+  <div class="profile-tags" th:fragment="profileTags(tags)">
+    <link rel="stylesheet" th:href="@{/css/profileTags.css}" />
+    <div class="tag" th:each="tag : ${tags}">
+      <span th:text="${tag.tag}">Co-Op</span>
     </div>
+  </div>
 </body>
