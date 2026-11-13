@@ -8,7 +8,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 
-class PasswordPolicyTest {
+class PasswordPolicyTests {
 
     @Test
     void validPasswordPasses() {
