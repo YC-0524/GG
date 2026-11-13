@@ -22,9 +22,12 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -35,6 +38,9 @@ import java.util.Date;
 @AutoConfigureMockMvc
 @Transactional
 public class AuthTests {
+
+    private static final String VALID_PASSWORD = "Password1!";
+    private static final String NEW_PASSWORD = "NewPass2@";
 
     @Autowired
     MockMvc mockMvc;
@@ -55,14 +61,30 @@ public class AuthTests {
                 "Expected redirect URL to contain 'login' or 'register', but was: " + url);
     }
 
+    // grabs session
+    private MockHttpSession registerAndGetSession(String email, String password) throws Exception {
+        MvcResult result = mockMvc.perform(post("/auth/register-email")
+        .with(csrf())
+        .param("username", "Username1")
+        .param("email", email)
+        .param("password", password)
+        .param("confirmPassword", password))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(authenticated()).andReturn();
+
+        return (MockHttpSession) result.getRequest().getSession(false);
+    }
+
     @Test
     void testValidEmailRegistration() throws Exception {
         mockMvc.perform(post("/auth/register-email")
                 .with(csrf())
                 .param("username", "Username")
                 .param("email", "test@example.com")
-                .param("password", "123456789"))
-                .andExpect(status().is3xxRedirection());
+                .param("password", VALID_PASSWORD)
+                .param("confirmPassword", VALID_PASSWORD))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/dashboard"));
     }
 
     @Test
@@ -71,7 +93,8 @@ public class AuthTests {
                 .with(csrf())
                 .param("username", "Username")
                 .param("email", "")
-                .param("password", "123456789"))
+                .param("password", VALID_PASSWORD)
+                .param("confirmPassword", VALID_PASSWORD))
                 .andExpect(status().is3xxRedirection())
                 .andReturn();
 
@@ -80,19 +103,15 @@ public class AuthTests {
 
     @Test
     void testDuplicateEmailRegistration() throws Exception {
-        mockMvc.perform(post("/auth/register-email")
-                .with(csrf())
-                .param("username", "Username1")
-                .param("email", "test@example.com")
-                .param("password", "123456789"))
-                .andExpect(status().is3xxRedirection());
+        registerAndGetSession("test@example.com", VALID_PASSWORD);
 
         // Duplicate email should fail
         MvcResult result = mockMvc.perform(post("/auth/register-email")
                 .with(csrf())
                 .param("username", "Username2")
                 .param("email", "test@example.com")
-                .param("password", "1234567890"))
+                .param("password", VALID_PASSWORD)
+                .param("confirmPassword", VALID_PASSWORD))
                 .andExpect(status().is3xxRedirection())
                 .andReturn();
 
@@ -100,19 +119,46 @@ public class AuthTests {
     }
 
     @Test
-    void testEmailLogin() throws Exception {
-        mockMvc.perform(post("/auth/register-email")
+    void testRegistrationWeakPasswordRejected() throws Exception {
+
+        MvcResult result = mockMvc.perform(post("/auth/register-email")
                 .with(csrf())
-                .param("username", "Username1")
+                .param("username", "Username")
                 .param("email", "test@example.com")
-                .param("password", "123456789"))
-                .andExpect(status().is3xxRedirection());
+                .param("password", "password1")
+                .param("confirmPassword", "password1"))
+                .andExpect(status().is3xxRedirection())
+                .andReturn();
+
+        assertTrue(result.getResponse().getRedirectedUrl().startsWith("/auth/register?error="));
+        assertNull(userRepository.findByEmail("test@example.com"), "Account should not be created");
+    }
+
+    @Test
+    void testRegistrationMismatchedPasswordRejected() throws Exception {
+
+        MvcResult result = mockMvc.perform(post("/auth/register-email")
+                .with(csrf())
+                .param("username", "Username")
+                .param("email", "test@example.com")
+                .param("password", VALID_PASSWORD)
+                .param("confirmPassword", "Password1?"))
+                .andExpect(status().is3xxRedirection())
+                .andReturn();
+
+        assertTrue(result.getResponse().getRedirectedUrl().startsWith("/auth/register?error="));
+        assertNull(userRepository.findByEmail("test@example.com"), "Account should not be created");
+    }
+
+    @Test
+    void testEmailLogin() throws Exception {
+        registerAndGetSession("test@example.com", VALID_PASSWORD);
 
         // Correct credentials should work
         mockMvc.perform(post("/auth/login-email")
                 .with(csrf())
                 .param("email", "test@example.com")
-                .param("password", "123456789"))
+                .param("password", VALID_PASSWORD))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/dashboard"));
 
@@ -120,7 +166,7 @@ public class AuthTests {
         MvcResult result = mockMvc.perform(post("/auth/login-email")
                 .with(csrf())
                 .param("email", "Username1")
-                .param("password", "123456789"))
+                .param("password", VALID_PASSWORD))
                 .andExpect(status().is3xxRedirection())
                 .andReturn();
 
@@ -129,18 +175,8 @@ public class AuthTests {
 
     @Test
     void testLogout() throws Exception {
-        // Veryify there is logged-in session to log out of
-        MvcResult registerResult = mockMvc.perform(post("/auth/register-email")
-                .with(csrf())
-                .param("username", "Username1")
-                .param("email", "test@example.com")
-                .param("password", "123456789"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(authenticated())
-                .andReturn();
+        MockHttpSession session = registerAndGetSession("test@example.com", VALID_PASSWORD);
 
-        // Logging out with that session clears it and send user to login page
-        MockHttpSession session = (MockHttpSession) registerResult.getRequest().getSession(false);
         mockMvc.perform(post("/auth/logout")
                 .with(csrf())
                 .session(session))
@@ -151,41 +187,169 @@ public class AuthTests {
         assertTrue(session.isInvalid(), "Expected session to be invalidated after logout");
     }
 
+
+    // helper that registers a user
+    private String createUserWithResetFlow() throws Exception {
+        registerAndGetSession("test@example.com", VALID_PASSWORD);
+        User user = userRepository.findByEmail("test@example.com");
+        assertNotNull(user);
+
+        String secretKey = HashUtil.sha256Hash("test");
+        ChangePasswordFlow flow = new ChangePasswordFlow(user.getId(), true, secretKey, new Date());
+        passwordFlowRepository.save(flow);
+        assertTrue(passwordFlowRepository.existsById(flow.getID()));
+
+        return secretKey;
+    }
+
+
     @Test
     @Transactional
     void testPasswordReset() throws Exception {
-        // This test manually creates a reset object, normally this would be handled in
-        // a controller
-        userRepository.deleteAll();
-
-        mockMvc.perform(post("/auth/register-email")
-                .with(csrf())
-                .param("username", "Username1")
-                .param("email", "test@example.com")
-                .param("password", "123456789"))
-                .andExpect(status().is3xxRedirection());
-
-        User user = userRepository.findAll().get(0);
-        assertNotNull(user);
-
-        String previousHash = user.getPasswordHash();
-        String secretKey = HashUtil.sha256Hash("test");
-
-        ChangePasswordFlow flow = new ChangePasswordFlow(user.getId(), true, secretKey, new Date());
-        passwordFlowRepository.save(flow);
-
-        assertTrue(passwordFlowRepository.existsById(flow.getID()));
+        String secretKey = createUserWithResetFlow();
+        String previousHash = userRepository.findByEmail("test@example.com").getPasswordHash();
 
         // Correct credentials should work
         mockMvc.perform(post("/auth/set-password")
+                .with(csrf())
+                .param("newPassword", NEW_PASSWORD)
+                .param("confirmPassword", NEW_PASSWORD)
+                .param("secretKey", secretKey))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/dashboard"));
+
+        User user = userRepository.findByEmail("test@example.com");
+        assertNotEquals(user.getPasswordHash(), previousHash);
+        assertEquals(HashUtil.sha256Hash(NEW_PASSWORD), user.getPasswordHash());
+    }
+
+    @Test
+    void testPasswordResetWeakPasswordKeepsKeyAndShowsError() throws Exception {
+        String secretKey = createUserWithResetFlow();
+        String previousHash = userRepository.findByEmail("test@example.com").getPasswordHash();
+ 
+        MvcResult result = mockMvc.perform(post("/auth/set-password")
                 .with(csrf())
                 .param("newPassword", "12345678")
                 .param("confirmPassword", "12345678")
                 .param("secretKey", secretKey))
                 .andExpect(status().is3xxRedirection())
+                .andReturn();
+ 
+       
+        assertTrue(result.getResponse().getRedirectedUrl().startsWith("/auth/set-password?key=" + secretKey + "&error="), "Was: " + result.getResponse().getRedirectedUrl());
+        assertEquals(previousHash, userRepository.findByEmail("test@example.com").getPasswordHash());
+    }
+ 
+    
+    // password changes
+    @Test
+    void testChangePasswordSuccess() throws Exception {
+        MockHttpSession session = registerAndGetSession("test@example.com", VALID_PASSWORD);
+ 
+        MvcResult result = mockMvc.perform(post("/auth/change-password")
+                .with(csrf())
+                .session(session)
+                .param("currentPassword", VALID_PASSWORD)
+                .param("newPassword", NEW_PASSWORD)
+                .param("confirmPassword", NEW_PASSWORD))
+                .andExpect(status().is3xxRedirection())
+                .andReturn();
+ 
+        assertTrue(result.getResponse().getRedirectedUrl().contains("passwordChanged"));
+        assertEquals(HashUtil.sha256Hash(NEW_PASSWORD), userRepository.findByEmail("test@example.com").getPasswordHash());
+ 
+        // new password logs in
+        mockMvc.perform(post("/auth/login-email")
+                .with(csrf())
+                .param("email", "test@example.com")
+                .param("password", NEW_PASSWORD))
                 .andExpect(view().name("redirect:/dashboard"));
-
-        user = userRepository.findAll().get(0);
-        assertNotEquals(user.getPasswordHash(), previousHash);
+ 
+        // old password no longer does
+        MvcResult oldLogin = mockMvc.perform(post("/auth/login-email")
+                .with(csrf())
+                .param("email", "test@example.com")
+                .param("password", VALID_PASSWORD))
+                .andExpect(status().is3xxRedirection())
+                .andReturn();
+        expectLoginOrRegisterRedirect(oldLogin);
+    }
+ 
+    @Test
+    void testChangePasswordWrongCurrentPassword() throws Exception {
+        MockHttpSession session = registerAndGetSession("test@example.com", VALID_PASSWORD);
+ 
+        MvcResult result = mockMvc.perform(post("/auth/change-password")
+                .with(csrf())
+                .session(session)
+                .param("currentPassword", "WrongPass1!")
+                .param("newPassword", NEW_PASSWORD)
+                .param("confirmPassword", NEW_PASSWORD))
+                .andExpect(status().is3xxRedirection())
+                .andReturn();
+ 
+        assertTrue(result.getResponse().getRedirectedUrl().startsWith("/auth/change-password?error="));
+        assertEquals(HashUtil.sha256Hash(VALID_PASSWORD),
+                userRepository.findByEmail("test@example.com").getPasswordHash());
+    }
+ 
+    @Test
+    void testChangePasswordSameAsOld() throws Exception {
+        MockHttpSession session = registerAndGetSession("test@example.com", VALID_PASSWORD);
+ 
+        MvcResult result = mockMvc.perform(post("/auth/change-password")
+                .with(csrf())
+                .session(session)
+                .param("currentPassword", VALID_PASSWORD)
+                .param("newPassword", VALID_PASSWORD)
+                .param("confirmPassword", VALID_PASSWORD))
+                .andExpect(status().is3xxRedirection())
+                .andReturn();
+ 
+        assertTrue(result.getResponse().getRedirectedUrl().startsWith("/auth/change-password?error="));
+    }
+ 
+    @Test
+    void testChangePasswordWeakNewPassword() throws Exception {
+        MockHttpSession session = registerAndGetSession("test@example.com", VALID_PASSWORD);
+ 
+        MvcResult result = mockMvc.perform(post("/auth/change-password")
+                .with(csrf())
+                .session(session)
+                .param("currentPassword", VALID_PASSWORD)
+                .param("newPassword", "weakpass")
+                .param("confirmPassword", "weakpass"))
+                .andExpect(status().is3xxRedirection())
+                .andReturn();
+ 
+        assertTrue(result.getResponse().getRedirectedUrl().startsWith("/auth/change-password?error="));
+        assertEquals(HashUtil.sha256Hash(VALID_PASSWORD),
+                userRepository.findByEmail("test@example.com").getPasswordHash());
+    }
+ 
+    @Test
+    void testChangePasswordMismatchedConfirm() throws Exception {
+        MockHttpSession session = registerAndGetSession("test@example.com", VALID_PASSWORD);
+ 
+        MvcResult result = mockMvc.perform(post("/auth/change-password")
+                .with(csrf())
+                .session(session)
+                .param("currentPassword", VALID_PASSWORD)
+                .param("newPassword", NEW_PASSWORD)
+                .param("confirmPassword", "NewPass2#"))
+                .andExpect(status().is3xxRedirection())
+                .andReturn();
+ 
+        assertTrue(result.getResponse().getRedirectedUrl().startsWith("/auth/change-password?error="));
+    }
+ 
+    @Test
+    void testChangePasswordPageRequiresLogin() throws Exception {
+        MvcResult result = mockMvc.perform(get("/auth/change-password"))
+                .andExpect(status().is3xxRedirection())
+                .andReturn();
+ 
+        expectLoginOrRegisterRedirect(result);
     }
 }

@@ -123,6 +123,14 @@ a {
     margin-top: 24px;
 }
 
+.login-button:disabled,
+.login-button:disabled:hover {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: none;
+    box-shadow: none;
+}
+
 /* Email form */
 
 .divider {
@@ -228,22 +236,6 @@ a {
 
 .signup-note a:hover {
     text-decoration: underline;
-}
-
-.error-message {
-    margin: 0 0 20px;
-    padding: 12px;
-    border: 1px solid #a7576f;
-    border-radius: 8px;
-    background: #432331;
-    color: #ffd3df;
-    font-size: 15px;
-    line-height: 1.5;
-    overflow-wrap: anywhere;
-}
-
-.error-message[hidden] {
-    display: none;
 }
 
 /* Small screens */

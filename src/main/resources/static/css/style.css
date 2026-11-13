@@ -7,6 +7,8 @@
     --border-color: #2c2948;
     --muted-text: #bbb6d2;
     --accent-color: #b79aff;
+    --success-color: #7ee2a8;
+    --danger-color: #ff8fa6;
     color: var(--text-primary);
     background: var(--page-background);
 }
@@ -74,6 +76,118 @@ input {
     background: transparent;
     color: var(--muted-text);
     cursor: pointer;
+}
+
+.error-message {
+    margin: 0 0 20px;
+    padding: 12px;
+    border: 1px solid #a7576f;
+    border-radius: 8px;
+    background: #432331;
+    color: #ffd3df;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.success-message {
+    margin: 0 0 20px;
+    padding: 12px;
+    border: 1px solid #3f8f65;
+    border-radius: 8px;
+    background: #173326;
+    color: #c8f5dc;
+    font-size: 15px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.button-link {
+    display: inline-block;
+    width: fit-content;
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    color: var(--accent-color);
+    font-size: 0.9rem;
+    transition: border-color 150ms, background 150ms;
+}
+
+.button-link:hover {
+    border-color: var(--accent-color);
+    background: rgb(183 154 255 / 8%);
+}
+
+.password-rules {
+    list-style: none;
+    margin: 0.4rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.1rem;
+    color: var(--muted-text);
+    font-size: 0.75rem;
+    line-height: 1.35;
+}
+
+.password-rules li {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: color 150ms, opacity 150ms;
+}
+
+.password-rules.is-touched li.is-met {
+    opacity: 0.75;
+}
+
+.password-rules.is-complete li.is-met {
+    opacity: 1;
+}
+ 
+.password-rules li::before {
+    content: "\25CB"; 
+    width: 1em;
+    text-align: center;
+    font-weight: 700;
+}
+ 
+.password-rules.is-touched li:not(.is-met) {
+    color: var(--danger-color);
+}
+ 
+.password-rules.is-touched li:not(.is-met)::before {
+    content: "\2715"; /* ✕ */
+}
+ 
+.password-rules li.is-met {
+    color: var(--success-color);
+}
+ 
+.password-rules li.is-met::before {
+    content: "\2713"; /* ✓ */
+}
+ 
+.password-match {
+    margin: 0.4rem 0 0;
+    font-size: 0.75rem;
+    line-height: 1.35;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+ 
+.password-match:empty {
+    display: none;
+}
+ 
+.password-match.is-match {
+    color: var(--success-color);
+}
+ 
+.password-match.is-mismatch {
+    color: var(--danger-color);
 }
 
 @media (min-width: 1000px) {
