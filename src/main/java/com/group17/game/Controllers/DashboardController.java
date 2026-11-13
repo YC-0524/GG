@@ -53,10 +53,10 @@ public class DashboardController {
         List<PlayerCard> playerCards = userRepository.findPlayerCardsExcluding(userId);
         for (PlayerCard p : playerCards) {
             // fill in details for each player that aren't associated with the table directly
-            List<ProfileTag> profileTags = profileTagRepository.findAllByUserId(userId);
+            List<ProfileTag> profileTags = profileTagRepository.findAllByUserId(p.getId());
             p.setProfileTags(new ArrayList<>(profileTags));
 
-            List<GameEntry> gameEntries = gameEntryRepository.findByUserIdOrderByGameNameAsc(userId);
+            List<GameEntry> gameEntries = gameEntryRepository.findByUserIdOrderByGameNameAsc(p.getId());
             p.setGameEntries(new ArrayList<>(gameEntries));
         }
         model.addAttribute("players", playerCards);

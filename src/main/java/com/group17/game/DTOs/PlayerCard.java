@@ -19,23 +19,32 @@ public class PlayerCard {
     private ArrayList<GameEntry> games;
 
     public PlayerCard(
-        Long id, 
-        String username, 
-        String avatar, 
-        ActivityStatus activityStatus,
-        @Nullable ArrayList<ProfileTag> tags,
-        @Nullable ArrayList<GameEntry> gameEntries
-    ) {
+            Long id,
+            String username,
+            String avatar,
+            ActivityStatus activityStatus,
+            @Nullable ArrayList<ProfileTag> tags,
+            @Nullable ArrayList<GameEntry> gameEntries) {
         this.id = id;
         this.username = username;
         this.avatar = avatar;
         this.activityStatus = activityStatus;
-        this.games = gameEntries;
+
         if (tags == null) {
             this.tags = new ArrayList<>();
         } else {
             this.tags = tags;
         }
+
+        if (gameEntries == null) {
+            this.games = new ArrayList<>();
+        } else {
+            this.games = gameEntries;
+        }
+    }
+
+    public PlayerCard(Long id, String username, String avatar, ActivityStatus activityStatus) {
+        this(id, username, avatar, activityStatus, null, null);
     }
 
     public void setProfileTags(ArrayList<ProfileTag> tags) {
@@ -50,19 +59,29 @@ public class PlayerCard {
         this.tags.add(tag);
     }
 
-    public Long getId() { return id; }
-    public String getUsername() { return username; }
-    public ActivityStatus getActivityStatus() { return this.activityStatus; }
+    public Long getId() {
+        return id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public ActivityStatus getActivityStatus() {
+        return this.activityStatus;
+    }
 
     public String getAvatar() {
-        if (avatar == null) return null;
+        if (avatar == null)
+            return null;
         // Support Discord images and local profile images, without script URLs.
         if (avatar.startsWith("https://") || avatar.startsWith("http://")
-                || avatar.startsWith("/images/")) return avatar;
+                || avatar.startsWith("/images/"))
+            return avatar;
         return null;
     }
 
-    public ArrayList<ProfileTag> getProfileTags() {
+    public ArrayList<ProfileTag> getTags() {
         return this.tags;
     }
 
@@ -71,7 +90,8 @@ public class PlayerCard {
     }
 
     public String getInitials() {
-        if (username == null || username.isBlank()) return "?";
+        if (username == null || username.isBlank())
+            return "?";
         String name = username.strip();
         return name.substring(0, name.offsetByCodePoints(0, 1)).toUpperCase(Locale.ROOT);
     }
