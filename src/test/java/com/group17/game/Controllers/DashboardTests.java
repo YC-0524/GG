@@ -1,6 +1,7 @@
 package com.group17.game.Controllers;
 
 import com.group17.game.DTOs.PlayerCard;
+import com.group17.game.Models.ActivityStatus;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -82,9 +83,22 @@ class DashboardTests {
 
     @Test
     void unsafeOrMissingAvatarUsesInitials() {
-        PlayerCard card = new PlayerCard(1L, "Player", "javascript:alert(1)");
+        PlayerCard card = new PlayerCard(
+            1L, 
+            "Player", 
+            "javascript:alert(1)", 
+            ActivityStatus.ONLINE, 
+            null, 
+            null
+        );
         assertNull(card.getAvatar());
         assertEquals("P", card.getInitials());
-        assertNull(new PlayerCard(2L, "Second", null).getAvatar());
+        assertNull(new PlayerCard(
+            2L, 
+            "Second", 
+            null, 
+             null, 
+            null, 
+            null).getAvatar());
     }
 }

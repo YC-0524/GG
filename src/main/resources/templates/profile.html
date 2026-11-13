@@ -19,8 +19,10 @@
                 <h1 th:text="${profile.username}">John Doe</h1>
             </section>
             <section class="profile-section">
+                <div th:replace="~{activityStatus :: activityStatus(${user.activityStatus})}"></div>
                 <span th:text="'Role: ' + ${profile.role.name()}" style="text-transform: capitalize !important;"></span>
                 <span th:text="'Joined GG on ' + ${#dates.format(profile.registered, 'yyyy-MM-dd')}"></span>
+                <div th:replace="~{profileTags :: profileTags(${tags})}" th:hidden="{#lists.isEmpty(tags)}"></div>
             </section>
             <section class="profile-section">
                 <div class="profile-games-header">

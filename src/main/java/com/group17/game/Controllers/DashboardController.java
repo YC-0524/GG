@@ -1,9 +1,15 @@
 package com.group17.game.Controllers;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.group17.game.DTOs.PlayerCard;
 import com.group17.game.DTOs.UserSummary;
 import com.group17.game.Models.CurrentUser;
+import com.group17.game.Models.GameEntry;
+import com.group17.game.Models.GameEntryRepository;
+import com.group17.game.Models.ProfileTag;
+import com.group17.game.Models.ProfileTagRepository;
 import com.group17.game.Models.RequestStatus;
 import com.group17.game.Models.SuspensionRequestRepository;
 import com.group17.game.Models.User;
@@ -21,12 +27,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class DashboardController {
     private final UserRepository userRepository;
     private final SuspensionRequestRepository requestRepository;
+    private final ProfileTagRepository profileTagRepository;
+    private final GameEntryRepository gameEntryRepository;
 
     public DashboardController(
             UserRepository userRepository,
-            SuspensionRequestRepository requestRepository) {
+            SuspensionRequestRepository requestRepository,
+            ProfileTagRepository profileTagRepository,
+            GameEntryRepository gameEntryRepository) {
         this.userRepository = userRepository;
         this.requestRepository = requestRepository;
+        this.profileTagRepository = profileTagRepository;
+        this.gameEntryRepository = gameEntryRepository;
     }
 
     @GetMapping("")
@@ -38,7 +50,16 @@ public class DashboardController {
         }
 
         model.addAttribute("user", user);
-        model.addAttribute("players", userRepository.findPlayerCardsExcluding(userId));
+        List<PlayerCard> playerCards = userRepository.findPlayerCardsExcluding(userId);
+        for (PlayerCard p : playerCards) {
+            // fill in details for each player that aren't associated with the table directly
+            List<ProfileTag> profileTags = profileTagRepository.findAllByUserId(p.getId());
+            p.setProfileTags(new ArrayList<>(profileTags));
+
+            List<GameEntry> gameEntries = gameEntryRepository.findByUserIdOrderByGameNameAsc(p.getId());
+            p.setGameEntries(new ArrayList<>(gameEntries));
+        }
+        model.addAttribute("players", playerCards);
         return "dashboard";
     }
 

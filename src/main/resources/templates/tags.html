@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Games | GAME GANG</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/games.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <nav th:replace="~{sideNavigation :: sideNavigation}"></nav>
+        <div class="content-container games-container">
+            <h2>My Tags</h2>
+
+            <form class="add-tag-form" th:action="@{/tags}" method="post">
+                <div class="field">
+                    <label for="tag-select">Available tags</label>
+                    <select id="tagType" name="tagType">
+                        <option th:each="entry : ${catalog}" th:value="${entry.key.name()}"
+                            th:text="${entry.key.name()}">
+                        </option>
+                    </select>
+
+                    <select id="tag" name="tag">
+                    </select>
+                </div>
+                <button type="submit" id="add-tag-button">Add Tag</button>
+            </form>
+            <p class="form-message error" th:if="${error}" th:text="${error}" role="alert"></p>
+            <p class="form-message" th:if="${success}" th:text="${success}" role="status"></p>
+
+            <p th:if="${#lists.isEmpty(personalTags)}" class="form-message">No tags added yet</p>
+            <table class="tags-table" th:unless="${#lists.isEmpty(personalTags)}">
+                <thead>
+                    <tr>
+                        <th>Tags</th>
+                        <th><span class="visually-hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="tag : ${personalTags}">
+                        <td th:text="${tag.tag}">Co-Op</td>
+                        <td>
+                            <div class="tag-actions">
+                                <form th:action="@{/tags/{id}/delete(id=${tag.id})}" method="post"
+                                    class="remove-tag-form" th:attr="data-tag=${tag.tag}">
+                                    <button type="submit" class="link-button">Remove</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script th:inline="javascript">
+        // gets filled in by thymeleaf. DO NOT REMOVE /* ... */
+        const catalog = /*[(${catalogJson})]*/ {};
+        window.tagCatalog = catalog;
+    </script>
+
+    <script th:src="@{/js/tags.js}"></script>
+</body>
+
+</html>

@@ -43,10 +43,13 @@ public class User {
     @Column(name = "role")
     private UserRole role = UserRole.USER;
 
+    private Instant timeoutUntil;
+
     @Enumerated(EnumType.STRING)
     private UserStatus status = UserStatus.ACTIVE;
 
-    private Instant timeoutUntil;
+    @Enumerated(EnumType.STRING)
+    private ActivityStatus activityStatus = ActivityStatus.OFFLINE;
     
     // sha256 hashes are exactly 64 characters
     @Column(name = "password_hash")
@@ -57,6 +60,9 @@ public class User {
     @Column(name = "registered")
     private Date registered;
 
+    @Column(name = "last_seen")
+    private Date lastSeen;
+
     // empty constructor, needed for springboot initializers
     public User() {}
 
@@ -66,15 +72,17 @@ public class User {
         this.passwordHash = passwordHash;
         this.role = UserRole.USER;
         this.registered = new Date();
+        this.lastSeen = new Date();
     }
 
     // full constructor, has every non generated field
-    public User(String username, String avatar, String email, String hash, Date registered, UserRole role) {
+    public User(String username, String avatar, String email, String hash, Date registered, Date lastSeen, UserRole role) {
         this.username = username;
         this.avatar = avatar;
         this.email = email;
         this.passwordHash = hash;
         this.registered = registered;
+        this.lastSeen = lastSeen;
         this.role = role;
     }
 
@@ -103,6 +111,10 @@ public class User {
         return registered;
     }
 
+    public Date getLastSeen() {
+        return this.lastSeen;
+    }
+
     public UserRole getRole() {
         return  this.role;
     }
@@ -116,9 +128,17 @@ public class User {
         return timeoutUntil;
     }
 
+    public ActivityStatus getActivityStatus() {
+        return this.activityStatus;
+    }
+
     // Setters
     public void setId(long id) {
         this.id = id;
+    }
+
+    public void setActivityStatus(ActivityStatus newStatus) {
+        this.activityStatus = newStatus;
     }
 
     public void setUsername(String username) {
@@ -139,6 +159,10 @@ public class User {
 
     public void setRegistered(Date registered) {
         this.registered = registered;
+    }
+
+    public void setLastSeen(Date seen) {
+        this.lastSeen = seen;
     }
 
     public void setRole(UserRole role) {
