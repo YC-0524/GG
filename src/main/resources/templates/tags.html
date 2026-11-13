@@ -19,10 +19,12 @@
                 <div class="field">
                     <label for="tag-select">Available tags</label>
                     <select id="tagType" name="tagType">
-                        <option th:each="tagType : ${tagTypes}" th:text="${tagType.name}" th:value="${tagType.name}"></option>
+                        <option th:each="entry : ${catalog}" th:value="${entry.key.name()}"
+                            th:text="${entry.key.name()}">
+                        </option>
                     </select>
+
                     <select id="tag" name="tag">
-                        <option th:each="tag : ${catalog}" th:text="${tag}" th:value="${tag}"></option>
                     </select>
                 </div>
                 <button type="submit" id="add-tag-button">Add Tag</button>
@@ -54,7 +56,13 @@
             </table>
         </div>
     </div>
-    <script src="/js/tags.js" defer></script>
+    <script th:inline="javascript">
+        // gets filled in by thymeleaf. DO NOT REMOVE /* ... */
+        const catalog = /*[(${catalogJson})]*/ {};
+        window.tagCatalog = catalog;
+    </script>
+
+    <script th:src="@{/js/tags.js}"></script>
 </body>
 
 </html>

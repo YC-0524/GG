@@ -2,6 +2,8 @@ package com.group17.game.Models;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,25 +18,39 @@ import jakarta.validation.constraints.NotBlank;
 @Entity
 @Table(name = "profile_tags")
 public class ProfileTag {
+    public static boolean isValidTag(String tag) {
+        for (Set<String> tags : ALLOWED_TAGS.values()) {
+            if (tags.contains(tag)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // text can only be one of these
-    public static HashSet<String> ALLOWED_TAGS = new HashSet<>(Arrays.asList(
-        "Casual",
-        "Competitive",
-        "Co-Op",
-        "FPS",
-        "RPG",
-        "Moba",
-        "MMO",
-        "Night Owl",
-        "Early Bird",
-        "Whenever",
-        "Mic",
-        "No Mic",
-        "Duo",
-        "Trio",
-        "Squads",
-        "5+"
-    ));
+    public static final Map<ProfileTagType, Set<String>> ALLOWED_TAGS = Map.of(
+            ProfileTagType.PLAYSTYLE, new HashSet<>(Arrays.asList(
+                    "Casual",
+                    "Competitive")),
+            ProfileTagType.GENRE, new HashSet<>(Arrays.asList(
+                    "Co-Op",
+                    "FPS",
+                    "RPG",
+                    "Moba",
+                    "MMO")),
+            ProfileTagType.SCHEDULE, new HashSet<>(Arrays.asList(
+                    "Night Owl",
+                    "Early Bird",
+                    "Whenever")),
+            ProfileTagType.MIC, new HashSet<>(Arrays.asList(
+                    "Mic",
+                    "No Mic")),
+            ProfileTagType.GROUP_SIZE, new HashSet<>(Arrays.asList(
+                    "Duo",
+                    "Trio",
+                    "Squads",
+                    "5+")));
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

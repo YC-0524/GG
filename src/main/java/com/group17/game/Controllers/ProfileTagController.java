@@ -18,16 +18,15 @@ import com.group17.game.Models.ProfileTag;
 import com.group17.game.Models.ProfileTagRepository;
 import com.group17.game.Models.ProfileTagType;
 import com.group17.game.Models.User;
-import com.group17.game.Models.UserRepository;
 
-@Controller 
+import tools.jackson.databind.ObjectMapper;
+
+@Controller
 @RequestMapping("/tags")
 public class ProfileTagController {
-    private final UserRepository userRepository;
     private final ProfileTagRepository profileTagRepository;
 
-    public ProfileTagController(UserRepository userRepository, ProfileTagRepository tagRepository) {
-        this.userRepository = userRepository;
+    public ProfileTagController(ProfileTagRepository tagRepository) {
         this.profileTagRepository = tagRepository;
     }
 
@@ -36,15 +35,15 @@ public class ProfileTagController {
         List<ProfileTag> personalTags = profileTagRepository.findAllByUserId(user.getId());
 
         model.addAttribute("personalTags", personalTags);
-        model.addAttribute("tagTypes", ProfileTagType.values());
-        model.addAttribute("catalog", ProfileTag.ALLOWED_TAGS.toArray());
+        model.addAttribute("catalog", ProfileTag.ALLOWED_TAGS);
+        model.addAttribute("catalogJson", new ObjectMapper().writeValueAsString(ProfileTag.ALLOWED_TAGS));
         model.addAttribute("user", user);
         return "tags";
     }
 
     @PostMapping("")
-    public String addTagToUserProfile(@RequestParam String tag, @RequestParam String tagType, @CurrentUser User user) { 
-        if (!ProfileTag.ALLOWED_TAGS.contains(tag)) {
+    public String addTagToUserProfile(@RequestParam String tag, @RequestParam String tagType, @CurrentUser User user) {
+        if (!ProfileTag.isValidTag(tag)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
@@ -64,12 +63,12 @@ public class ProfileTagController {
 
         ProfileTag newTag = new ProfileTag(user.getId(), tag, type);
         profileTagRepository.save(newTag);
-        
+
         return "redirect:/tags";
     }
 
     @PostMapping("/{tagID}/delete")
-    public String removeTagFromProfile(@PathVariable("tagID") Long tagID, @CurrentUser User user) { 
+    public String removeTagFromProfile(@PathVariable("tagID") Long tagID, @CurrentUser User user) {
         Optional<ProfileTag> tag = profileTagRepository.findById(tagID);
         if (tag.isEmpty()) {
             return "redirect:/tags?error=Tag doesn't exist.";
@@ -78,7 +77,7 @@ public class ProfileTagController {
         }
 
         profileTagRepository.deleteById(tagID);
-        
+
         return "redirect:/tags";
     }
 }
