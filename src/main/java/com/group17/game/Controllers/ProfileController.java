@@ -3,7 +3,6 @@ package com.group17.game.Controllers;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.group17.game.Models.ActivityStatus;
 import com.group17.game.Models.CurrentUser;
@@ -57,9 +55,9 @@ public class ProfileController {
         String referer = request.getHeader("Referer");
         // Prevent cross-site redirection
         if (referer == null || !referer.startsWith("/") || referer.startsWith("//")) {
-            return "redirect:/profile";
+            return "redirect:/dashboard";
         }
-        return "redirect:" + (referer != null ? referer : "/profile");
+        return "redirect:" + (referer != null ? referer : "/dashboard");
     }
 
     @GetMapping("/search")
