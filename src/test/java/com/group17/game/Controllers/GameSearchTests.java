@@ -26,6 +26,8 @@ import com.group17.game.Models.CatalogGame;
 import com.group17.game.Models.CatalogGameRepository;
 import com.group17.game.Models.GameEntry;
 import com.group17.game.Models.GameEntryRepository;
+import com.group17.game.Models.GameRequest;
+import com.group17.game.Models.GameRequestRepository;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 import com.group17.game.Utilities.GameCatalog;
@@ -45,6 +47,7 @@ class GameSearchTests {
     @Autowired UserRepository users;
     @Autowired GameEntryRepository entries;
     @Autowired CatalogGameRepository catalogGames;
+    @Autowired GameRequestRepository gameRequests;
 
     private User register(String name) {
         return users.saveAndFlush(new User(name, name + "@example.com", "a".repeat(64)));
@@ -165,7 +168,25 @@ class GameSearchTests {
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("error", "No games found"))
                 .andExpect(model().attribute("requestGameName", "Stardew Valley"))
-                .andExpect(content().string(containsString("/game-requests/new?gameName=Stardew%20Valley")));
+                .andExpect(content().string(containsString("/game-requests/new?gameName=Stardew%20Valley")))
+                .andExpect(content().string(containsString("from=search")))
+                // The typed name stays in the box, so the open dropdown shows "Request this game" too
+                .andExpect(content().string(containsString("value=\"Stardew Valley\"")));
+    }
+
+    @Test
+    void pendingRequestShowsWaitingMessageInsteadOfRequestButton() throws Exception {
+        User player = register("Player");
+        gameRequests.saveAndFlush(new GameRequest("Stardew Valley", "Simulation", "Solo", 1, 1, "",
+                player.getId(), player.getUsername()));
+
+        mockMvc.perform(get("/search").param("game", "stardew valley").with(authentication(login(player))))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("pendingRequestGame", "stardew valley"))
+                .andExpect(model().attributeDoesNotExist("requestGameName"))
+                .andExpect(model().attribute("pendingRequests", List.of("stardew valley")))
+                .andExpect(content().string(containsString("is already waiting for a moderator")))
+                .andExpect(content().string(containsString("data-pending-requests=\"stardew valley\"")));
     }
 
     @Test

@@ -23,7 +23,12 @@ import com.group17.game.Models.UserRole;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -232,5 +237,54 @@ class GameRequestTests {
 
         assertEquals(RequestStatus.PENDING,
                 requests.findById(closeRequest.getId()).orElseThrow().getStatus());
+    }
+
+    @Test
+    void requestStartedFromSearchReturnsToSearch() throws Exception {
+        User player = register("Player", UserRole.USER);
+
+        mockMvc.perform(post(BASE)
+                .param("gameName", "Stardew Valley")
+                .param("genre", "Simulation")
+                .param("gameMode", "Solo")
+                .param("from", "search")
+                .with(csrf())
+                .with(loginAs(player)))
+                .andExpect(redirectedUrl("/search"))
+                .andExpect(flash().attribute("success", "Your game request has been submitted!"));
+
+        assertEquals(1, requests.findByStatusOrderByCreatedAtDesc(RequestStatus.PENDING).size());
+    }
+
+    @Test
+    void invalidRequestFromSearchKeepsSearchOnTheForm() throws Exception {
+        User player = register("Player", UserRole.USER);
+
+        mockMvc.perform(post(BASE)
+                .param("gameName", "Invalid Game")
+                .param("genre", "Action")
+                .param("gameMode", "Multiplayer")
+                .param("minPlayers", "5")
+                .param("maxPlayers", "2")
+                .param("from", "search")
+                .with(csrf())
+                .with(loginAs(player)))
+                .andExpect(redirectedUrl(BASE + "/new?from=search"));
+    }
+
+    @Test
+    void formRemembersItWasOpenedFromSearch() throws Exception {
+        User player = register("Player", UserRole.USER);
+
+        mockMvc.perform(get(BASE + "/new").param("gameName", "Stardew Valley").param("from", "search")
+                .with(loginAs(player)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("name=\"from\" value=\"search\"")))
+                .andExpect(content().string(containsString("href=\"/search\">Cancel</a>")));
+
+        mockMvc.perform(get(BASE + "/new").with(loginAs(player)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("name=\"from\""))))
+                .andExpect(content().string(containsString("href=\"/games\">Cancel</a>")));
     }
 }

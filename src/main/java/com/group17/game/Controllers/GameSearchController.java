@@ -3,6 +3,7 @@ package com.group17.game.Controllers;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
@@ -17,6 +18,8 @@ import com.group17.game.Models.CurrentUser;
 import com.group17.game.Models.User;
 import com.group17.game.Models.GameEntry;
 import com.group17.game.Models.GameEntryRepository;
+import com.group17.game.Models.GameRequestRepository;
+import com.group17.game.Models.RequestStatus;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -35,11 +38,14 @@ public class GameSearchController {
 
     private final GameEntryRepository gameEntryRepository;
     private final GameLibrary gameLibrary;
+    private final GameRequestRepository gameRequestRepository;
 
-    public GameSearchController(GameEntryRepository gameEntryRepository, GameLibrary gameLibrary)
+    public GameSearchController(GameEntryRepository gameEntryRepository, GameLibrary gameLibrary,
+            GameRequestRepository gameRequestRepository)
     {
         this.gameEntryRepository = gameEntryRepository;
         this.gameLibrary = gameLibrary;
+        this.gameRequestRepository = gameRequestRepository;
     }
 
     @GetMapping("")
@@ -61,11 +67,26 @@ public class GameSearchController {
 
             else
             {
-                // Not in the catalogue yet: offer to request it (US 26-27)
+                // Not in the catalogue yet: offer to request it, unless a request is already waiting (US 26-27)
+                String typed = gameName.strip();
                 model.addAttribute("error", "No games found");
-                model.addAttribute("requestGameName", gameName.strip());
+                if (gameRequestRepository.existsByGameNameIgnoreCaseAndStatus(typed, RequestStatus.PENDING))
+                {
+                    model.addAttribute("pendingRequestGame", typed);
+                }
+                else
+                {
+                    model.addAttribute("requestGameName", typed);
+                }
             }
         }
+
+        // Lets the dropdown hide "Request this game" for games already waiting for a moderator
+        model.addAttribute("pendingRequests", gameRequestRepository
+                .findByStatusOrderByCreatedAtDesc(RequestStatus.PENDING).stream()
+                .map(request -> request.getGameName().strip().toLowerCase(Locale.ROOT))
+                .distinct()
+                .toList());
 
         List<String> otherGames = allGames.stream().filter(game -> !recent.contains(game)).toList();
         // Prefer shared genres; catalog order breaks ties and fills any remaining slots.

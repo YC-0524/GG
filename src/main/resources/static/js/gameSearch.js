@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const panel = document.getElementById("game-search-panel");
     const empty = document.getElementById("game-search-empty");
     const requestLink = document.getElementById("request-game-link");
+    const pendingNote = document.getElementById("pending-request-note");
+    const pendingRequests = (form.dataset.pendingRequests || "").split("|").filter(Boolean);
     const groups = Array.from(panel.querySelectorAll(".game-group"));
 
     const visibleOptions = () =>
@@ -48,9 +50,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         empty.hidden = anyMatch;
-        // Nothing matches: let the player request the game they typed (US 26-27)
-        requestLink.href = "/game-requests/new?gameName=" + encodeURIComponent(input.value.trim());
-        requestLink.hidden = !query;
+        // Nothing matches: let the player request the game they typed,
+        // unless it is already waiting for a moderator (US 26-27)
+        const pending = pendingRequests.includes(query);
+        requestLink.href = "/game-requests/new?gameName=" + encodeURIComponent(input.value.trim()) + "&from=search";
+        requestLink.hidden = !query || pending;
+        pendingNote.hidden = !query || !pending;
     }
 
     input.addEventListener("focus", openPanel);

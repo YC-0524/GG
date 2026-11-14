@@ -10,7 +10,7 @@
 
 <body>
     <div class="app-container">
-        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav='games')}"></nav>
+        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav=${fromSearch ? 'search' : 'games'})}"></nav>
 
         <div class="content-container">
             <h2>Request a Game</h2>
@@ -26,6 +26,7 @@
                role="alert"></p>
 
             <form th:action="@{/game-requests}" method="post">
+                <input type="hidden" name="from" value="search" th:if="${fromSearch}">
 
                 <div class="field">
                     <label for="gameName">Game name</label>
@@ -72,7 +73,7 @@
 
                 <button type="submit">Submit Game Request</button>
 
-                <a href="/games">Cancel</a>
+                <a th:href="${fromSearch ? '/search' : '/games'}">Cancel</a>
             </form>
         </div>
     </div>

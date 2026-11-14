@@ -15,12 +15,14 @@
         <div class="content-container game-search-container">
             <h2>Search Games</h2>
 
-            <form class="game-search" id="game-search" th:action="@{/search}" method="get" role="search">
+            <form class="game-search" id="game-search" th:action="@{/search}" method="get" role="search"
+                th:data-pending-requests="${#strings.listJoin(pendingRequests, '|')}">
                 <label for="game-search-input" class="visually-hidden">Search games</label>
                 <div class="game-search-bar">
                     <img src="/images/search.svg" alt="" aria-hidden="true">
                     <input type="search" id="game-search-input" name="game" placeholder="Search games"
                         autocomplete="off" aria-controls="game-search-panel" aria-expanded="false"
+                        th:value="${requestGameName ?: pendingRequestGame}"
                         th:autofocus="${selectedGame == null}">
                 </div>
 
@@ -53,15 +55,19 @@
 
                     <div class="game-search-empty" id="game-search-empty" hidden>
                         <span>No games found</span>
-                        <a class="button-link" id="request-game-link" href="/game-requests/new">Request this game</a>
+                        <a class="button-link" id="request-game-link" href="/game-requests/new?from=search">Request this game</a>
+                        <span id="pending-request-note" hidden>Already requested, waiting for a moderator</span>
                     </div>
                 </div>
             </form>
 
+            <p class="form-message" th:if="${success}" th:text="${success}" role="status"></p>
             <p class="form-message error" th:if="${error}" th:text="${error}" role="alert"></p>
             <a class="button-link" th:if="${requestGameName != null}"
-                th:href="@{/game-requests/new(gameName=${requestGameName})}"
+                th:href="@{/game-requests/new(gameName=${requestGameName},from='search')}"
                 th:text="|Request ${requestGameName}|">Request this game</a>
+            <p class="form-message" th:if="${pendingRequestGame != null}"
+                th:text="|A request for ${pendingRequestGame} is already waiting for a moderator.|"></p>
 
             <!-- The game the player picked, with the players who play it -->
             <section class="game-players" th:if="${selectedGame != null}">
