@@ -7,17 +7,17 @@
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
             <button type="submit" name="status" value="Online"
-                th:classappend="${currentStatus.name() == 'ONLINE'} ? ' active' : ''">
+                th:classappend="${currentStatus?.name() == 'ONLINE'} ? ' active' : ''">
                 Online
             </button>
 
             <button type="submit" name="status" value="AFK"
-                th:classappend="${currentStatus.name() == 'AFK'} ? ' active' : ''">
+                th:classappend="${currentStatus?.name() == 'AFK'} ? ' active' : ''">
                 AFK
             </button>
 
             <button type="submit" name="status" value="Offline"
-                th:classappend="${currentStatus.name() == 'OFFLINE'} ? ' active' : ''">
+                th:classappend="${currentStatus?.name() == 'OFFLINE'} ? ' active' : ''">
                 Offline
             </button>
         </form>

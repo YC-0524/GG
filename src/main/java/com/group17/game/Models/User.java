@@ -51,7 +51,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private ActivityStatus activityStatus = ActivityStatus.ONLINE;
 
-    @Column(name = "manual_status_override", nullable = false)
+    @Column(name = "manual_status_override", columnDefinition = "boolean not null default false")
     private boolean manualStatusOverride = false;
 
     // sha256 hashes are exactly 64 characters
