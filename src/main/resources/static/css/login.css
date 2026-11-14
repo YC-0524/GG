@@ -86,7 +86,7 @@ a {
 
 /* Login buttons */
 
-.discord-button,
+.oauth,
 .login-button {
     display: flex;
     align-items: center;
@@ -106,13 +106,17 @@ a {
     transition: filter 150ms, box-shadow 150ms;
 }
 
-.discord-button:hover,
+.oauth {
+    margin-bottom: 1rem;
+}
+
+.oauth:hover,
 .login-button:hover {
     filter: brightness(1.1);
     box-shadow: 0 4px 20px rgb(142 90 231 / 22%);
 }
 
-.discord-button svg {
+.oauth svg {
     flex-shrink: 0;
     width: 22px;
     height: 22px;
@@ -121,6 +125,14 @@ a {
 
 .login-button {
     margin-top: 24px;
+}
+
+.login-button:disabled,
+.login-button:disabled:hover {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: none;
+    box-shadow: none;
 }
 
 /* Email form */
@@ -228,22 +240,6 @@ a {
 
 .signup-note a:hover {
     text-decoration: underline;
-}
-
-.error-message {
-    margin: 0 0 20px;
-    padding: 12px;
-    border: 1px solid #a7576f;
-    border-radius: 8px;
-    background: #432331;
-    color: #ffd3df;
-    font-size: 15px;
-    line-height: 1.5;
-    overflow-wrap: anywhere;
-}
-
-.error-message[hidden] {
-    display: none;
 }
 
 /* Small screens */

@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.group17.game.DTOs.UserSummary;
 import com.group17.game.Models.CurrentUser;
+import com.group17.game.Models.GameRequestRepository;
 import com.group17.game.Models.RequestStatus;
 import com.group17.game.Models.SuspensionRequestRepository;
 import com.group17.game.Models.User;
@@ -19,89 +20,114 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/dashboard")
 public class DashboardController {
+
     private final UserRepository userRepository;
     private final SuspensionRequestRepository requestRepository;
+    private final GameRequestRepository gameRequestRepository;
 
     public DashboardController(
             UserRepository userRepository,
-            SuspensionRequestRepository requestRepository) {
+            SuspensionRequestRepository requestRepository,
+            GameRequestRepository gameRequestRepository) {
         this.userRepository = userRepository;
         this.requestRepository = requestRepository;
+        this.gameRequestRepository = gameRequestRepository;
     }
 
     @GetMapping("")
-    public String showDashboardPage(Authentication authentication, Model model, @CurrentUser User user) {
-        // The login controller stores the database user ID as the principal.
+    public String showDashboardPage(
+            Authentication authentication,
+            Model model,
+            @CurrentUser User user) {
+
         if (authentication == null || !authentication.isAuthenticated()
                 || !(authentication.getPrincipal() instanceof Long userId)) {
             return "redirect:/auth/login";
         }
 
         model.addAttribute("user", user);
-        model.addAttribute("players", userRepository.findPlayerCardsExcluding(userId));
+        model.addAttribute("players",
+                userRepository.findPlayerCardsExcluding(userId));
+
         return "dashboard";
     }
 
     @GetMapping("/moderator")
-    public String showModeratorTools(org.springframework.security.core.Authentication authentication, Model model, @CurrentUser User user) {
-        // ensures user is logged in
-        if (authentication == null ||
-            !authentication.isAuthenticated() ||
-            !(authentication.getPrincipal() instanceof Long)) {
-                return "redirect:/auth/login";
+    public String showModeratorTools(
+            Authentication authentication,
+            Model model,
+            @CurrentUser User user) {
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || !(authentication.getPrincipal() instanceof Long)) {
+            return "redirect:/auth/login";
         }
 
-        // gets the user, checks if they are admin
         Long userId = (Long) authentication.getPrincipal();
         User currentUser = userRepository.findById(userId).orElse(null);
 
-        if (currentUser == null || (currentUser.getRole() != UserRole.MODERATOR && currentUser.getRole() != UserRole.ADMIN)) {
+        if (currentUser == null
+                || (currentUser.getRole() != UserRole.MODERATOR
+                && currentUser.getRole() != UserRole.ADMIN)) {
             return "redirect:/dashboard";
         }
-        
-        List<UserSummary> users = userRepository.findAll().stream().map(this::toSummary).toList();
+
+        List<UserSummary> users = userRepository.findAll()
+                .stream()
+                .map(this::toSummary)
+                .toList();
 
         model.addAttribute("user", user);
         model.addAttribute("users", users);
+
+        // Pending game requests for moderators to review.
+        model.addAttribute("gameRequests",
+                gameRequestRepository.findByStatusOrderByCreatedAtDesc(
+                        RequestStatus.PENDING));
+
         return "moderator";
     }
 
     @GetMapping("/admin")
-    public String showAdminTools(org.springframework.security.core.Authentication authentication, Model model, @CurrentUser User user) {
-        // ensures user is logged in
-        if (authentication == null ||
-            !authentication.isAuthenticated() ||
-            !(authentication.getPrincipal() instanceof Long)) {
-                return "redirect:/auth/login";
+    public String showAdminTools(
+            Authentication authentication,
+            Model model,
+            @CurrentUser User user) {
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || !(authentication.getPrincipal() instanceof Long)) {
+            return "redirect:/auth/login";
         }
 
-        // gets the user, checks if they are admin
         Long userId = (Long) authentication.getPrincipal();
         User currentUser = userRepository.findById(userId).orElse(null);
 
         if (currentUser == null || currentUser.getRole() != UserRole.ADMIN) {
             return "redirect:/dashboard";
         }
-        
-        List<UserSummary> users = userRepository.findAll().stream().map(this::toSummary).toList();
+
+        List<UserSummary> users = userRepository.findAll()
+                .stream()
+                .map(this::toSummary)
+                .toList();
 
         model.addAttribute("user", user);
         model.addAttribute("users", users);
-        model.addAttribute("requests", requestRepository.findByStatus(RequestStatus.PENDING));
+        model.addAttribute("requests",
+                requestRepository.findByStatus(RequestStatus.PENDING));
 
         return "admin";
     }
 
-    // grabs user info
     private UserSummary toSummary(User user) {
-        return new UserSummary (
-            user.getId(),
-            user.getUsername(),
-            user.getAvatar(),
-            user.getEmail(),
-            user.getRole(),
-            user.getStatus(),
-            user.getRegistered()
+        return new UserSummary(
+                user.getId(),
+                user.getUsername(),
+                user.getAvatar(),
+                user.getEmail(),
+                user.getRole(),
+                user.getStatus(),
+                user.getRegistered()
         );
     }
 }
