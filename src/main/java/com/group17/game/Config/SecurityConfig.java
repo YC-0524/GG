@@ -15,8 +15,11 @@ import com.group17.game.Models.ChangePasswordFlowRepository;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http,
-            ChangePasswordFlowRepository passwordFlowRepository) throws Exception {
+    public SecurityFilterChain filterChain(
+            HttpSecurity http,
+            ChangePasswordFlowRepository passwordFlowRepository,
+            GoogleLoginSuccessHandler googleLoginSuccessHandler) throws Exception {
+
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/games", "/games/**").authenticated()
@@ -32,7 +35,9 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/auth/login")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
-                        .deleteCookies("JSESSIONID"));
+                        .deleteCookies("JSESSIONID"))
+                .oauth2Login(oauth -> oauth
+                        .successHandler(googleLoginSuccessHandler));
 
         return http.build();
     }

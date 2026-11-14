@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request a Game | GAME GANG</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <nav th:replace="~{sideNavigation :: sideNavigation}"></nav>
+
+        <div class="content-container">
+            <h2>Request a Game</h2>
+
+            <p>
+                Can't find the game you're looking for?
+                Submit a request and our moderators will review it.
+            </p>
+
+            <p class="form-message error"
+               th:if="${error}"
+               th:text="${error}"
+               role="alert"></p>
+
+            <form th:action="@{/game-requests}" method="post">
+
+                <div class="field">
+                    <label for="gameName">Game name</label>
+                    <input type="text" id="gameName" name="gameName"
+                           th:value="${gameName}" maxlength="100" required>
+                </div>
+
+                <div class="field">
+                    <label for="genre">Genre</label>
+                    <input type="text" id="genre" name="genre"
+                           placeholder="e.g. Action, RPG, Strategy" required>
+                </div>
+
+                <div class="field">
+                    <label for="gameMode">Game mode</label>
+                    <select id="gameMode" name="gameMode" required>
+                        <option value="">Select a game mode</option>
+                        <option value="Solo">Solo</option>
+                        <option value="Co-op">Co-op</option>
+                        <option value="Multiplayer">Multiplayer</option>
+                    </select>
+                </div>
+
+                <div id="player-count-fields" style="display: none;">
+                    <div class="field">
+                        <label for="minPlayers">Minimum players</label>
+                        <input type="number" id="minPlayers" name="minPlayers"
+                               min="1">
+                    </div>
+
+                    <div class="field">
+                        <label for="maxPlayers">Maximum players</label>
+                        <input type="number" id="maxPlayers" name="maxPlayers"
+                               min="1">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description"
+                              maxlength="1000"
+                              placeholder="Tell us a little about the game..."></textarea>
+                </div>
+
+                <button type="submit">Submit Game Request</button>
+
+                <a href="/games">Cancel</a>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const gameMode = document.getElementById("gameMode");
+            const playerFields = document.getElementById("player-count-fields");
+            const minPlayers = document.getElementById("minPlayers");
+            const maxPlayers = document.getElementById("maxPlayers");
+
+            function updatePlayerFields() {
+                const needsPlayerCounts =
+                    gameMode.value === "Co-op" ||
+                    gameMode.value === "Multiplayer";
+
+                playerFields.style.display =
+                    needsPlayerCounts ? "block" : "none";
+
+                minPlayers.required = needsPlayerCounts;
+                maxPlayers.required = needsPlayerCounts;
+            }
+
+            gameMode.addEventListener("change", updatePlayerFields);
+            updatePlayerFields();
+        });
+    </script>
+</body>
+
+</html>

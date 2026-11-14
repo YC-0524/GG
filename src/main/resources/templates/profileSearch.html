@@ -34,7 +34,7 @@
                         <td th:text="${user.id}"></td>
                         <td>
                             <img class="profile-avatar" th:if="${#strings.isEmpty(user.avatar)}" src="/images/person.svg" alt="Default Avatar" />
-                            <img class="profile-avatar" th:unless="${#strings.isEmpty(user.avatar)}" th:src="@{${user.avatar}}" alt="User Avatar" />
+                            <img class="profile-avatar" th:unless="${#strings.isEmpty(user.avatar)}" th:src="@{${user.avatar}}" alt="User Avatar" referrerpolicy="no-referrer" />
                         </td>
                         <td th:text="${user.username}"></td>
                         <td>
