@@ -18,14 +18,8 @@ import jakarta.validation.constraints.NotBlank;
 @Entity
 @Table(name = "profile_tags")
 public class ProfileTag {
-    public static boolean isValidTag(String tag) {
-        for (Set<String> tags : ALLOWED_TAGS.values()) {
-            if (tags.contains(tag)) {
-                return true;
-            }
-        }
-
-        return false;
+    public static boolean isValidTag(String tag, ProfileTagType tagType) {
+        return ALLOWED_TAGS.get(tagType).contains(tag);
     }
 
     // text can only be one of these

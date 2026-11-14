@@ -43,10 +43,6 @@ public class ProfileTagController {
 
     @PostMapping("")
     public String addTagToUserProfile(@RequestParam String tag, @RequestParam String tagType, @CurrentUser User user) {
-        if (!ProfileTag.isValidTag(tag)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-
         ProfileTagType type;
 
         try {
@@ -54,6 +50,11 @@ public class ProfileTagController {
         } catch (IllegalArgumentException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
+
+        if (!ProfileTag.isValidTag(tag, type)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
 
         Optional<ProfileTag> existingTag = profileTagRepository.findByUserIdAndTag(user.getId(), tag);
         if (existingTag.isPresent()) {
