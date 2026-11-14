@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
@@ -21,6 +22,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.group17.game.Models.CatalogGame;
+import com.group17.game.Models.CatalogGameRepository;
 import com.group17.game.Models.GameEntry;
 import com.group17.game.Models.GameEntryRepository;
 import com.group17.game.Models.User;
@@ -41,6 +44,7 @@ class GameSearchTests {
     @Autowired MockMvc mockMvc;
     @Autowired UserRepository users;
     @Autowired GameEntryRepository entries;
+    @Autowired CatalogGameRepository catalogGames;
 
     private User register(String name) {
         return users.saveAndFlush(new User(name, name + "@example.com", "a".repeat(64)));
@@ -151,5 +155,35 @@ class GameSearchTests {
         mockMvc.perform(get("/search"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(header().string("Location", containsString("/auth/login")));
+    }
+
+    // US 26-27
+    @Test
+    void unknownGameOffersToRequestIt() throws Exception {
+        User player = register("Player");
+        mockMvc.perform(get("/search").param("game", "Stardew Valley").with(authentication(login(player))))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("error", "No games found"))
+                .andExpect(model().attribute("requestGameName", "Stardew Valley"))
+                .andExpect(content().string(containsString("/game-requests/new?gameName=Stardew%20Valley")));
+    }
+
+    @Test
+    void approvedGameCanBeSearched() throws Exception {
+        User player = register("Player");
+        catalogGames.saveAndFlush(new CatalogGame("Stardew Valley"));
+
+        mockMvc.perform(get("/search").param("game", "stardew valley").with(authentication(login(player))))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("selectedGame", "Stardew Valley"))
+                .andExpect(model().attributeDoesNotExist("requestGameName"));
+    }
+
+    @Test
+    void gameLinkRedirectsToSearch() throws Exception {
+        User player = register("Player");
+        mockMvc.perform(get("/search/stardew-valley").with(authentication(login(player))))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/search?game=stardew%20valley"));
     }
 }

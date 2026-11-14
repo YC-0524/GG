@@ -18,14 +18,17 @@ import com.group17.game.Models.GameEntry;
 import com.group17.game.Models.GameEntryRepository;
 import com.group17.game.Models.User;
 import com.group17.game.Utilities.GameCatalog;
+import com.group17.game.Utilities.GameLibrary;
 
 @Controller
 @RequestMapping("/games")
 public class GameListController {
     private final GameEntryRepository gameEntryRepository;
+    private final GameLibrary gameLibrary;
 
-    public GameListController(GameEntryRepository gameEntryRepository) {
+    public GameListController(GameEntryRepository gameEntryRepository, GameLibrary gameLibrary) {
         this.gameEntryRepository = gameEntryRepository;
+        this.gameLibrary = gameLibrary;
     }
 
     @GetMapping("")
@@ -33,7 +36,7 @@ public class GameListController {
             @RequestParam(name = "edit", required = false) Long editId) {
         model.addAttribute("user", user);
         model.addAttribute("entries", gameEntryRepository.findByUserIdOrderByGameNameAsc(user.getId()));
-        model.addAttribute("catalog", GameCatalog.all());
+        model.addAttribute("catalog", gameLibrary.all());
         model.addAttribute("editId", editId);
         return "games";
     }
@@ -43,7 +46,7 @@ public class GameListController {
             @RequestParam(name = "gameName", defaultValue = "") String gameName,
             @RequestParam(name = "rank", defaultValue = "") String rank,
             RedirectAttributes redirect) {
-        Optional<String> game = GameCatalog.findGame(gameName);
+        Optional<String> game = gameLibrary.findGame(gameName);
         if (game.isEmpty()) {
             redirect.addFlashAttribute("error", "No games found");
             return "redirect:/games";

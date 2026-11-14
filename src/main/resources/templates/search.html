@@ -51,11 +51,17 @@
                         </ul>
                     </section>
 
-                    <p class="game-search-empty" id="game-search-empty" hidden>No games found</p>
+                    <div class="game-search-empty" id="game-search-empty" hidden>
+                        <span>No games found</span>
+                        <a class="button-link" id="request-game-link" href="/game-requests/new">Request this game</a>
+                    </div>
                 </div>
             </form>
 
             <p class="form-message error" th:if="${error}" th:text="${error}" role="alert"></p>
+            <a class="button-link" th:if="${requestGameName != null}"
+                th:href="@{/game-requests/new(gameName=${requestGameName})}"
+                th:text="|Request ${requestGameName}|">Request this game</a>
 
             <!-- The game the player picked, with the players who play it -->
             <section class="game-players" th:if="${selectedGame != null}">

@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.group17.game.Utilities.GameCatalog;
+import com.group17.game.Utilities.GameLibrary;
 
 import com.group17.game.Models.CurrentUser;
 import com.group17.game.Models.User;
@@ -18,6 +21,7 @@ import com.group17.game.Models.GameEntryRepository;
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -30,20 +34,23 @@ public class GameSearchController {
     static final int MAX_RECOMMENDED_GAMES = 3;
 
     private final GameEntryRepository gameEntryRepository;
+    private final GameLibrary gameLibrary;
 
-    public GameSearchController(GameEntryRepository gameEntryRepository)
+    public GameSearchController(GameEntryRepository gameEntryRepository, GameLibrary gameLibrary)
     {
         this.gameEntryRepository = gameEntryRepository;
+        this.gameLibrary = gameLibrary;
     }
 
     @GetMapping("")
     public String showSearch(Model model, @CurrentUser User user, HttpSession session, @RequestParam(name = "game", required = false) String gameName) 
     {
-        List<String> recent = recentGames(session);
+        Set<String> allGames = gameLibrary.all().keySet();
+        List<String> recent = recentGames(session, allGames);
 
         if (gameName != null && !gameName.isBlank())
         {
-            Optional<String> game = GameCatalog.findGame(gameName);
+            Optional<String> game = gameLibrary.findGame(gameName);
             if (game.isPresent())
             {
                 remember(recent, game.get());
@@ -54,11 +61,13 @@ public class GameSearchController {
 
             else
             {
+                // Not in the catalogue yet: offer to request it (US 26-27)
                 model.addAttribute("error", "No games found");
+                model.addAttribute("requestGameName", gameName.strip());
             }
         }
 
-        List<String> otherGames = GameCatalog.all().keySet().stream().filter(game -> !recent.contains(game)).toList();
+        List<String> otherGames = allGames.stream().filter(game -> !recent.contains(game)).toList();
         // Prefer shared genres; catalog order breaks ties and fills any remaining slots.
         List<String> recommendedGames = otherGames.stream()
                 .sorted(Comparator.comparingInt((String game) -> similarityScore(game, recent)).reversed())
@@ -72,12 +81,21 @@ public class GameSearchController {
         return "search";
     }
 
-    private List<String> recentGames(HttpSession session)
+    // Friendly links like /search/stardew-valley go to the normal search for that game.
+    @GetMapping("/{slug}")
+    public String searchBySlug(@PathVariable("slug") String slug)
+    {
+        String gameName = slug.replace('-', ' ').strip();
+        return "redirect:" + UriComponentsBuilder.fromPath("/search")
+                .queryParam("game", gameName).encode().build().toUriString();
+    }
+
+    private List<String> recentGames(HttpSession session, Set<String> allGames)
     {
         Object stored = session.getAttribute(RECENT_GAMES);
         List<String> recent = stored instanceof List<?> list
                 ? list.stream().filter(String.class::isInstance).map(String.class::cast)
-                        .filter(game -> GameCatalog.all().containsKey(game)).distinct()
+                        .filter(allGames::contains).distinct()
                         .limit(MAX_RECENT_GAMES).toList()
                 : List.of();
         session.setAttribute(RECENT_GAMES, new ArrayList<>(recent));

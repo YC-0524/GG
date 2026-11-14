@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const input = document.getElementById("game-search-input");
     const panel = document.getElementById("game-search-panel");
     const empty = document.getElementById("game-search-empty");
+    const requestLink = document.getElementById("request-game-link");
     const groups = Array.from(panel.querySelectorAll(".game-group"));
 
     const visibleOptions = () =>
@@ -47,6 +48,9 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         empty.hidden = anyMatch;
+        // Nothing matches: let the player request the game they typed (US 26-27)
+        requestLink.href = "/game-requests/new?gameName=" + encodeURIComponent(input.value.trim());
+        requestLink.hidden = !query;
     }
 
     input.addEventListener("focus", openPanel);
@@ -56,11 +60,13 @@ document.addEventListener("DOMContentLoaded", () => {
         openPanel();
     });
 
-    // Enter opens the first game still in the list.
+    // Enter opens the first game still in the list, or searches for what was typed.
     form.addEventListener("submit", event => {
         const first = visibleOptions()[0];
+        const query = input.value.trim();
         event.preventDefault();
         if (first) window.location.href = first.href;
+        else if (query) window.location.href = "/search?game=" + encodeURIComponent(query);
     });
 
     // Arrow keys move through the list; Escape closes it.
