@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <body>
+        <th:block th:fragment="roleBadge(role)">
+            <link rel="stylesheet" th:href="@{/css/roleBadge.css}">
+            <span th:class="|role-badge role-${#strings.toLowerCase(role)}|" th:text="${role}">ROLE</span>
+        </th:block>
+    </body>
+</html>

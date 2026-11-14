@@ -25,6 +25,7 @@
                             th:attr="data-ranks=${#strings.listJoin(game.value, '|')}"></option>
                     </datalist>
                 </div>
+
                 <div class="field">
                     <label for="game-rank">Current rank</label>
                     <span class="select-wrap">
@@ -33,13 +34,22 @@
                         </select>
                     </span>
                 </div>
+
                 <button type="submit" id="add-game-button" disabled>Add game</button>
             </form>
+
             <p id="game-search-status" class="form-message error" role="status"></p>
+
+            <a id="request-game-link" href="/game-requests/new"
+                style="display: none;">
+                Request this game
+            </a>
+
             <p class="form-message error" th:if="${error}" th:text="${error}" role="alert"></p>
             <p class="form-message" th:if="${success}" th:text="${success}" role="status"></p>
 
             <p th:if="${#lists.isEmpty(entries)}" class="form-message">No games added yet</p>
+
             <table class="games-table" th:unless="${#lists.isEmpty(entries)}">
                 <thead>
                     <tr>
@@ -49,6 +59,7 @@
                         <th><span class="visually-hidden">Actions</span></th>
                     </tr>
                 </thead>
+
                 <tbody>
                     <tr th:each="entry : ${entries}">
                         <td th:text="${entry.gameName}">Valorant</td>
@@ -103,7 +114,9 @@
             </table>
         </div>
     </div>
+
     <script src="/js/games.js" defer></script>
 </body>
 
 </html>
+
