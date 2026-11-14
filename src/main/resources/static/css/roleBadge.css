@@ -14,7 +14,7 @@
 /* ADMIN: animated rainbow text */
 .role-admin {
   background: linear-gradient(90deg,
-    #ff0000, #ff9900, #ffee00, #33dd33, #00ccff, #6644ff, #ff00cc, #ff0000);
+      #ff0000, #ff9900, #ffee00, #33dd33, #00ccff, #6644ff, #ff00cc, #ff0000);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -24,7 +24,9 @@
 }
 
 @keyframes rainbow-slide {
-  to { background-position: 200% center; }
+  to {
+    background-position: 200% center;
+  }
 }
 
 /* MODERATOR: flashing red inset background */
@@ -36,6 +38,23 @@
 }
 
 @keyframes mod-flash {
-  0%, 100% { background-color: rgba(208, 0, 0, 1); }
-  50%      { background-color: rgba(208, 0, 0, 0); }
+
+  0%,
+  100% {
+    background-color: rgba(208, 0, 0, 1);
+  }
+
+  50% {
+    background-color: rgba(208, 0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .role-moderator {
+    animation-duration: 0s;
+  }
+
+  .role-admin {
+    animation-duration: 0s;
+  }
 }
