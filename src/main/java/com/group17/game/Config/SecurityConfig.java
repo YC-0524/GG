@@ -24,7 +24,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/games", "/games/**").authenticated()
                         .requestMatchers("/auth/**", "/profile/**").permitAll()
-                        .requestMatchers("/me", "/profile/me").authenticated()
+                        .requestMatchers("/me", "/profile/me", "/profile/me/status").authenticated()
                         .anyRequest().permitAll())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/auth/login")))

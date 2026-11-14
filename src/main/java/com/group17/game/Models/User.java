@@ -21,21 +21,21 @@ public class User {
 
     public static int MINIMUM_PASSWORD_LENGTH = 8;
 
-    @Id 
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private long id;
-    
+
     @Column(name = "username")
-    @NotBlank 
+    @NotBlank
     private String username;
-    
+
     @Column(name = "avatar")
     private String avatar;
-    
+
     @Column(name = "email", unique = true)
-    @Email 
-    @NotBlank 
+    @Email
+    @NotBlank
     private String email;
 
     // essentially bakes in the standard dashboard
@@ -43,22 +43,32 @@ public class User {
     @Column(name = "role")
     private UserRole role = UserRole.USER;
 
+    private Instant timeoutUntil;
+
     @Enumerated(EnumType.STRING)
     private UserStatus status = UserStatus.ACTIVE;
 
-    private Instant timeoutUntil;
-    
+    @Enumerated(EnumType.STRING)
+    private ActivityStatus activityStatus = ActivityStatus.ONLINE;
+
+    @Column(name = "manual_status_override", columnDefinition = "boolean not null default false")
+    private boolean manualStatusOverride = false;
+
     // sha256 hashes are exactly 64 characters
     @Column(name = "password_hash")
     @Size(min = 64, max = 64)
-    @NotBlank 
+    @NotBlank
     private String passwordHash;
-    
+
     @Column(name = "registered")
     private Date registered;
 
+    @Column(name = "last_seen")
+    private Date lastSeen;
+
     // empty constructor, needed for springboot initializers
-    public User() {}
+    public User() {
+    }
 
     public User(String username, String email, String passwordHash) {
         this.username = username;
@@ -66,15 +76,18 @@ public class User {
         this.passwordHash = passwordHash;
         this.role = UserRole.USER;
         this.registered = new Date();
+        this.lastSeen = new Date();
     }
 
     // full constructor, has every non generated field
-    public User(String username, String avatar, String email, String hash, Date registered, UserRole role) {
+    public User(String username, String avatar, String email, String hash, Date registered, Date lastSeen,
+            UserRole role) {
         this.username = username;
         this.avatar = avatar;
         this.email = email;
         this.passwordHash = hash;
         this.registered = registered;
+        this.lastSeen = lastSeen;
         this.role = role;
     }
 
@@ -103,8 +116,12 @@ public class User {
         return registered;
     }
 
+    public Date getLastSeen() {
+        return this.lastSeen;
+    }
+
     public UserRole getRole() {
-        return  this.role;
+        return this.role;
     }
 
     // status getters
@@ -116,9 +133,25 @@ public class User {
         return timeoutUntil;
     }
 
+    public ActivityStatus getActivityStatus() {
+        return this.activityStatus;
+    }
+
+    public boolean isManualStatusOverride() {
+        return manualStatusOverride;
+    }
+
+    public void setManualStatusOverride(boolean manualStatusOverride) {
+        this.manualStatusOverride = manualStatusOverride;
+    }
+
     // Setters
     public void setId(long id) {
         this.id = id;
+    }
+
+    public void setActivityStatus(ActivityStatus newStatus) {
+        this.activityStatus = newStatus;
     }
 
     public void setUsername(String username) {
@@ -139,6 +172,10 @@ public class User {
 
     public void setRegistered(Date registered) {
         this.registered = registered;
+    }
+
+    public void setLastSeen(Date seen) {
+        this.lastSeen = seen;
     }
 
     public void setRole(UserRole role) {
