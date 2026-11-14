@@ -9,56 +9,60 @@ import org.springframework.data.repository.query.Param;
 import com.group17.game.DTOs.PlayerCard;
 
 public interface UserRepository extends JpaRepository<User, Long> {
-        // Serialize Like requests from the same user to prevent duplicate inserts.
-        @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
-        @Query("select u from User u where u.id = :id")
-        java.util.Optional<User> findForLike(@Param("id") Long id);
+    // Serialize Like requests from the same user to prevent duplicate inserts.
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from User u where u.id = :id")
+    java.util.Optional<User> findForLike(@Param("id") Long id);
 
-        User findByEmail(String email);
+    User findByEmail(String email);
 
-        User findByUsername(String username);
+    User findByUsername(String username);
 
-        @Query("select new com.group17.game.DTOs.PlayerCard(u.id, u.username, u.avatar, u.activityStatus) "
-                        + "from User u where u.id <> :userId "
-                        + "and not exists (select l.id from PlayerLike l "
-                        + "where l.sender.id = :userId and l.target.id = u.id) order by u.id")
-        List<PlayerCard> findPlayerCardsExcluding(@Param("userId") Long userId);
+    @Query("select new com.group17.game.DTOs.PlayerCard(u.id, u.username, u.avatar, u.activityStatus) "
+            + "from User u where u.id <> :userId "
+            + "and not exists (select l.id from PlayerLike l "
+            + "where l.sender.id = :userId and l.target.id = u.id) order by u.id")
+    List<PlayerCard> findPlayerCardsExcluding(@Param("userId") Long userId);
 
-        List<User> findByUsernameContaining(String username);
+    List<User> findByUsernameContaining(String username);
 
-        // User Activity Tracking
-        @Modifying
-        @Query("""
-                            UPDATE User u
-                            SET u.lastSeen = :lastSeen, u.activityStatus = 'ONLINE'
-                            WHERE u.id = :userId
-                        """)
-        int updateLastSeen(
-                        @Param("userId") String userId,
-                        @Param("lastSeen") Date lastSeen);
+    // User Activity Tracking
+    @Modifying
+    @Query("""
+                UPDATE User u
+                SET u.lastSeen = :lastSeen
+                WHERE u.id = :userId
+            """)
+    int updateLastSeen(
+            @Param("userId") String userId,
+            @Param("lastSeen") Date lastSeen);
 
-        @Modifying
-        @Query("""
-                            UPDATE User u
-                            SET u.activityStatus = :status
-                            WHERE u.lastSeen <= :threshold
-                              AND u.activityStatus <> :status
-                        """)
-        int setOffline(
-                        @Param("threshold") Date threshold,
-                        @Param("status") ActivityStatus status);
+    @Modifying
+    @Query("""
+                UPDATE User u
+                SET u.activityStatus = :offline
+                WHERE u.lastSeen < :threshold
+                AND u.manualStatusOverride = false
+                AND u.activityStatus IN (:online, :afk)
+            """)
+    void setOffline(
+            @Param("threshold") Date threshold,
+            @Param("offline") ActivityStatus offline,
+            @Param("online") ActivityStatus online,
+            @Param("afk") ActivityStatus afk);
 
-        @Modifying
-        @Query("""
-                            UPDATE User u
-                            SET u.activityStatus = :status
-                            WHERE u.lastSeen <= :afkThreshold
-                              AND u.lastSeen > :offlineThreshold
-                              AND u.activityStatus = :onlineStatus
-                        """)
-        int setAfk(
-                        @Param("afkThreshold") Date afkThreshold,
-                        @Param("offlineThreshold") Date offlineThreshold,
-                        @Param("status") ActivityStatus status,
-                        @Param("onlineStatus") ActivityStatus onlineStatus);
+    @Modifying
+    @Query("""
+                UPDATE User u
+                SET u.activityStatus = :afk
+                WHERE u.lastSeen < :afkThreshold
+                AND u.lastSeen >= :offlineThreshold
+                AND u.activityStatus = :online
+                AND u.manualStatusOverride = false
+            """)
+    void setAfk(
+            @Param("afkThreshold") Date afkThreshold,
+            @Param("offlineThreshold") Date offlineThreshold,
+            @Param("afk") ActivityStatus afk,
+            @Param("online") ActivityStatus online);
 }

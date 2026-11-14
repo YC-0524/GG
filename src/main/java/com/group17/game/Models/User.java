@@ -21,21 +21,21 @@ public class User {
 
     public static int MINIMUM_PASSWORD_LENGTH = 8;
 
-    @Id 
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private long id;
-    
+
     @Column(name = "username")
-    @NotBlank 
+    @NotBlank
     private String username;
-    
+
     @Column(name = "avatar")
     private String avatar;
-    
+
     @Column(name = "email", unique = true)
-    @Email 
-    @NotBlank 
+    @Email
+    @NotBlank
     private String email;
 
     // essentially bakes in the standard dashboard
@@ -49,15 +49,16 @@ public class User {
     private UserStatus status = UserStatus.ACTIVE;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ActivityStatus activityStatus = ActivityStatus.OFFLINE;
-    
+    private ActivityStatus activityStatus = ActivityStatus.ONLINE;
+
+    private boolean manualStatusOverride = false;
+
     // sha256 hashes are exactly 64 characters
     @Column(name = "password_hash")
     @Size(min = 64, max = 64)
-    @NotBlank 
+    @NotBlank
     private String passwordHash;
-    
+
     @Column(name = "registered")
     private Date registered;
 
@@ -65,7 +66,8 @@ public class User {
     private Date lastSeen;
 
     // empty constructor, needed for springboot initializers
-    public User() {}
+    public User() {
+    }
 
     public User(String username, String email, String passwordHash) {
         this.username = username;
@@ -77,7 +79,8 @@ public class User {
     }
 
     // full constructor, has every non generated field
-    public User(String username, String avatar, String email, String hash, Date registered, Date lastSeen, UserRole role) {
+    public User(String username, String avatar, String email, String hash, Date registered, Date lastSeen,
+            UserRole role) {
         this.username = username;
         this.avatar = avatar;
         this.email = email;
@@ -117,7 +120,7 @@ public class User {
     }
 
     public UserRole getRole() {
-        return  this.role;
+        return this.role;
     }
 
     // status getters
@@ -131,6 +134,14 @@ public class User {
 
     public ActivityStatus getActivityStatus() {
         return this.activityStatus;
+    }
+
+    public boolean isManualStatusOverride() {
+        return manualStatusOverride;
+    }
+
+    public void setManualStatusOverride(boolean manualStatusOverride) {
+        this.manualStatusOverride = manualStatusOverride;
     }
 
     // Setters

@@ -37,12 +37,17 @@ public class ProfileController {
     }
 
     @PostMapping("/me/status")
-    public String updateUserActivity(@RequestParam String status, @CurrentUser User user, HttpServletRequest request) {
+    public String updateUserActivity(
+            @RequestParam String status,
+            @CurrentUser User user,
+            HttpServletRequest request) {
+
         if (user == null) {
             return "redirect:/auth/login";
         }
 
         ActivityStatus activityStatus;
+
         try {
             activityStatus = ActivityStatus.valueOf(status.toUpperCase());
         } catch (IllegalArgumentException e) {
@@ -50,14 +55,20 @@ public class ProfileController {
         }
 
         user.setActivityStatus(activityStatus);
+
+        // ONLINE resumes automatic status management
+        user.setManualStatusOverride(
+                activityStatus != ActivityStatus.ONLINE);
+
         userRepository.save(user);
 
         String referer = request.getHeader("Referer");
-        // Prevent cross-site redirection
+
         if (referer == null || !referer.startsWith("/") || referer.startsWith("//")) {
             return "redirect:/dashboard";
         }
-        return "redirect:" + (referer != null ? referer : "/dashboard");
+
+        return "redirect:" + referer;
     }
 
     @GetMapping("/search")

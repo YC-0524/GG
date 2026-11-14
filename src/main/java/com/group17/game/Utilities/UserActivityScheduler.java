@@ -25,22 +25,20 @@ public class UserActivityScheduler {
 
         Date now = new Date();
 
-        Date offlineThreshold =
-            new Date(now.getTime() - 20 * 60 * 1000);
+        Date offlineThreshold = new Date(now.getTime() - 20 * 60 * 1000);
 
-        Date afkThreshold =
-            new Date(now.getTime() - 10 * 60 * 1000);
+        Date afkThreshold = new Date(now.getTime() - 10 * 60 * 1000);
 
         userRepository.setOffline(
-            offlineThreshold,
-            ActivityStatus.OFFLINE
-        );
+                offlineThreshold,
+                ActivityStatus.OFFLINE,
+                ActivityStatus.ONLINE,
+                ActivityStatus.AFK);
 
         userRepository.setAfk(
-            afkThreshold,
-            offlineThreshold,
-            ActivityStatus.AFK,
-            ActivityStatus.ONLINE
-        );
+                afkThreshold,
+                offlineThreshold,
+                ActivityStatus.AFK,
+                ActivityStatus.ONLINE);
     }
 }
