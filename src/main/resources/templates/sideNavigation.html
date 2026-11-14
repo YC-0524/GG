@@ -22,6 +22,9 @@
                 <span>Search Users</span>
             </a>
         </nav>
+        <section class="sidebar-section" th:if="${user != null}">
+            <div th:replace="~{activityStatusChange :: activityStatusChange(${user.activityStatus})}"></div>
+        </section>
         <section class="sidebar-section">
             <h3>Your Games</h3>
             <a href="/games">Manage My Games</a>

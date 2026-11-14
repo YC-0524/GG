@@ -30,6 +30,10 @@
                             <img th:if="${player.avatar != null}" th:src="${player.avatar}" alt="Player Profile Picture" referrerpolicy="no-referrer">
                         </div>
                         <h3 th:id="|player-name-${player.id}|" th:text="${player.username}">Player</h3>
+                        <section class="tags">
+                            <!-- This includes activity status and tags like "CO-OP", "LFG", etc. -->
+                            <div th:replace="~{activityStatus :: activityStatus(${player.activityStatus})}"></div>
+                        </section>
                         <a th:href="@{/profile/{id}(id=${player.id})}">View profile</a>
                     </article>
                 </div>

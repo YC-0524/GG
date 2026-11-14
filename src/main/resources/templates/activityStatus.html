@@ -1,0 +1,17 @@
+<body>
+    <div th:fragment="activityStatus(currentStatus)">
+        <div class="activity-status" th:hidden="${currentStatus.name() != 'OFFLINE'}">
+            <div class="orb" style="background-color: gray;"></div>
+            <span>Offline</span>
+        </div>
+        <div class="activity-status" th:hidden="${currentStatus.name() != 'AFK'}">
+            <div class="orb" style="background-color: orangered;"></div>
+            <span>AFK</span>
+        </div>
+        <div class="activity-status" th:hidden="${currentStatus.name() != 'ONLINE'}">
+            <div class="orb" style="background-color: greenyellow;"></div>
+            <span>Online</span>
+        </div>
+    </div>
+
+</body>

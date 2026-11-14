@@ -3,19 +3,24 @@ package com.group17.game.Controllers;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.group17.game.Models.ActivityStatus;
 import com.group17.game.Models.CurrentUser;
 import com.group17.game.Models.GameEntryRepository;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 
 import jakarta.annotation.Nullable;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 @RequestMapping("/profile") // prefixes /profile to other routes in here
@@ -33,12 +38,32 @@ public class ProfileController {
         return "redirect:/profile/" + user.getId();
     }
 
+    @PostMapping("/me/status")
+    public String updateUserActivity(@RequestParam String status, @CurrentUser User user, HttpServletRequest request) {
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+
+        ActivityStatus activityStatus;
+        try {
+            activityStatus = ActivityStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return "/dashboard?error=Failed to update status.";
+        }
+
+        user.setActivityStatus(activityStatus);
+        userRepository.save(user);
+
+        String referer = request.getHeader("Referer");
+
+        return "redirect:" + (referer != null ? referer : "/profile");
+    }
+
     @GetMapping("/search")
     public String searchProfile(
-        Model model, 
-        @RequestParam (name = "error", required = false) String error,
-        @RequestParam (name = "usernameFilter", required = false) String usernameFilter
-    ) {
+            Model model,
+            @RequestParam(name = "error", required = false) String error,
+            @RequestParam(name = "usernameFilter", required = false) String usernameFilter) {
         if (usernameFilter != null) {
             List<User> users = userRepository.findByUsernameContaining(usernameFilter);
             for (User user : users) {
