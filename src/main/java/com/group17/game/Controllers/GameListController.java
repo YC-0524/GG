@@ -17,15 +17,17 @@ import com.group17.game.Models.CurrentUser;
 import com.group17.game.Models.GameEntry;
 import com.group17.game.Models.GameEntryRepository;
 import com.group17.game.Models.User;
-import com.group17.game.Utilities.GameCatalog;
+import com.group17.game.Utilities.AvailableGameCatalog;
 
 @Controller
 @RequestMapping("/games")
 public class GameListController {
     private final GameEntryRepository gameEntryRepository;
+    private final AvailableGameCatalog availableGameCatalog;
 
-    public GameListController(GameEntryRepository gameEntryRepository) {
+    public GameListController(GameEntryRepository gameEntryRepository, AvailableGameCatalog availableGameCatalog) {
         this.gameEntryRepository = gameEntryRepository;
+        this.availableGameCatalog = availableGameCatalog;
     }
 
     @GetMapping("")
@@ -33,7 +35,7 @@ public class GameListController {
             @RequestParam(name = "edit", required = false) Long editId) {
         model.addAttribute("user", user);
         model.addAttribute("entries", gameEntryRepository.findByUserIdOrderByGameNameAsc(user.getId()));
-        model.addAttribute("catalog", GameCatalog.all());
+        model.addAttribute("catalog", availableGameCatalog.all());
         model.addAttribute("editId", editId);
         return "games";
     }
@@ -43,14 +45,14 @@ public class GameListController {
             @RequestParam(name = "gameName", defaultValue = "") String gameName,
             @RequestParam(name = "rank", defaultValue = "") String rank,
             RedirectAttributes redirect) {
-        Optional<String> game = GameCatalog.findGame(gameName);
+        Optional<String> game = availableGameCatalog.findGame(gameName);
         if (game.isEmpty()) {
             redirect.addFlashAttribute("error", "No games found");
             return "redirect:/games";
         }
 
         String name = game.get();
-        Optional<String> validRank = GameCatalog.findRank(name, rank);
+        Optional<String> validRank = availableGameCatalog.findRank(name, rank);
         if (validRank.isEmpty()) {
             redirect.addFlashAttribute("error", "Choose a rank from the list");
             return "redirect:/games";
@@ -71,7 +73,7 @@ public class GameListController {
             @RequestParam(name = "rank", defaultValue = "") String rank,
             RedirectAttributes redirect) {
         GameEntry entry = findOwnedEntry(entryId, user);
-        Optional<String> validRank = GameCatalog.findRank(entry.getGameName(), rank);
+        Optional<String> validRank = availableGameCatalog.findRank(entry.getGameName(), rank);
         if (validRank.isEmpty()) {
             redirect.addFlashAttribute("error", "Choose a rank from the list");
             return "redirect:/games";

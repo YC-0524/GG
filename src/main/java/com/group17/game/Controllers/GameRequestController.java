@@ -21,6 +21,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/game-requests")
 public class GameRequestController {
 
+    // Marks a request that was started from the Search Games page
+    static final String FROM_SEARCH = "search";
+
     private final GameRequestRepository gameRequestRepository;
     private final CatalogGameRepository catalogGameRepository;
     private final AccessService accessService;
@@ -38,10 +41,12 @@ public class GameRequestController {
     @GetMapping("/new")
     public String showRequestForm(
             @RequestParam(name = "gameName", required = false) String gameName,
+            @RequestParam(name = "from", required = false) String from,
             Model model,
             @CurrentUser User user) {
 
         model.addAttribute("gameName", gameName == null ? "" : gameName.strip());
+        model.addAttribute("fromSearch", FROM_SEARCH.equals(from));
         model.addAttribute("user", user);
 
         return "gameRequest";
@@ -57,7 +62,13 @@ public class GameRequestController {
             @RequestParam(required = false) Integer minPlayers,
             @RequestParam(required = false) Integer maxPlayers,
             @RequestParam(required = false) String description,
+            @RequestParam(name = "from", required = false) String from,
             RedirectAttributes redirect) {
+
+        // Players who started on Search Games go back there; everyone else goes to Manage My Games.
+        boolean fromSearch = FROM_SEARCH.equals(from);
+        String backToStart = fromSearch ? "redirect:/search" : "redirect:/games";
+        String backToForm = fromSearch ? "redirect:/game-requests/new?from=search" : "redirect:/game-requests/new";
 
         gameName = gameName.strip();
         genre = genre.strip();
@@ -65,19 +76,19 @@ public class GameRequestController {
 
         if (gameName.isBlank() || genre.isBlank() || gameMode.isBlank()) {
             redirect.addFlashAttribute("error", "Please complete all required fields.");
-            return "redirect:/game-requests/new";
+            return backToForm;
         }
 
         if (GameCatalog.findGame(gameName).isPresent()
                 || catalogGameRepository.existsByGameNameIgnoreCase(gameName)) {
             redirect.addFlashAttribute("error", "This game is already in the catalogue.");
-            return "redirect:/games";
+            return backToStart;
         }
 
         if (gameRequestRepository.existsByGameNameIgnoreCaseAndStatus(
                 gameName, RequestStatus.PENDING)) {
             redirect.addFlashAttribute("error", "A request for this game is already pending.");
-            return "redirect:/games";
+            return backToStart;
         }
 
         if (gameMode.equalsIgnoreCase("Solo")) {
@@ -86,7 +97,7 @@ public class GameRequestController {
         } else if (minPlayers == null || maxPlayers == null
                 || minPlayers < 1 || maxPlayers < minPlayers) {
             redirect.addFlashAttribute("error", "Please enter valid minimum and maximum player counts.");
-            return "redirect:/game-requests/new";
+            return backToForm;
         }
 
         GameRequest request = new GameRequest(
@@ -103,7 +114,7 @@ public class GameRequestController {
         gameRequestRepository.save(request);
 
         redirect.addFlashAttribute("success", "Your game request has been submitted!");
-        return "redirect:/games";
+        return backToStart;
     }
 
     // Approves a pending request and adds the game to the global catalogue.
