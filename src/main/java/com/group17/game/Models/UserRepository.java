@@ -30,7 +30,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         @Modifying
         @Query("""
                             UPDATE User u
-                            SET u.lastSeen = :lastSeen
+                            SET u.lastSeen = :lastSeen, u.activityStatus = 'ONLINE'
                             WHERE u.id = :userId
                         """)
         int updateLastSeen(

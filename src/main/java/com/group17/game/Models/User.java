@@ -49,6 +49,7 @@ public class User {
     private UserStatus status = UserStatus.ACTIVE;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ActivityStatus activityStatus = ActivityStatus.OFFLINE;
     
     // sha256 hashes are exactly 64 characters

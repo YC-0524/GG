@@ -41,21 +41,24 @@ public class ProfileController {
     @PostMapping("/me/status")
     public String updateUserActivity(@RequestParam String status, @CurrentUser User user, HttpServletRequest request) {
         if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            return "redirect:/auth/login";
         }
 
         ActivityStatus activityStatus;
         try {
             activityStatus = ActivityStatus.valueOf(status.toUpperCase());
         } catch (IllegalArgumentException e) {
-            return "/dashboard?error=Failed to update status.";
+            return "redirect:/dashboard?error=Failed to update status.";
         }
 
         user.setActivityStatus(activityStatus);
         userRepository.save(user);
 
         String referer = request.getHeader("Referer");
-
+        // Prevent cross-site redirection
+        if (referer == null || !referer.startsWith("/") || referer.startsWith("//")) {
+            return "redirect:/profile";
+        }
         return "redirect:" + (referer != null ? referer : "/profile");
     }
 
