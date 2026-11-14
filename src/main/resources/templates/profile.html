@@ -11,7 +11,7 @@
 
 <body>
     <div class="app-container">
-        <nav th:replace="~{sideNavigation :: sideNavigation}"></nav>
+        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav=${isOwner ? 'profile' : null})}"></nav>
         <div class="profile-container">
             <section class="profile-splash">
                 <img class="profile-avatar" th:if="${#strings.isEmpty(profile.avatar)}" src="/images/person.svg" alt="Default Avatar" />

@@ -19,6 +19,18 @@ public final class GameCatalog {
         return GAMES;
     }
 
+    // Genres used to suggest games similar to recently viewed titles.
+    public static List<String> genres(String game) {
+        return switch (game) {
+            case "Apex Legends" -> List.of("FPS", "Battle Royale");
+            case "League of Legends" -> List.of("MOBA");
+            case "Minecraft" -> List.of("Sandbox", "Survival");
+            case "Overwatch 2", "Valorant" -> List.of("FPS", "Hero Shooter");
+            case "Rocket League" -> List.of("Sports", "Racing");
+            default -> List.of();
+        };
+    }
+
     // Case-insensitive exact match, returns the catalog's spelling of the name.
     public static Optional<String> findGame(String name) {
         if (name == null) return Optional.empty();
