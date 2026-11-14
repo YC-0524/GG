@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
@@ -11,9 +11,13 @@
 <body>
     <div class="app-container">
         <nav th:replace="~{sideNavigation :: sideNavigation}"></nav>
+
         <div class="content-container">
             <h2>Moderation Tools</h2>
-            <!--Lists out users and possible moderator actions-->
+
+            <!-- User moderation tools -->
+            <h3>Manage Users</h3>
+
             <table>
                 <thead>
                     <tr>
@@ -30,13 +34,18 @@
                         <td th:text="${user.username}"></td>
                         <td th:text="${user.status}"></td>
                         <td>
-                            <form th:action="@{/dashboard/moderator/users/{id}/timeout(id=${user.id})}" method="post">
-                                <input type="number" name="minutes" min="1" max="10080" value="30" required></input>
+                            <form th:action="@{/dashboard/moderator/users/{id}/timeout(id=${user.id})}"
+                                method="post">
+                                <input type="number" name="minutes" min="1" max="10080"
+                                    value="30" required>
                                 <button type="submit">Time out (minutes)</button>
                             </form>
-                            <form th:action="@{/dashboard/moderator/users/{id}/clean(id=${user.id})}" method="post">
+
+                            <form th:action="@{/dashboard/moderator/users/{id}/clean(id=${user.id})}"
+                                method="post">
                                 <button type="submit">Clean user</button>
                             </form>
+
                             <form th:action="@{/dashboard/moderator/users/{id}/request-suspension(id=${user.id})}"
                                 method="post">
                                 <input type="text" name="reason" placeholder="reason" required>
@@ -45,8 +54,58 @@
                         </td>
                     </tr>
                 </tbody>
-
             </table>
+
+            <!-- Game request moderation -->
+            <h3>Pending Game Requests</h3>
+
+            <p th:if="${#lists.isEmpty(gameRequests)}">
+                There are currently no pending game requests.
+            </p>
+
+            <table th:unless="${#lists.isEmpty(gameRequests)}">
+                <thead>
+                    <tr>
+                        <th>Game</th>
+                        <th>Genre</th>
+                        <th>Game Mode</th>
+                        <th>Players</th>
+                        <th>Description</th>
+                        <th>Requested By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr th:each="request : ${gameRequests}">
+                        <td th:text="${request.gameName}"></td>
+                        <td th:text="${request.genre}"></td>
+                        <td th:text="${request.gameMode}"></td>
+
+                        <td>
+                            <span th:if="${request.minPlayers != null}"
+                                th:text="|${request.minPlayers} - ${request.maxPlayers}|"></span>
+                            <span th:unless="${request.minPlayers != null}">N/A</span>
+                        </td>
+
+                        <td th:text="${request.description}"></td>
+                        <td th:text="${request.requestedByUsername}"></td>
+
+                        <td>
+                            <form th:action="@{/game-requests/moderator/{id}/approve(id=${request.id})}"
+                                method="post">
+                                <button type="submit">Approve</button>
+                            </form>
+
+                            <form th:action="@{/game-requests/moderator/{id}/close(id=${request.id})}"
+                                method="post">
+                                <button type="submit">Close</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
         </div>
     </div>
 </body>
