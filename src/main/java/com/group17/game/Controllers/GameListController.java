@@ -1,117 +1,108 @@
 package com.group17.game.Controllers;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.group17.game.Models.CurrentUser;
 import com.group17.game.Models.GameEntry;
 import com.group17.game.Models.GameEntryRepository;
 import com.group17.game.Models.User;
+import com.group17.game.Utilities.AvailableGameCatalog;
 import com.group17.game.Utilities.GameCatalog;
 
-@Controller
-@RequestMapping("/games")
-public class GameListController {
-    private final GameEntryRepository gameEntryRepository;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-    public GameListController(GameEntryRepository gameEntryRepository) {
+@Controller
+@RequestMapping("/search")
+public class GameSearchController {
+    static final String RECENT_GAMES = "recentGames";
+    static final int MAX_RECENT_GAMES = 3;
+    static final int MAX_RECOMMENDED_GAMES = 3;
+
+    private final GameEntryRepository gameEntryRepository;
+    private final AvailableGameCatalog availableGameCatalog;
+
+    public GameSearchController(GameEntryRepository gameEntryRepository,
+            AvailableGameCatalog availableGameCatalog) {
         this.gameEntryRepository = gameEntryRepository;
+        this.availableGameCatalog = availableGameCatalog;
     }
 
     @GetMapping("")
-    public String showMyGames(Model model, @CurrentUser User user,
-            @RequestParam(name = "edit", required = false) Long editId) {
+    public String showSearch(Model model, @CurrentUser User user, HttpSession session,
+            @RequestParam(name = "game", required = false) String gameName) {
+        List<String> recent = recentGames(session);
+
+        if (gameName != null && !gameName.isBlank()) {
+            Optional<String> game = availableGameCatalog.findGame(gameName);
+            if (game.isPresent()) {
+                remember(recent, game.get());
+                session.setAttribute(RECENT_GAMES, recent);
+                model.addAttribute("selectedGame", game.get());
+                model.addAttribute("players", playersFor(game.get(), user));
+            } else {
+                model.addAttribute("error", "No games found");
+            }
+        }
+
+        List<String> otherGames = availableGameCatalog.all().keySet().stream()
+                .filter(game -> !recent.contains(game))
+                .toList();
+        List<String> recommendedGames = otherGames.stream()
+                .sorted(Comparator.comparingInt((String game) -> similarityScore(game, recent)).reversed())
+                .limit(MAX_RECOMMENDED_GAMES)
+                .toList();
+        model.addAttribute("recommendedGames", recommendedGames);
         model.addAttribute("user", user);
-        model.addAttribute("entries", gameEntryRepository.findByUserIdOrderByGameNameAsc(user.getId()));
-        model.addAttribute("catalog", GameCatalog.all());
-        model.addAttribute("editId", editId);
-        return "games";
+        model.addAttribute("recentGames", List.copyOf(recent));
+        model.addAttribute("otherGames", otherGames);
+
+        return "search";
     }
 
-    @PostMapping("")
-    public String addGame(@CurrentUser User user,
-            @RequestParam(name = "gameName", defaultValue = "") String gameName,
-            @RequestParam(name = "rank", defaultValue = "") String rank,
-            RedirectAttributes redirect) {
-        Optional<String> game = GameCatalog.findGame(gameName);
-        if (game.isEmpty()) {
-            redirect.addFlashAttribute("error", "No games found");
-            return "redirect:/games";
-        }
-
-        String name = game.get();
-        Optional<String> validRank = GameCatalog.findRank(name, rank);
-        if (validRank.isEmpty()) {
-            redirect.addFlashAttribute("error", "Choose a rank from the list");
-            return "redirect:/games";
-        }
-
-        if (gameEntryRepository.existsByUserIdAndGameName(user.getId(), name)) {
-            redirect.addFlashAttribute("error", name + " is already in your list");
-            return "redirect:/games";
-        }
-
-        gameEntryRepository.save(new GameEntry(user, name, validRank.get()));
-        redirect.addFlashAttribute("success", name + " added to your list");
-        return "redirect:/games";
+    private List<String> recentGames(HttpSession session) {
+        Object stored = session.getAttribute(RECENT_GAMES);
+        List<String> recent = stored instanceof List<?> list
+                ? list.stream().filter(String.class::isInstance).map(String.class::cast)
+                        .filter(game -> availableGameCatalog.all().containsKey(game)).distinct()
+                        .limit(MAX_RECENT_GAMES).toList()
+                : List.of();
+        session.setAttribute(RECENT_GAMES, new ArrayList<>(recent));
+        return new ArrayList<>(recent);
     }
 
-    @PostMapping("/{entryId}/edit")
-    public String updateRank(@PathVariable("entryId") Long entryId, @CurrentUser User user,
-            @RequestParam(name = "rank", defaultValue = "") String rank,
-            RedirectAttributes redirect) {
-        GameEntry entry = findOwnedEntry(entryId, user);
-        Optional<String> validRank = GameCatalog.findRank(entry.getGameName(), rank);
-        if (validRank.isEmpty()) {
-            redirect.addFlashAttribute("error", "Choose a rank from the list");
-            return "redirect:/games";
+    private int similarityScore(String game, List<String> recent) {
+        int score = 0;
+        for (int i = 0; i < recent.size(); i++) {
+            for (String genre : GameCatalog.genres(game)) {
+                if (GameCatalog.genres(recent.get(i)).contains(genre)) {
+                    score += recent.size() - i;
+                }
+            }
         }
-
-        entry.setRank(validRank.get());
-        gameEntryRepository.save(entry);
-        redirect.addFlashAttribute("success", entry.getGameName() + " updated to " + entry.getRank());
-        return "redirect:/games";
+        return score;
     }
 
-    @PostMapping("/{entryId}/searchable")
-    public String setSearchable(@PathVariable("entryId") Long entryId, @CurrentUser User user, 
-            @RequestParam(name = "searchable") boolean searchable, 
-            RedirectAttributes redirect) {
-        GameEntry entry = findOwnedEntry(entryId, user);
-        entry.setSearchable(searchable);
-        gameEntryRepository.save(entry);
-        redirect.addFlashAttribute("success", searchable
-                ? "Players can now find you through " + entry.getGameName()
-                : "Players can no longer find you through " + entry.getGameName());
-        return "redirect:/games";
-    }
+    private void remember(List<String> recent, String game) {
+        recent.remove(game);
+        recent.add(0, game);
 
-    @PostMapping("/{entryId}/delete")
-    public String removeGame(@PathVariable("entryId") Long entryId, @CurrentUser User user,
-            RedirectAttributes redirect) {
-        GameEntry entry = findOwnedEntry(entryId, user);
-        gameEntryRepository.delete(entry);
-        redirect.addFlashAttribute("success", entry.getGameName() + " removed from your list");
-        return "redirect:/games";
-    }
-
-    // Players can only change their own list; anyone else's entry is a 403.
-    private GameEntry findOwnedEntry(Long entryId, User user) {
-        GameEntry entry = gameEntryRepository.findById(entryId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        if (entry.getUser().getId() != user.getId()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        while (recent.size() > MAX_RECENT_GAMES) {
+            recent.remove(recent.size() - 1);
         }
-        return entry;
+    }
+
+    private List<GameEntry> playersFor(String game, User user) {
+        return gameEntryRepository.findByGameNameAndSearchableTrue(game).stream()
+                .filter(entry -> entry.getUser().getId() != user.getId())
+                .toList();
     }
 }

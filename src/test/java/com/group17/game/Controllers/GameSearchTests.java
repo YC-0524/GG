@@ -1,155 +1,99 @@
-package com.group17.game.Controllers;
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("game-search");
+    const input = document.getElementById("game-search-input");
+    const panel = document.getElementById("game-search-panel");
+    const empty = document.getElementById("game-search-empty");
+    const requestLink = document.getElementById("game-request-link");
+    const groups = Array.from(panel.querySelectorAll(".game-group"));
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+    const visibleOptions = () =>
+        Array.from(panel.querySelectorAll(".game-option")).filter(option => !option.parentElement.hidden);
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.mock.web.MockHttpSession;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.group17.game.Models.GameEntry;
-import com.group17.game.Models.GameEntryRepository;
-import com.group17.game.Models.User;
-import com.group17.game.Models.UserRepository;
-import com.group17.game.Utilities.GameCatalog;
-
-@SpringBootTest(properties = {
-    "spring.shell.interactive.enabled=false",
-    "spring.datasource.url=jdbc:h2:mem:game-search;DB_CLOSE_DELAY=-1",
-    "discord.oauth.client_id=test",
-    "discord.oauth.client_secret=test",
-    "discord.oauth.redirect_uri=http://localhost/auth/discord/callback",
-    "discord.oauth.oauth_uri=http://localhost/auth/login"
-})
-@AutoConfigureMockMvc
-@Transactional
-class GameSearchTests {
-    @Autowired MockMvc mockMvc;
-    @Autowired UserRepository users;
-    @Autowired GameEntryRepository entries;
-
-    private User register(String name) {
-        return users.saveAndFlush(new User(name, name + "@example.com", "a".repeat(64)));
+    function openPanel() {
+        panel.hidden = false;
+        input.setAttribute("aria-expanded", "true");
     }
 
-    private UsernamePasswordAuthenticationToken login(User user) {
-        return UsernamePasswordAuthenticationToken.authenticated(user.getId(), null,
-                List.of(new SimpleGrantedAuthority("ROLE_USER")));
+    function closePanel() {
+        panel.hidden = true;
+        input.setAttribute("aria-expanded", "false");
     }
 
-    private void view(User user, MockHttpSession session, String game) throws Exception {
-        mockMvc.perform(get("/search").param("game", game).session(session)
-                .with(authentication(login(user))))
-                .andExpect(status().isOk());
-    }
+    function filter() {
+        const query = input.value.trim().toLowerCase();
+        let anyMatch = false;
 
-    // US 21
-    @Test
-    void searchPageListsEveryGame() throws Exception {
-        User player = register("Player");
-        mockMvc.perform(get("/search").with(authentication(login(player))))
-                .andExpect(status().isOk())
-                .andExpect(model().attribute("recentGames", List.of()))
-                .andExpect(model().attribute("recommendedGames", List.of("Apex Legends", "League of Legends", "Minecraft")))
-                .andExpect(model().attribute("otherGames", List.copyOf(GameCatalog.all().keySet())));
-    }
+        groups.forEach(group => {
+            let groupMatch = false;
+            const recommendations = group.hasAttribute("data-recommendations");
+            const items = Array.from(group.querySelectorAll("li"));
+            if (recommendations) {
+                group.querySelector("h3").textContent = query ? "Other games" : "Recommended games";
+                items.sort((a, b) => query
+                    ? a.querySelector(".game-option").dataset.name.localeCompare(b.querySelector(".game-option").dataset.name)
+                    : Number(a.dataset.recommendationOrder) - Number(b.dataset.recommendationOrder));
+                items.forEach(item => group.querySelector("ul").appendChild(item));
+            }
+            items.forEach(item => {
+                const name = item.querySelector(".game-option").dataset.name.toLowerCase();
+                const match = query
+                    ? name.includes(query)
+                    : !recommendations || Number(item.dataset.recommendationOrder) >= 0;
+                item.hidden = !match;
+                groupMatch = groupMatch || match;
+            });
+            group.hidden = !groupMatch;
+            anyMatch = anyMatch || groupMatch;
+        });
 
-    @Test
-    void viewedGamesMoveToTheTopNewestFirst() throws Exception {
-        User player = register("Player");
-        MockHttpSession session = new MockHttpSession();
-        view(player, session, "Valorant");
-        view(player, session, "minecraft");
-
-        mockMvc.perform(get("/search").session(session).with(authentication(login(player))))
-                .andExpect(model().attribute("recentGames", List.of("Minecraft", "Valorant")))
-                .andExpect(model().attribute("otherGames",
-                        List.of("Apex Legends", "League of Legends", "Overwatch 2", "Rocket League")));
-    }
-
-    @Test
-    void onlyTheThreeLatestGamesAreKept() throws Exception {
-        User player = register("Player");
-        MockHttpSession session = new MockHttpSession();
-        for (String game : GameCatalog.all().keySet()) {
-            view(player, session, game);
+        const trimmedQuery = input.value.trim();
+        empty.hidden = anyMatch || !trimmedQuery;
+        requestLink.hidden = !trimmedQuery || anyMatch;
+        if (!requestLink.hidden) {
+            requestLink.href = "/game-requests/new?gameName=" + encodeURIComponent(trimmedQuery);
         }
-
-        mockMvc.perform(get("/search").session(session).with(authentication(login(player))))
-                .andExpect(model().attribute("recentGames", List.of(
-                        "Valorant", "Rocket League", "Overwatch 2")))
-                .andExpect(model().attribute("otherGames", List.of("Apex Legends", "League of Legends", "Minecraft")));
     }
 
-    @Test
-    void recommendationsPreferSimilarGenresAndExcludeRecentGames() throws Exception {
-        User player = register("Player");
-        mockMvc.perform(get("/search").param("game", "Valorant")
-                .with(authentication(login(player))))
-                .andExpect(status().isOk())
-                .andExpect(model().attribute("recommendedGames",
-                        List.of("Overwatch 2", "Apex Legends", "League of Legends")));
-    }
+    input.addEventListener("focus", openPanel);
+    input.addEventListener("click", openPanel);
+    input.addEventListener("input", () => {
+        filter();
+        openPanel();
+    });
 
-    @Test
-    void oldSessionsAreTrimmedWithoutAnotherGameSelection() throws Exception {
-        User player = register("Player");
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute(GameSearchController.RECENT_GAMES,
-                List.of("Valorant", "Minecraft", "Apex Legends", "Overwatch 2", "Rocket League"));
-        mockMvc.perform(get("/search").session(session).with(authentication(login(player))))
-                .andExpect(status().isOk())
-                .andExpect(model().attribute("recentGames", List.of("Valorant", "Minecraft", "Apex Legends")))
-                .andExpect(model().attribute("recommendedGames",
-                        List.of("Overwatch 2", "League of Legends", "Rocket League")));
-        org.junit.jupiter.api.Assertions.assertEquals(
-                List.of("Valorant", "Minecraft", "Apex Legends"), session.getAttribute(GameSearchController.RECENT_GAMES));
-    }
+    form.addEventListener("submit", event => {
+        const first = visibleOptions()[0];
+        event.preventDefault();
+        if (first) window.location.href = first.href;
+    });
 
-    @Test
-    void unknownGameShowsNoGamesFound() throws Exception {
-        User player = register("Player");
-        mockMvc.perform(get("/search").param("game", "Tetris").with(authentication(login(player))))
-                .andExpect(model().attribute("error", "No games found"))
-                .andExpect(model().attribute("recentGames", List.of()));
-    }
+    form.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            input.focus();
+            closePanel();
+            return;
+        }
+        if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
 
-    @Test
-    void pickedGameListsOtherPlayersWhoShowInMatches() throws Exception {
-        User player = register("Player");
-        User friend = register("Friend");
-        User ghost = register("Ghost");
-        entries.save(new GameEntry(player, "Valorant", "Silver 1"));
-        entries.save(new GameEntry(friend, "Valorant", "Gold 2"));
-        GameEntry hidden = new GameEntry(ghost, "Valorant", "Iron 1");
-        hidden.setSearchable(false);
-        entries.saveAndFlush(hidden);
+        const options = visibleOptions();
+        if (options.length === 0) return;
+        event.preventDefault();
+        openPanel();
 
-        mockMvc.perform(get("/search").param("game", "Valorant").with(authentication(login(player))))
-                .andExpect(content().string(containsString("Friend")))
-                .andExpect(content().string(containsString("Gold 2")))
-                .andExpect(content().string(not(containsString("Iron 1"))))
-                .andExpect(content().string(not(containsString("Silver 1"))));
-    }
+        const index = options.indexOf(document.activeElement);
+        if (event.key === "ArrowDown") {
+            options[index < options.length - 1 ? index + 1 : 0].focus();
+        } else if (index <= 0) {
+            input.focus();
+        } else {
+            options[index - 1].focus();
+        }
+    });
 
-    @Test
-    void anonymousVisitorsMustLogIn() throws Exception {
-        mockMvc.perform(get("/search"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(header().string("Location", containsString("/auth/login")));
-    }
-}
+    document.addEventListener("click", event => {
+        if (!form.contains(event.target)) closePanel();
+    });
+
+    filter();
+    if (document.activeElement === input) openPanel();
+});

@@ -1,97 +1,76 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("game-search");
-    const input = document.getElementById("game-search-input");
-    const panel = document.getElementById("game-search-panel");
-    const empty = document.getElementById("game-search-empty");
-    const groups = Array.from(panel.querySelectorAll(".game-group"));
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
-    const visibleOptions = () =>
-        Array.from(panel.querySelectorAll(".game-option")).filter(option => !option.parentElement.hidden);
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Games | GAME GANG</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/gameSearch.css">
+</head>
 
-    function openPanel() {
-        panel.hidden = false;
-        input.setAttribute("aria-expanded", "true");
-    }
+<body>
+    <div class="app-container">
+        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav='search')}"></nav>
+        <div class="content-container game-search-container">
+            <h2>Search Games</h2>
 
-    function closePanel() {
-        panel.hidden = true;
-        input.setAttribute("aria-expanded", "false");
-    }
+            <form class="game-search" id="game-search" th:action="@{/search}" method="get" role="search">
+                <label for="game-search-input" class="visually-hidden">Search games</label>
+                <div class="game-search-bar">
+                    <img src="/images/search.svg" alt="" aria-hidden="true">
+                    <input type="search" id="game-search-input" name="game" placeholder="Search games"
+                        autocomplete="off" aria-controls="game-search-panel" aria-expanded="false"
+                        th:autofocus="${selectedGame == null}">
+                </div>
 
-    // Show three recommendations by default; typing searches the entire catalog.
-    function filter() {
-        const query = input.value.trim().toLowerCase();
-        let anyMatch = false;
+                <div class="game-search-panel" id="game-search-panel" hidden>
+                    <section class="game-group" th:unless="${#lists.isEmpty(recentGames)}">
+                        <h3>Recently viewed</h3>
+                        <ul>
+                            <li th:each="game : ${recentGames}">
+                                <a class="game-option" th:href="@{/search(game=${game})}" th:attr="data-name=${game}">
+                                    <span class="game-icon" aria-hidden="true"></span>
+                                    <span th:text="${game}">Valorant</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </section>
 
-        groups.forEach(group => {
-            let groupMatch = false;
-            const recommendations = group.hasAttribute("data-recommendations");
-            const items = Array.from(group.querySelectorAll("li"));
-            if (recommendations) {
-                group.querySelector("h3").textContent = query ? "Other games" : "Recommended games";
-                items.sort((a, b) => query
-                    ? a.querySelector(".game-option").dataset.name.localeCompare(b.querySelector(".game-option").dataset.name)
-                    : Number(a.dataset.recommendationOrder) - Number(b.dataset.recommendationOrder));
-                items.forEach(item => group.querySelector("ul").appendChild(item));
-            }
-            items.forEach(item => {
-                const name = item.querySelector(".game-option").dataset.name.toLowerCase();
-                const match = query
-                    ? name.includes(query)
-                    : !recommendations || Number(item.dataset.recommendationOrder) >= 0;
-                item.hidden = !match;
-                groupMatch = groupMatch || match;
-            });
-            group.hidden = !groupMatch;
-            anyMatch = anyMatch || groupMatch;
-        });
+                    <section class="game-group" data-recommendations th:unless="${#lists.isEmpty(otherGames)}">
+                        <h3>Recommended games</h3>
+                        <ul>
+                            <li th:each="game : ${otherGames}"
+                                th:attr="data-recommendation-order=${recommendedGames.indexOf(game)}"
+                                th:hidden="${!recommendedGames.contains(game)}">
+                                <a class="game-option" th:href="@{/search(game=${game})}" th:attr="data-name=${game}">
+                                    <span class="game-icon" aria-hidden="true"></span>
+                                    <span th:text="${game}">Minecraft</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </section>
 
-        empty.hidden = anyMatch;
-    }
+                    <p class="game-search-empty" id="game-search-empty" hidden>No games found</p>
+                    <a id="game-request-link" href="/game-requests/new" hidden>Request this game</a>
+                </div>
+            </form>
 
-    input.addEventListener("focus", openPanel);
-    input.addEventListener("click", openPanel);
-    input.addEventListener("input", () => {
-        filter();
-        openPanel();
-    });
+            <p class="form-message error" th:if="${error}" th:text="${error}" role="alert"></p>
 
-    // Enter opens the first game still in the list.
-    form.addEventListener("submit", event => {
-        const first = visibleOptions()[0];
-        event.preventDefault();
-        if (first) window.location.href = first.href;
-    });
+            <section class="game-players" th:if="${selectedGame != null}">
+                <h3 th:text="|Players who play ${selectedGame}|">Players who play Valorant</h3>
+                <p class="form-message" th:if="${#lists.isEmpty(players)}">No other players have listed this game yet</p>
+                <ul th:unless="${#lists.isEmpty(players)}">
+                    <li th:each="entry : ${players}">
+                        <a th:href="@{/profile/{id}(id=${entry.user.id})}" th:text="${entry.user.username}">Player</a>
+                        <span th:text="${entry.rank}">Gold 2</span>
+                    </li>
+                </ul>
+            </section>
+        </div>
+    </div>
+    <script src="/js/gameSearch.js" defer></script>
+</body>
 
-    // Arrow keys move through the list; Escape closes it.
-    form.addEventListener("keydown", event => {
-        if (event.key === "Escape") {
-            input.focus();
-            closePanel();
-            return;
-        }
-        if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
-
-        const options = visibleOptions();
-        if (options.length === 0) return;
-        event.preventDefault();
-        openPanel();
-
-        const index = options.indexOf(document.activeElement);
-        if (event.key === "ArrowDown") {
-            options[index < options.length - 1 ? index + 1 : 0].focus();
-        } else if (index <= 0) {
-            input.focus();
-        } else {
-            options[index - 1].focus();
-        }
-    });
-
-    // Clicking anywhere else closes the list.
-    document.addEventListener("click", event => {
-        if (!form.contains(event.target)) closePanel();
-    });
-
-    filter();
-    if (document.activeElement === input) openPanel();
-});
+</html>
