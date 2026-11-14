@@ -1,7 +1,9 @@
 package com.group17.game.Controllers;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.time.Instant;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -24,23 +26,27 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriUtils;
 
 import com.group17.game.DTOs.DiscordTokenResponse;
 import com.group17.game.DTOs.DiscordUserResponse;
 import com.group17.game.Models.ChangePasswordFlow;
 import com.group17.game.Models.ChangePasswordFlowRepository;
+import com.group17.game.Models.CurrentUser;
 import com.group17.game.Models.LoginConnection;
 import com.group17.game.Models.LoginConnectionRepository;
 import com.group17.game.Models.LoginMethod;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 import com.group17.game.Utilities.HashUtil;
+import com.group17.game.Utilities.PasswordPolicy;
 import com.group17.game.Models.UserStatus;
 
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolationException;
+
 
 @Controller
 @RequestMapping("/auth") // just prefixes /auth to other routes in here
@@ -147,10 +153,6 @@ public class AuthController {
         @RequestParam String confirmPassword,
         @RequestParam String secretKey) {
 
-        if (!newPassword.equals(confirmPassword)) {
-            return "redirect:/auth/set-password?error=Passwords must be the same";
-        }
-
         ChangePasswordFlow flow = changePasswordFlowRepository.findBySecretKey(secretKey);
         if (flow == null || !flow.isActive()) {
             return "redirect:/";
@@ -161,8 +163,16 @@ public class AuthController {
             return "redirect:/";
         }
 
+        // uri utils helps build the urls
+        // optional: essentially a box that either holds 1 value or holds nothing (stronger than just = null;)
+        Optional<String> passwordProblem = PasswordPolicy.validate(newPassword, confirmPassword);
+        if (passwordProblem.isPresent()) {
+            return "redirect:/auth/set-password?key=" + UriUtils.encodeQueryParam(secretKey, StandardCharsets.UTF_8) 
+                    + "&error=" + UriUtils.encodeQueryParam(passwordProblem.get(), StandardCharsets.UTF_8);
+        }
+
         // find the user from the request, not the session
-        User user = userRepository.findById(flow.getUserID()).get();
+        User user = userRepository.findById(flow.getUserID()).orElse(null);
         if (user == null) {
             return "redirect:/";
         }
@@ -176,11 +186,52 @@ public class AuthController {
         return "redirect:/dashboard";
     }
 
+    @GetMapping("/change-password")
+    public String changePasswordPage(@Nullable @CurrentUser User user) {
+        if (user == null) {
+            return "redirect:/auth/login";
+        }
+        return "changePassword";
+    }
+
+    @PostMapping("/change-password")
+    public String changePassword(@Nullable @CurrentUser User currentUser, @RequestParam String currentPassword, @RequestParam String newPassword, @RequestParam String confirmPassword) {
+        if (currentUser == null) {
+            return "redirect:/auth/login";
+        }
+
+        User user = userRepository.findById(currentUser.getId()).orElse(null);
+        if (user == null) {
+            return "redirect:/auth/login";
+        }
+
+        if (!HashUtil.sha256Hash(currentPassword).equals(user.getPasswordHash())) {
+            return "redirect:/auth/change-password?error=" + UriUtils.encodeQueryParam("Current password is incorrect.", StandardCharsets.UTF_8);
+        }
+
+        Optional<String> passwordProblem = PasswordPolicy.validate(newPassword, confirmPassword);
+        if (passwordProblem.isPresent()) {
+            return "redirect:/auth/change-password?error=" + UriUtils.encodeQueryParam(passwordProblem.get(), StandardCharsets.UTF_8);
+        }
+
+        if (HashUtil.sha256Hash(newPassword).equals(user.getPasswordHash())) {
+            return "redirect:/auth/change-password?error=" + UriUtils.encodeQueryParam("New password must be different from old one.", StandardCharsets.UTF_8);
+        }
+
+        user.setPasswordHash(HashUtil.sha256Hash(newPassword));
+        userRepository.save(user);
+        
+        return "redirect:/profile/" + user.getId() + "?passwordChanged";
+    }
+    
+    
+
     @PostMapping("/register-email")
     public String registerNewAccountViaEmail(
             @RequestParam String username,
             @RequestParam String email,
             @RequestParam String password,
+            @RequestParam String confirmPassword,
             HttpServletRequest request,
             HttpServletResponse response) {
         try {
@@ -188,8 +239,9 @@ public class AuthController {
                 return "redirect:/auth/register?error=Email already registered";
             }
 
-            if (password.length() < User.MINIMUM_PASSWORD_LENGTH) {
-                return "redirect:/auth/register?error=Password too short";
+            Optional<String> passwordProblem = PasswordPolicy.validate(password, confirmPassword);
+            if (passwordProblem.isPresent()) {
+                return "redirect:/auth/register?error=" + UriUtils.encodeQueryParam(passwordProblem.get(), StandardCharsets.UTF_8);
             }
 
             // converts plain text into something more secure

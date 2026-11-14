@@ -9,6 +9,19 @@ passwordToggle.addEventListener('click', () => {
     passwordToggle.setAttribute('aria-pressed', String(showPassword));
 });
 
+const confirmInput = document.getElementById('confirmPassword');
+const confirmToggle = document.querySelector('.password-toggle[aria-controls="confirmPassword"]');
+
+if (confirmInput && confirmToggle) {
+    confirmToggle.addEventListener('click', () => {
+        const showPassword = confirmInput.type === 'password';
+
+        confirmInput.type = showPassword ? 'text' : 'password';
+        confirmToggle.setAttribute('aria-label', showPassword ? 'Hide password' : 'Show password');
+        confirmToggle.setAttribute('aria-pressed', String(showPassword));
+    });
+}
+
 const error = new URLSearchParams(window.location.search).get('error');
 
 if (error) {
