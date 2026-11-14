@@ -25,19 +25,29 @@
                             th:attr="data-ranks=${#strings.listJoin(game.value, '|')}"></option>
                     </datalist>
                 </div>
+
                 <div class="field">
                     <label for="game-rank">Current rank</label>
                     <select id="game-rank" name="rank" disabled>
                         <option value="Unranked">Unranked</option>
                     </select>
                 </div>
+
                 <button type="submit" id="add-game-button" disabled>Add game</button>
             </form>
+
             <p id="game-search-status" class="form-message error" role="status"></p>
+
+            <a id="request-game-link" href="/game-requests/new"
+                style="display: none;">
+                Request this game
+            </a>
+
             <p class="form-message error" th:if="${error}" th:text="${error}" role="alert"></p>
             <p class="form-message" th:if="${success}" th:text="${success}" role="status"></p>
 
             <p th:if="${#lists.isEmpty(entries)}" class="form-message">No games added yet</p>
+
             <table class="games-table" th:unless="${#lists.isEmpty(entries)}">
                 <thead>
                     <tr>
@@ -46,6 +56,7 @@
                         <th><span class="visually-hidden">Actions</span></th>
                     </tr>
                 </thead>
+
                 <tbody>
                     <tr th:each="entry : ${entries}">
                         <td th:text="${entry.gameName}">Valorant</td>
@@ -64,9 +75,12 @@
 
                         <!-- Row being edited -->
                         <td th:if="${editId == entry.id}" colspan="2">
-                            <form th:action="@{/games/{id}/edit(id=${entry.id})}" method="post" class="edit-game-form">
+                            <form th:action="@{/games/{id}/edit(id=${entry.id})}" method="post"
+                                class="edit-game-form">
                                 <select name="rank" th:attr="aria-label=|Rank for ${entry.gameName}|">
-                                    <option value="Unranked" th:selected="${entry.rank == 'Unranked'}">Unranked</option>
+                                    <option value="Unranked" th:selected="${entry.rank == 'Unranked'}">
+                                        Unranked
+                                    </option>
                                     <option th:each="rank : ${catalog[entry.gameName]}" th:value="${rank}"
                                         th:text="${rank}" th:selected="${rank == entry.rank}"></option>
                                 </select>
@@ -79,7 +93,9 @@
             </table>
         </div>
     </div>
+
     <script src="/js/games.js" defer></script>
 </body>
 
 </html>
+
