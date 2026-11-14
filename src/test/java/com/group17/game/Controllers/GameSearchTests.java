@@ -207,4 +207,15 @@ class GameSearchTests {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/search?game=stardew%20valley"));
     }
+
+    // US 26-27 (from Sorosh's branch; the JavaScript-text check now checks the rendered link)
+    @Test
+    void unknownGameSearchOffersRequestLink() throws Exception {
+        User player = register("Player");
+        mockMvc.perform(get("/search").param("game", "Stardew Valley").with(authentication(login(player))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"game-request-link\"")))
+                .andExpect(content().string(containsString("Request this game")))
+                .andExpect(content().string(containsString("Request Stardew Valley")));
+    }
 }

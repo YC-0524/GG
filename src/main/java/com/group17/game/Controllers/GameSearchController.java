@@ -12,7 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.group17.game.Utilities.GameCatalog;
-import com.group17.game.Utilities.GameLibrary;
+import com.group17.game.Utilities.AvailableGameCatalog;
 
 import com.group17.game.Models.CurrentUser;
 import com.group17.game.Models.User;
@@ -37,26 +37,26 @@ public class GameSearchController {
     static final int MAX_RECOMMENDED_GAMES = 3;
 
     private final GameEntryRepository gameEntryRepository;
-    private final GameLibrary gameLibrary;
+    private final AvailableGameCatalog availableGameCatalog;
     private final GameRequestRepository gameRequestRepository;
 
-    public GameSearchController(GameEntryRepository gameEntryRepository, GameLibrary gameLibrary,
+    public GameSearchController(GameEntryRepository gameEntryRepository, AvailableGameCatalog availableGameCatalog,
             GameRequestRepository gameRequestRepository)
     {
         this.gameEntryRepository = gameEntryRepository;
-        this.gameLibrary = gameLibrary;
+        this.availableGameCatalog = availableGameCatalog;
         this.gameRequestRepository = gameRequestRepository;
     }
 
     @GetMapping("")
     public String showSearch(Model model, @CurrentUser User user, HttpSession session, @RequestParam(name = "game", required = false) String gameName) 
     {
-        Set<String> allGames = gameLibrary.all().keySet();
+        Set<String> allGames = availableGameCatalog.all().keySet();
         List<String> recent = recentGames(session, allGames);
 
         if (gameName != null && !gameName.isBlank())
         {
-            Optional<String> game = gameLibrary.findGame(gameName);
+            Optional<String> game = availableGameCatalog.findGame(gameName);
             if (game.isPresent())
             {
                 remember(recent, game.get());

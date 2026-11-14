@@ -25,6 +25,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.group17.game.Models.CatalogGame;
+import com.group17.game.Models.CatalogGameRepository;
 import com.group17.game.Models.GameEntry;
 import com.group17.game.Models.GameEntryRepository;
 import com.group17.game.Models.User;
@@ -43,6 +45,7 @@ class GameListTests {
     @Autowired MockMvc mockMvc;
     @Autowired UserRepository users;
     @Autowired GameEntryRepository entries;
+    @Autowired CatalogGameRepository catalogGames;
 
     private User register(String name) {
         return users.saveAndFlush(new User(name, name + "@example.com", "a".repeat(64)));
@@ -237,5 +240,19 @@ class GameListTests {
         List<GameEntry> found = entries.findByGameNameAndSearchableTrue("Valorant");
         assertEquals(1, found.size());
         assertEquals("Shown", found.get(0).getUser().getUsername());
+    }
+
+    // US 26-27 (from Sorosh's branch)
+    @Test
+    void customApprovedGameCanBeAddedAsUnranked() throws Exception {
+        User player = register("Player");
+        catalogGames.saveAndFlush(new CatalogGame("Stardew Valley"));
+        mockMvc.perform(get("/games").with(authentication(login(player))))
+                .andExpect(status().isOk()).andExpect(content().string(containsString("Stardew Valley")));
+        addGame(player, "Stardew Valley", "Unranked");
+        List<GameEntry> list = entries.findByUserIdOrderByGameNameAsc(player.getId());
+        assertEquals(1, list.size());
+        assertEquals("Stardew Valley", list.get(0).getGameName());
+        assertEquals("Unranked", list.get(0).getRank());
     }
 }
