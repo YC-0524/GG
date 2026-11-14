@@ -83,6 +83,19 @@ public class GameListController {
         return "redirect:/games";
     }
 
+    @PostMapping("/{entryId}/searchable")
+    public String setSearchable(@PathVariable("entryId") Long entryId, @CurrentUser User user, 
+            @RequestParam(name = "searchable") boolean searchable, 
+            RedirectAttributes redirect) {
+        GameEntry entry = findOwnedEntry(entryId, user);
+        entry.setSearchable(searchable);
+        gameEntryRepository.save(entry);
+        redirect.addFlashAttribute("success", searchable
+                ? "Players can now find you through " + entry.getGameName()
+                : "Players can no longer find you through " + entry.getGameName());
+        return "redirect:/games";
+    }
+
     @PostMapping("/{entryId}/delete")
     public String removeGame(@PathVariable("entryId") Long entryId, @CurrentUser User user,
             RedirectAttributes redirect) {
