@@ -29,13 +29,19 @@ public class ProfileTagController {
     }
 
     @GetMapping("")
-    public String viewTagsPage(Model model, @CurrentUser User user) {
+    public String viewTagsPage(Model model, @RequestParam(name = "error", required = false) String error,
+            @CurrentUser User user) {
         List<ProfileTag> personalTags = profileTagRepository.findAllByUserId(user.getId());
 
         model.addAttribute("personalTags", personalTags);
         model.addAttribute("catalog", ProfileTag.ALLOWED_TAGS);
         model.addAttribute("catalogJson", new ObjectMapper().writeValueAsString(ProfileTag.ALLOWED_TAGS));
         model.addAttribute("user", user);
+
+        if (error != null) {
+            model.addAttribute("error", error);
+        }
+
         return "tags";
     }
 
@@ -52,7 +58,6 @@ public class ProfileTagController {
         if (!ProfileTag.isValidTag(tag, type)) {
             return "redirect:/tags?error=Invalid tag combination";
         }
-
 
         Optional<ProfileTag> existingTag = profileTagRepository.findByUserIdAndTag(user.getId(), tag);
         if (existingTag.isPresent()) {

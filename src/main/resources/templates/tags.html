@@ -16,6 +16,7 @@
             <h2>My Tags</h2>
 
             <form class="add-tag-form" th:action="@{/tags}" method="post">
+                <p class="form-message error" th:if="${error}" th:text="${error}" role="alert"></p>
                 <div class="field">
                     <label for="tag-select">Available tags</label>
                     <select id="tagType" name="tagType">
