@@ -27,7 +27,7 @@
                         th:attr="aria-labelledby=|player-name-${player.id}|,data-player-id=${player.id}">
                         <div class="player-avatar" aria-hidden="true">
                             <span th:text="${player.initials}">?</span>
-                            <img th:if="${player.avatar != null}" th:src="${player.avatar}" alt="">
+                            <img th:if="${player.avatar != null}" th:src="${player.avatar}" alt="Player Profile Picture" referrerpolicy="no-referrer">
                         </div>
                         <h3 th:id="|player-name-${player.id}|" th:text="${player.username}">Player</h3>
                         <a th:href="@{/profile/{id}(id=${player.id})}">View profile</a>
