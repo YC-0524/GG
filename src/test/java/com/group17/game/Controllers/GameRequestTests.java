@@ -105,6 +105,7 @@ class GameRequestTests {
         assertEquals("Stardew Valley", pending.get(0).getGameName());
         assertEquals(player.getId(), pending.get(0).getRequestedById());
         assertEquals(RequestStatus.PENDING, pending.get(0).getStatus());
+        assertFalse(catalogGames.existsByGameNameIgnoreCase("Stardew Valley"));
     }
 
     @Test
@@ -201,6 +202,25 @@ class GameRequestTests {
     }
 
     @Test
+    void adminCanReviewAndApproveGameRequests() throws Exception {
+        User player = register("Player", UserRole.USER);
+        User admin = register("Admin", UserRole.ADMIN);
+        GameRequest request = createRequest(player, "Stardew Valley");
+
+        mockMvc.perform(get("/dashboard/moderator").with(loginAs(admin)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Pending Game Requests")));
+
+        mockMvc.perform(post(BASE + "/moderator/" + request.getId() + "/approve")
+                .with(csrf())
+                .with(loginAs(admin)))
+                .andExpect(redirectedUrl("/dashboard/moderator"));
+
+        assertEquals(RequestStatus.APPROVED, requests.findById(request.getId()).orElseThrow().getStatus());
+        assertTrue(catalogGames.existsByGameNameIgnoreCase("Stardew Valley"));
+    }
+
+    @Test
     void moderatorCanCloseGameRequest() throws Exception {
         User moderator = register("Moderator", UserRole.MODERATOR);
         GameRequest request = createRequest(moderator, "Test Game");
@@ -251,7 +271,7 @@ class GameRequestTests {
                 .with(csrf())
                 .with(loginAs(player)))
                 .andExpect(redirectedUrl("/search"))
-                .andExpect(flash().attribute("success", "Your game request has been submitted!"));
+                .andExpect(flash().attribute("success", "Your game request is pending approval."));
 
         assertEquals(1, requests.findByStatusOrderByCreatedAtDesc(RequestStatus.PENDING).size());
     }
