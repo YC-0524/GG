@@ -9,9 +9,7 @@ import java.time.Instant;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -26,6 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriUtils;
 
 import com.group17.game.DTOs.DiscordTokenResponse;
@@ -74,14 +73,6 @@ public class AuthController {
         this.userRepository = userRepo;
         this.loginConnectionRepository = connectionRepository;
         this.changePasswordFlowRepository = changePasswordFlowRepository;
-    }
-
-    // https://www.javaguides.net/2024/04/spring-security-authentication-manager.html
-    @Bean
-    public AuthenticationManager authenticationManager(
-        AuthenticationConfiguration authenticationConfiguration
-    ) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
@@ -261,6 +252,15 @@ public class AuthController {
         }
     }
 
+    static final String DISCORD_CANCELLED = "Discord login was cancelled. Try again or choose another way to log in.";
+    static final String DISCORD_FAILED = "Discord login failed. Please try again or choose another way to log in.";
+    static final String DISCORD_NO_EMAIL = "Your Discord account needs a verified email. Add one in Discord or choose another way to log in.";
+
+    // Sends the player back to the login page with a message instead of an error page (US 32).
+    private static String loginError(String message) {
+        return "redirect:/auth/login?error=" + UriUtils.encodeQueryParam(message, StandardCharsets.UTF_8);
+    }
+
     @GetMapping("/discord")
     public String redirectToDiscord() {
         return "redirect:" + DISCORD_OAUTH_URI;
@@ -270,7 +270,7 @@ public class AuthController {
     public String loginWithDiscord(@Nullable @RequestParam("code") String code, HttpServletRequest request,
             HttpServletResponse response, @Nullable @RequestParam("error") String error) {  
         if (error != null || code == null) {
-            return "redirect:/auth/login?error=Cancelled login";
+            return loginError(DISCORD_CANCELLED);
         }
 
         RestClient restClient = RestClient.create();
@@ -282,26 +282,33 @@ public class AuthController {
         form.add("client_secret", DISCORD_CLIENT_SECRET);
         form.add("redirect_uri", DISCORD_REDIRECT_URI);
 
-        DiscordTokenResponse tokenResponse = restClient.post()
-                .uri("https://discord.com/api/v10/oauth2/token")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(form)
-                .retrieve()
-                .body(DiscordTokenResponse.class);
+        DiscordUserResponse discordUser;
+        try {
+            DiscordTokenResponse tokenResponse = restClient.post()
+                    .uri("https://discord.com/api/v10/oauth2/token")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(form)
+                    .retrieve()
+                    .body(DiscordTokenResponse.class);
 
-        if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
-            return "redirect:/auth/login?error=Discord token failed";
+            if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
+                return loginError(DISCORD_FAILED);
+            }
+
+            // 2. Use that token to get the User's info
+            discordUser = restClient.get()
+                    .uri("https://discord.com/api/users/@me")
+                    .header("Authorization", "Bearer " + tokenResponse.getAccessToken())
+                    .retrieve()
+                    .body(DiscordUserResponse.class);
+        } catch (RestClientException ex) {
+            // Expired or reused code, or Discord is unreachable: show a message, not an error page.
+            System.out.println("Discord login failed: " + ex.getMessage());
+            return loginError(DISCORD_FAILED);
         }
 
-        // 2. Use that token to get the User's info
-        DiscordUserResponse discordUser = restClient.get()
-                .uri("https://discord.com/api/users/@me")
-                .header("Authorization", "Bearer " + tokenResponse.getAccessToken())
-                .retrieve()
-                .body(DiscordUserResponse.class);
-
-        if (discordUser.getEmail() == null || discordUser.getEmail().length() <= 0) {
-            return "redirect:/auth/login?error=Discord email missing";
+        if (discordUser == null || discordUser.getEmail() == null || discordUser.getEmail().isBlank()) {
+            return loginError(DISCORD_NO_EMAIL);
         }
 
         User user = userRepository.findByEmail(discordUser.getEmail());
