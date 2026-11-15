@@ -18,7 +18,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(
             HttpSecurity http,
             ChangePasswordFlowRepository passwordFlowRepository,
-            GoogleLoginSuccessHandler googleLoginSuccessHandler) throws Exception {
+            GoogleLoginSuccessHandler googleLoginSuccessHandler,
+            GoogleLoginFailureHandler googleLoginFailureHandler) throws Exception {
 
         http
                 .authorizeHttpRequests(auth -> auth
@@ -37,7 +38,8 @@ public class SecurityConfig {
                         .clearAuthentication(true)
                         .deleteCookies("JSESSIONID"))
                 .oauth2Login(oauth -> oauth
-                        .successHandler(googleLoginSuccessHandler));
+                        .successHandler(googleLoginSuccessHandler)
+                        .failureHandler(googleLoginFailureHandler));
 
         return http.build();
     }
