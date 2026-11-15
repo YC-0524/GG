@@ -37,7 +37,7 @@ public class AccountRecoveryController {
     private static final String RESET_EXPIRES = "resetExpiresAt";
 
     static final int MAX_ATTEMPTS = 5;
-    static final Duration LOCK_DURATION = Duration.ofMinutes(15);
+    static final Duration LOCK_DURATION = Duration.ofMinutes(60);
     private static final long RESET_WINDOW_MS = 600 * 1000; // 10 min
 
     private final UserRepository userRepository;

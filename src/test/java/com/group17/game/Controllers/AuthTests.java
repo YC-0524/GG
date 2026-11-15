@@ -15,10 +15,12 @@ import com.group17.game.Models.ChangePasswordFlowRepository;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 import com.group17.game.Utilities.HashUtil;
+import com.group17.game.Utilities.SecurityQuestions;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -35,12 +37,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Date;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 @Transactional
 public class AuthTests {
 
     private static final String VALID_PASSWORD = "Password1!";
     private static final String NEW_PASSWORD = "NewPass2@";
+
+    private static final String[] QUESTIONS = {
+            SecurityQuestions.QUESTIONS.get(0),
+            SecurityQuestions.QUESTIONS.get(1),
+            SecurityQuestions.QUESTIONS.get(2) };
+    private static final String[] ANSWERS = { "Alpha", "Beta", "Gamma" };
 
     @Autowired
     MockMvc mockMvc;
@@ -68,7 +77,9 @@ public class AuthTests {
         .param("username", "Username1")
         .param("email", email)
         .param("password", password)
-        .param("confirmPassword", password))
+        .param("confirmPassword", password)
+        .param("questions", QUESTIONS)
+        .param("answers", ANSWERS))
         .andExpect(status().is3xxRedirection())
         .andExpect(authenticated()).andReturn();
 
@@ -82,7 +93,9 @@ public class AuthTests {
                 .param("username", "Username")
                 .param("email", "test@example.com")
                 .param("password", VALID_PASSWORD)
-                .param("confirmPassword", VALID_PASSWORD))
+                .param("confirmPassword", VALID_PASSWORD)
+                .param("questions", QUESTIONS)
+                .param("answers", ANSWERS))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/dashboard"));
     }
@@ -94,7 +107,9 @@ public class AuthTests {
                 .param("username", "Username")
                 .param("email", "")
                 .param("password", VALID_PASSWORD)
-                .param("confirmPassword", VALID_PASSWORD))
+                .param("confirmPassword", VALID_PASSWORD)
+                .param("questions", QUESTIONS)
+                .param("answers", ANSWERS))
                 .andExpect(status().is3xxRedirection())
                 .andReturn();
 
@@ -111,7 +126,9 @@ public class AuthTests {
                 .param("username", "Username2")
                 .param("email", "test@example.com")
                 .param("password", VALID_PASSWORD)
-                .param("confirmPassword", VALID_PASSWORD))
+                .param("confirmPassword", VALID_PASSWORD)
+                .param("questions", QUESTIONS)
+                .param("answers", ANSWERS))
                 .andExpect(status().is3xxRedirection())
                 .andReturn();
 
@@ -126,7 +143,9 @@ public class AuthTests {
                 .param("username", "Username")
                 .param("email", "test@example.com")
                 .param("password", "password1")
-                .param("confirmPassword", "password1"))
+                .param("confirmPassword", "password1")
+                .param("questions", QUESTIONS)
+                .param("answers", ANSWERS))
                 .andExpect(status().is3xxRedirection())
                 .andReturn();
 
@@ -142,7 +161,9 @@ public class AuthTests {
                 .param("username", "Username")
                 .param("email", "test@example.com")
                 .param("password", VALID_PASSWORD)
-                .param("confirmPassword", "Password1?"))
+                .param("confirmPassword", "Password1?")
+                .param("questions", QUESTIONS)
+                .param("answers", ANSWERS))
                 .andExpect(status().is3xxRedirection())
                 .andReturn();
 

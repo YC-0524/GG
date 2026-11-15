@@ -19,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -59,6 +60,7 @@ public class AuthController {
     private final LoginConnectionRepository loginConnectionRepository;
     private final ChangePasswordFlowRepository changePasswordFlowRepository;
     private final SecurityAnswerRepository securityAnswerRepository;
+    private final TransactionTemplate transactionTemplate;
     private SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     // https://stackoverflow.com/questions/30528255/how-to-access-a-value-defined-in-the-application-properties-file-in-spring-boot
@@ -75,12 +77,14 @@ public class AuthController {
         UserRepository userRepo, 
         LoginConnectionRepository connectionRepository, 
         ChangePasswordFlowRepository changePasswordFlowRepository,
-        SecurityAnswerRepository securityAnswerRepository
+        SecurityAnswerRepository securityAnswerRepository,
+        TransactionTemplate transactionTemplate
     ) {
         this.userRepository = userRepo;
         this.loginConnectionRepository = connectionRepository;
         this.changePasswordFlowRepository = changePasswordFlowRepository;
         this.securityAnswerRepository = securityAnswerRepository;
+        this.transactionTemplate = transactionTemplate;
     }
 
     // https://www.javaguides.net/2024/04/spring-security-authentication-manager.html
@@ -262,14 +266,19 @@ public class AuthController {
 
             // converts plain text into something more secure
             String passwordHash = HashUtil.sha256Hash(password);
-            User newUser = new User(username, email, passwordHash);
 
-            userRepository.save(newUser);
+            // saves user into one transaction
+            // if anything fails, everything is rolled back
+            User newUser = transactionTemplate.execute(status -> {
+                User savedUser = userRepository.save(new User(username, email, passwordHash));
 
-            for (int i = 0; i < questions.size(); i++) {
-                String answerHash = SecurityQuestions.hashAnswer(newUser.getId(), answers.get(i));
-                securityAnswerRepository.save(new SecurityAnswer(newUser.getId(), questions.get(i), answerHash));
-            }
+                for (int i = 0; i < questions.size(); i++) {
+                    String answerHash = SecurityQuestions.hashAnswer(savedUser.getId(), answers.get(i));
+                    securityAnswerRepository.save(new SecurityAnswer(savedUser.getId(), questions.get(i), answerHash));
+                }
+
+                return savedUser;
+            });
 
             // Generate token based off password
             buildPersistence(newUser, request, response);
