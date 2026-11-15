@@ -1,5 +1,5 @@
 <body>
-    <div th:fragment="activityStatusChange(currentStatus)">
+    <div class="status-selector-container" th:fragment="activityStatusChange(currentStatus)">
         <link rel="stylesheet" th:href="@{/css/activityStatus.css}" />
 
         <form th:action="@{/profile/me/status}" method="post" class="status-selector">
