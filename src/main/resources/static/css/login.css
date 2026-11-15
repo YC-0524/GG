@@ -330,3 +330,57 @@ a {
         padding: 36px 24px;
     }
 }
+
+.security-questions {
+    margin: 24px 0 0;
+    padding: 0;
+    border: 0;
+}
+
+.security-questions legend {
+    padding: 0;
+    font-size: 17px;
+    font-weight: 650;
+}
+
+.field-hint {
+    margin: 6px 0 12px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.form-field select {
+    width: 100%;
+    min-height: 49px;
+    padding: 12px 14px;
+    border: 1px solid var(--field-border);
+    border-radius: 8px;
+    background: rgb(12 13 26 / 58%);
+    color: var(--text-primary);
+    font-size: 17px;
+}
+
+.form-field select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgb(189 161 255 / 14%);
+}
+
+.form-field select option {
+    background: #151427;
+}
+
+.form-field select + input {
+    margin-top: 8px;
+}
+
+.forgot-link {
+    margin: 8px 0 0;
+    font-size: 14px;
+    text-align: right;
+}
+
+.forgot-link a {
+    color: #d5bfff;
+}
