@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriUtils;
+import org.springframework.ui.Model;
 
 import com.group17.game.DTOs.DiscordTokenResponse;
 import com.group17.game.DTOs.DiscordUserResponse;
@@ -36,10 +37,13 @@ import com.group17.game.Models.CurrentUser;
 import com.group17.game.Models.LoginConnection;
 import com.group17.game.Models.LoginConnectionRepository;
 import com.group17.game.Models.LoginMethod;
+import com.group17.game.Models.SecurityAnswer;
+import com.group17.game.Models.SecurityAnswerRepository;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 import com.group17.game.Utilities.HashUtil;
 import com.group17.game.Utilities.PasswordPolicy;
+import com.group17.game.Utilities.SecurityQuestions;
 import com.group17.game.Models.UserStatus;
 
 import jakarta.annotation.Nullable;
@@ -54,6 +58,7 @@ public class AuthController {
     private final UserRepository userRepository;
     private final LoginConnectionRepository loginConnectionRepository;
     private final ChangePasswordFlowRepository changePasswordFlowRepository;
+    private final SecurityAnswerRepository securityAnswerRepository;
     private SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     // https://stackoverflow.com/questions/30528255/how-to-access-a-value-defined-in-the-application-properties-file-in-spring-boot
@@ -69,11 +74,13 @@ public class AuthController {
     public AuthController(
         UserRepository userRepo, 
         LoginConnectionRepository connectionRepository, 
-        ChangePasswordFlowRepository changePasswordFlowRepository
+        ChangePasswordFlowRepository changePasswordFlowRepository,
+        SecurityAnswerRepository securityAnswerRepository
     ) {
         this.userRepository = userRepo;
         this.loginConnectionRepository = connectionRepository;
         this.changePasswordFlowRepository = changePasswordFlowRepository;
+        this.securityAnswerRepository = securityAnswerRepository;
     }
 
     // https://www.javaguides.net/2024/04/spring-security-authentication-manager.html
@@ -138,7 +145,9 @@ public class AuthController {
     }
 
     @GetMapping("/register")
-    public String registerPage() {
+    public String registerPage(Model model) {
+        model.addAttribute("securityQuestions", SecurityQuestions.QUESTIONS);
+        model.addAttribute("requiredCount", SecurityQuestions.REQUIRED_COUNT);
         return "register";
     }
 
@@ -244,11 +253,23 @@ public class AuthController {
                 return "redirect:/auth/register?error=" + UriUtils.encodeQueryParam(passwordProblem.get(), StandardCharsets.UTF_8);
             }
 
+            List<String> questions = SecurityQuestions.formValues(request, "questions");
+            List<String> answers = SecurityQuestions.formValues(request, "answers");
+            Optional<String> questionProblem = SecurityQuestions.validate(questions, answers);
+            if (questionProblem.isPresent()) {
+                return "redirect:/auth/register?error=" + UriUtils.encodeQueryParam(questionProblem.get(), StandardCharsets.UTF_8);
+            }
+
             // converts plain text into something more secure
             String passwordHash = HashUtil.sha256Hash(password);
             User newUser = new User(username, email, passwordHash);
 
             userRepository.save(newUser);
+
+            for (int i = 0; i < questions.size(); i++) {
+                String answerHash = SecurityQuestions.hashAnswer(newUser.getId(), answers.get(i));
+                securityAnswerRepository.save(new SecurityAnswer(newUser.getId(), questions.get(i), answerHash));
+            }
 
             // Generate token based off password
             buildPersistence(newUser, request, response);

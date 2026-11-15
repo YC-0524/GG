@@ -1,7 +1,7 @@
 const passwordInput = document.getElementById('password');
 const passwordToggle = document.querySelector('.password-toggle');
 
-passwordToggle.addEventListener('click', () => {
+passwordToggle?.addEventListener('click', () => {
     const showPassword = passwordInput.type === 'password';
 
     passwordInput.type = showPassword ? 'text' : 'password';

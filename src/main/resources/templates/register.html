@@ -103,6 +103,22 @@
                     <p class="password-match" id="password-match" aria-live="polite"></p>
                 </div>
 
+                <fieldset class="security-questions">
+                    <legend>Security questions</legend>
+                    <p class="field-hint">Pick 3 different questions. You'll answer them if you ever forget. Answers aren't case-sensitive</p>
+
+                    <div class="form-field" th:each="i : ${#numbers.sequence(1, requiredCount)}">
+                        <label th:for="'question' + ${i}" th:text="'Question ' + ${i}">Question 1</label>
+                        <select name="questions" th:id="'question' + ${i}" required>
+                            <option value="" disabled selected>Choose a question</option>
+                            <option th:each="q : ${securityQuestions}" th:value="${q}" th:text="${q}">Question</option>
+                        </select>
+
+                        <input type="text" name="answers" placeholder="Your answer" autocomplete="off" required minlength="3"
+                            th:id="'answer' + ${i}" th:attr="aria-label='Answer to question ' + ${i}">
+                    </div>
+                </fieldset>
+
                 <button class="login-button" type="submit">Create account</button>
             </form>
 
