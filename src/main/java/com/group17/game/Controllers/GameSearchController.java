@@ -67,17 +67,12 @@ public class GameSearchController {
 
             else
             {
-                // Not in the catalogue yet: offer to request it, unless a request is already waiting (US 26-27)
                 String typed = gameName.strip();
-                model.addAttribute("error", "No games found");
-                if (gameRequestRepository.existsByGameNameIgnoreCaseAndStatus(typed, RequestStatus.PENDING))
-                {
-                    model.addAttribute("pendingRequestGame", typed);
-                }
-                else
-                {
-                    model.addAttribute("requestGameName", typed);
-                }
+                model.addAttribute("user", user);
+                model.addAttribute("missingGame", typed);
+                model.addAttribute("requestPending",
+                        gameRequestRepository.existsByGameNameIgnoreCaseAndStatus(typed, RequestStatus.PENDING));
+                return "gameNotFound";
             }
         }
 

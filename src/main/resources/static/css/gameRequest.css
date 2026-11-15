@@ -1,0 +1,86 @@
+.game-request-content {
+    flex: 1;
+    min-width: 0;
+    max-width: 46rem;
+    padding: clamp(1.25rem, 4vw, 3rem);
+    gap: 1rem;
+}
+
+.game-request-content h2,
+.game-request-intro {
+    margin: 0;
+}
+
+.game-request-intro {
+    color: var(--muted-text);
+}
+
+.game-request-form {
+    display: grid;
+    gap: 1rem;
+    padding: clamp(1rem, 3vw, 1.5rem);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--panel-background);
+}
+
+.game-request-form .field {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.game-request-form #player-count-fields > .field + .field {
+    margin-top: 1rem;
+}
+
+.game-request-form input:not([type="hidden"]),
+.game-request-form select,
+.game-request-form textarea {
+    width: 100%;
+    min-width: 0;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font: inherit;
+    color: inherit;
+    background: var(--page-background);
+}
+
+.game-request-form textarea {
+    min-height: 6rem;
+    resize: vertical;
+}
+
+.game-request-form :is(input, select, textarea):focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
+.game-request-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+}
+
+.game-request-actions button {
+    background: var(--accent-color);
+    color: var(--page-background);
+    font-weight: 600;
+}
+
+@media (max-width: 640px) {
+    .game-request-page {
+        flex-direction: column;
+    }
+
+    .game-request-page .sidebar {
+        width: 100%;
+        height: auto;
+    }
+
+    .game-request-content {
+        max-height: none;
+        overflow: visible;
+    }
+}

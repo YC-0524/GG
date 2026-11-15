@@ -128,11 +128,11 @@ class GameSearchTests {
     }
 
     @Test
-    void unknownGameShowsNoGamesFound() throws Exception {
+    void unknownGameShowsDedicatedPage() throws Exception {
         User player = register("Player");
         mockMvc.perform(get("/search").param("game", "Tetris").with(authentication(login(player))))
-                .andExpect(model().attribute("error", "No games found"))
-                .andExpect(model().attribute("recentGames", List.of()));
+                .andExpect(model().attribute("missingGame", "Tetris"))
+                .andExpect(content().string(containsString("<h2>Game not found</h2>")));
     }
 
     @Test
@@ -166,12 +166,11 @@ class GameSearchTests {
         User player = register("Player");
         mockMvc.perform(get("/search").param("game", "Stardew Valley").with(authentication(login(player))))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("error", "No games found"))
-                .andExpect(model().attribute("requestGameName", "Stardew Valley"))
+                .andExpect(model().attribute("missingGame", "Stardew Valley"))
+                .andExpect(model().attribute("requestPending", false))
                 .andExpect(content().string(containsString("/game-requests/new?gameName=Stardew%20Valley")))
                 .andExpect(content().string(containsString("from=search")))
-                // The typed name stays in the box, so the open dropdown shows "Request this game" too
-                .andExpect(content().string(containsString("value=\"Stardew Valley\"")));
+                .andExpect(content().string(containsString("Would you like this game to be added?")));
     }
 
     @Test
@@ -182,11 +181,9 @@ class GameSearchTests {
 
         mockMvc.perform(get("/search").param("game", "stardew valley").with(authentication(login(player))))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("pendingRequestGame", "stardew valley"))
-                .andExpect(model().attributeDoesNotExist("requestGameName"))
-                .andExpect(model().attribute("pendingRequests", List.of("stardew valley")))
-                .andExpect(content().string(containsString("is already waiting for a moderator")))
-                .andExpect(content().string(containsString("data-pending-requests=\"stardew valley\"")));
+                .andExpect(model().attribute("requestPending", true))
+                .andExpect(content().string(containsString("A request for this game is already pending.")))
+                .andExpect(content().string(not(containsString("Would you like this game to be added?"))));
     }
 
     @Test
@@ -197,7 +194,7 @@ class GameSearchTests {
         mockMvc.perform(get("/search").param("game", "stardew valley").with(authentication(login(player))))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("selectedGame", "Stardew Valley"))
-                .andExpect(model().attributeDoesNotExist("requestGameName"));
+                .andExpect(model().attributeDoesNotExist("missingGame"));
     }
 
     @Test
@@ -208,14 +205,13 @@ class GameSearchTests {
                 .andExpect(redirectedUrl("/search?game=stardew%20valley"));
     }
 
-    // US 26-27 (from Sorosh's branch; the JavaScript-text check now checks the rendered link)
     @Test
-    void unknownGameSearchOffersRequestLink() throws Exception {
+    void searchPageOffersDirectRequestLink() throws Exception {
         User player = register("Player");
-        mockMvc.perform(get("/search").param("game", "Stardew Valley").with(authentication(login(player))))
+        mockMvc.perform(get("/search").with(authentication(login(player))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("id=\"game-request-link\"")))
                 .andExpect(content().string(containsString("Request this game")))
-                .andExpect(content().string(containsString("Request Stardew Valley")));
+                .andExpect(content().string(containsString("href=\"/game-requests/new?from=search\">Request a game")));
     }
 }

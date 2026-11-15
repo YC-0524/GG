@@ -6,26 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request a Game | GAME GANG</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" th:href="@{/css/gameRequest.css}">
 </head>
 
 <body>
-    <div class="app-container">
+    <div class="app-container game-request-page">
         <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav=${fromSearch ? 'search' : 'games'})}"></nav>
 
-        <div class="content-container">
+        <main class="content-container game-request-content">
             <h2>Request a Game</h2>
 
-            <p>
-                Can't find the game you're looking for?
-                Submit a request and our moderators will review it.
+            <p class="game-request-intro">
+                Your game will appear in the catalogue after a moderator or admin approves it.
             </p>
 
-            <p class="form-message error"
+            <p class="error-message"
                th:if="${error}"
                th:text="${error}"
                role="alert"></p>
 
-            <form th:action="@{/game-requests}" method="post">
+            <form class="game-request-form" th:action="@{/game-requests}" method="post">
                 <input type="hidden" name="from" value="search" th:if="${fromSearch}">
 
                 <div class="field">
@@ -71,11 +71,12 @@
                               placeholder="Tell us a little about the game..."></textarea>
                 </div>
 
-                <button type="submit">Submit Game Request</button>
-
-                <a th:href="${fromSearch ? '/search' : '/games'}">Cancel</a>
+                <div class="game-request-actions">
+                    <button type="submit">Submit Game Request</button>
+                    <a th:href="${fromSearch ? '/search' : '/games'}">Cancel</a>
+                </div>
             </form>
-        </div>
+        </main>
     </div>
 
     <script>
