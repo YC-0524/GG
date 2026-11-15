@@ -2,6 +2,7 @@
 
 .game-page {
     flex: 1;
+    min-width: 0;
     max-width: 52rem;
 }
 
@@ -30,6 +31,50 @@
     border: 1px solid var(--border-color);
     color: var(--muted-text);
     font-size: 0.85rem;
+}
+
+.game-filters {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    background: var(--panel-background);
+}
+
+.game-filter-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.game-filter-fields label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+}
+
+.game-filter-fields select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--page-background);
+    color: inherit;
+}
+
+.game-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.game-filter-actions button {
+    background: var(--accent-color);
+    color: var(--page-background);
+    font-weight: 600;
 }
 
 .game-page-players {
@@ -127,8 +172,23 @@
 
 /* Phones: rank and status move under the name. */
 @media (max-width: 640px) {
+    .game-page-layout {
+        flex-direction: column;
+    }
+
+    .game-page-layout .sidebar {
+        width: 100%;
+        height: auto;
+    }
+
+    .game-filter-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .game-page {
         padding: 1.5rem 1rem;
+        max-height: none;
+        overflow: visible;
     }
 
     .game-player {

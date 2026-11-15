@@ -165,18 +165,21 @@ class GameSearchTests {
         GameEntry hidden = new GameEntry(ghost, "Valorant", "Iron 1");
         hidden.setSearchable(false);
         entries.saveAndFlush(hidden);
-        profileTags.saveAndFlush(new ProfileTag(friend.getId(), "Competitive", ProfileTagType.PLAYSTYLE));
+        profileTags.saveAllAndFlush(List.of(
+                new ProfileTag(friend.getId(), "Competitive", ProfileTagType.PLAYSTYLE),
+                new ProfileTag(ghost.getId(), "No Mic", ProfileTagType.MIC)));
 
         mockMvc.perform(get("/search/valorant").with(authentication(login(player))))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("game", "Valorant"))
+                .andExpect(model().attribute("tagOptions", List.of("Competitive")))
                 .andExpect(content().string(containsString("Players (1)")))
                 .andExpect(content().string(containsString("Friend")))
                 .andExpect(content().string(containsString("Gold 2")))
                 .andExpect(content().string(containsString("Competitive")))
                 .andExpect(content().string(containsString("class=\"activity-status\"")))
-                .andExpect(content().string(not(containsString("Iron 1"))))
-                .andExpect(content().string(not(containsString("Silver 1"))));
+                .andExpect(content().string(not(containsString("game-player-rank\">Iron 1</span>"))))
+                .andExpect(content().string(not(containsString("game-player-rank\">Silver 1</span>"))));
     }
 
     @Test
@@ -200,11 +203,62 @@ class GameSearchTests {
     }
 
     @Test
-    void gamePageWithNoPlayersSaysSo() throws Exception {
+    void gamePageFiltersPlayersByTagRankAndStatus() throws Exception {
+        User viewer = register("Viewer");
+        User matching = register("MatchingPlayer");
+        User otherTag = register("OtherTagPlayer");
+        User otherRank = register("OtherRankPlayer");
+        User offline = register("OfflinePlayer");
+        offline.setActivityStatus(ActivityStatus.OFFLINE);
+        users.saveAndFlush(offline);
+        entries.saveAllAndFlush(List.of(
+                new GameEntry(matching, "Valorant", "Gold 2"),
+                new GameEntry(otherTag, "Valorant", "Gold 2"),
+                new GameEntry(otherRank, "Valorant", "Silver 1"),
+                new GameEntry(offline, "Valorant", "Gold 2")));
+        profileTags.saveAllAndFlush(List.of(
+                new ProfileTag(matching.getId(), "Casual", ProfileTagType.PLAYSTYLE),
+                new ProfileTag(otherTag.getId(), "Competitive", ProfileTagType.PLAYSTYLE),
+                new ProfileTag(otherRank.getId(), "Casual", ProfileTagType.PLAYSTYLE),
+                new ProfileTag(offline.getId(), "Casual", ProfileTagType.PLAYSTYLE)));
+
+        mockMvc.perform(get("/search/valorant").param("tag", "casual")
+                .param("rank", "Gold 2").param("status", "online")
+                .with(authentication(login(viewer))))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("selectedTag", "Casual"))
+                .andExpect(model().attribute("selectedRank", "Gold 2"))
+                .andExpect(model().attribute("selectedStatus", "ONLINE"))
+                .andExpect(model().attribute("tagOptions", List.of("Casual", "Competitive")))
+                .andExpect(content().string(containsString("Players (1)")))
+                .andExpect(content().string(containsString("MatchingPlayer")))
+                .andExpect(content().string(not(containsString("OtherTagPlayer"))))
+                .andExpect(content().string(not(containsString("OtherRankPlayer"))))
+                .andExpect(content().string(not(containsString("OfflinePlayer"))))
+                .andExpect(content().string(containsString("href=\"/search/valorant\">Reset filters")));
+
+        mockMvc.perform(get("/search/valorant").param("status", "AFK")
+                .with(authentication(login(viewer))))
+                .andExpect(content().string(containsString("No players match these filters.")))
+                .andExpect(content().string(not(containsString("No other players have listed this game yet."))));
+
+        mockMvc.perform(get("/search/valorant").param("status", "invalid")
+                .with(authentication(login(viewer))))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("selectedStatus", ""))
+                .andExpect(content().string(containsString("Players (4)")));
+
+        mockMvc.perform(get("/search/valorant").with(authentication(login(viewer))))
+                .andExpect(content().string(containsString("Players (4)")));
+    }
+
+    @Test
+    void gamePageWithNoPlayersHasNoTagOptions() throws Exception {
         User player = register("Player");
         mockMvc.perform(get("/search/minecraft").with(authentication(login(player))))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("players", List.of()))
+                .andExpect(model().attribute("tagOptions", List.of()))
                 .andExpect(content().string(containsString("No other players have listed this game yet")));
     }
 

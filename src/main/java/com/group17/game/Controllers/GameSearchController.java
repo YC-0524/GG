@@ -106,9 +106,14 @@ public class GameSearchController {
 
     // A game's own page, e.g. /search/overwatch-2, listing the players who play it (US 22).
     @GetMapping("/{slug}")
-    public String showGamePage(@PathVariable("slug") String slug, Model model, @CurrentUser User user, HttpSession session)
+    public String showGamePage(@PathVariable("slug") String slug,
+            @RequestParam(name = "tag", defaultValue = "") String tag,
+            @RequestParam(name = "rank", defaultValue = "") String rank,
+            @RequestParam(name = "status", defaultValue = "") String status,
+            Model model, @CurrentUser User user, HttpSession session)
     {
-        Set<String> allGames = availableGameCatalog.all().keySet();
+        Map<String, List<String>> catalog = availableGameCatalog.all();
+        Set<String> allGames = catalog.keySet();
         String wanted = slug.toLowerCase(Locale.ROOT);
         Optional<String> game = allGames.stream().filter(name -> slug(name).equals(wanted)).findFirst();
 
@@ -127,8 +132,44 @@ public class GameSearchController {
         model.addAttribute("user", user);
         model.addAttribute("game", game.get());
         model.addAttribute("genres", GameCatalog.genres(game.get()));
-        model.addAttribute("players", playersFor(game.get(), user));
+        List<GamePlayer> allPlayers = playersFor(game.get(), user);
+        List<String> tags = allPlayers.stream()
+                .flatMap(row -> row.getPlayer().getTags().stream())
+                .map(ProfileTag::getTag)
+                .distinct()
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
+        List<String> ranks = new ArrayList<>();
+        ranks.add(GameCatalog.UNRANKED);
+        ranks.addAll(catalog.get(game.get()));
+
+        String selectedTag = validFilter(tag, tags);
+        String selectedRank = validFilter(rank, ranks);
+        String selectedStatus = validFilter(status, List.of("ONLINE", "AFK", "OFFLINE"));
+
+        List<GamePlayer> players = allPlayers.stream()
+                .filter(row -> selectedTag.isEmpty() || row.getPlayer().getTags().stream()
+                        .anyMatch(profileTag -> selectedTag.equals(profileTag.getTag())))
+                .filter(row -> selectedRank.isEmpty() || selectedRank.equals(row.getRank()))
+                .filter(row -> selectedStatus.isEmpty() || (row.getPlayer().getActivityStatus() != null
+                        && selectedStatus.equals(row.getPlayer().getActivityStatus().name())))
+                .toList();
+
+        model.addAttribute("players", players);
+        model.addAttribute("hasPlayers", !allPlayers.isEmpty());
+        model.addAttribute("tagOptions", tags);
+        model.addAttribute("rankOptions", ranks);
+        model.addAttribute("selectedTag", selectedTag);
+        model.addAttribute("selectedRank", selectedRank);
+        model.addAttribute("selectedStatus", selectedStatus);
+        model.addAttribute("gameSlug", slug(game.get()));
         return "game";
+    }
+
+    private String validFilter(String input, List<String> options)
+    {
+        String value = input.strip();
+        return options.stream().filter(option -> option.equalsIgnoreCase(value)).findFirst().orElse("");
     }
 
     // "Overwatch 2" -> "overwatch-2", used in the game page's address.
