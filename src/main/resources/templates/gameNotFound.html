@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game not found | GAME GANG</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/gameSearch.css}">
+</head>
+<body>
+    <div class="app-container">
+        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav='search')}"></nav>
+        <main class="content-container game-search-container">
+            <h2>Game not found</h2>
+            <p th:text="|We couldn’t find “${missingGame}” in our game list.|"></p>
+            <p th:if="${requestPending}" role="status">A request for this game is already pending.</p>
+            <div class="game-search-actions">
+                <a th:unless="${requestPending}" class="button-link"
+                    th:href="@{/game-requests/new(gameName=${missingGame},from='search')}">
+                    Would you like this game to be added?
+                </a>
+                <a th:href="@{/search}">Back to search</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

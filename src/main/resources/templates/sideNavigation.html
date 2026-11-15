@@ -43,7 +43,7 @@
             <a class="nav-link" href="/tags" th:classappend="${selectedNav == 'tags' ? 'active' : ''}"
                 th:attr="aria-current=${selectedNav == 'tags' ? 'page' : null}">Manage My Tags</a>
         </section>
-        <section class="sidebar-section" id="moderator" th:hidden="${user == null || user.role.name() != 'MODERATOR'}">
+        <section class="sidebar-section" id="moderator" th:hidden="${user == null || (user.role.name() != 'MODERATOR' and user.role.name() != 'ADMIN')}">
             <h3>Moderation</h3>
             <p>Review Reports</p>
             <a class="nav-link" href="/dashboard/moderator"

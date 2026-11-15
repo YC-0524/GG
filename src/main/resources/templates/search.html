@@ -15,59 +15,57 @@
         <div class="content-container game-search-container">
             <h2>Search Games</h2>
 
-            <form class="game-search" id="game-search" th:action="@{/search}" method="get" role="search"
-                th:data-pending-requests="${#strings.listJoin(pendingRequests, '|')}">
-                <label for="game-search-input" class="visually-hidden">Search games</label>
-                <div class="game-search-bar">
-                    <img src="/images/search.svg" alt="" aria-hidden="true">
-                    <input type="search" id="game-search-input" name="game" placeholder="Search games"
-                        autocomplete="off" aria-controls="game-search-panel" aria-expanded="false"
-                        th:value="${requestGameName ?: pendingRequestGame}"
-                        autofocus>
-                </div>
-
-                <div class="game-search-panel" id="game-search-panel" hidden>
-                    <section class="game-group" th:unless="${#lists.isEmpty(recentGames)}">
-                        <h3>Recently viewed</h3>
-                        <ul>
-                            <li th:each="game : ${recentGames}">
-                                <a class="game-option" th:href="@{/search(game=${game})}" th:attr="data-name=${game}">
-                                    <span class="game-icon" aria-hidden="true"></span>
-                                    <span th:text="${game}">Valorant</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </section>
-
-                    <section class="game-group" data-recommendations th:unless="${#lists.isEmpty(otherGames)}">
-                        <h3>Recommended games</h3>
-                        <ul>
-                            <li th:each="game : ${otherGames}"
-                                th:attr="data-recommendation-order=${recommendedGames.indexOf(game)}"
-                                th:hidden="${!recommendedGames.contains(game)}">
-                                <a class="game-option" th:href="@{/search(game=${game})}" th:attr="data-name=${game}">
-                                    <span class="game-icon" aria-hidden="true"></span>
-                                    <span th:text="${game}">Minecraft</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </section>
-
-                    <div class="game-search-empty" id="game-search-empty" hidden>
-                        <span>No games found</span>
-                        <a class="button-link" id="game-request-link" href="/game-requests/new?from=search">Request this game</a>
-                        <span id="pending-request-note" hidden>Already requested, waiting for a moderator</span>
+            <div class="game-search-actions">
+                <form class="game-search" id="game-search" th:action="@{/search}" method="get" role="search"
+                    th:data-pending-requests="${#strings.listJoin(pendingRequests, '|')}">
+                    <label for="game-search-input" class="visually-hidden">Search games</label>
+                    <div class="game-search-bar">
+                        <img src="/images/search.svg" alt="" aria-hidden="true">
+                        <input type="search" id="game-search-input" name="game" placeholder="Search games"
+                            autocomplete="off" aria-controls="game-search-panel" aria-expanded="false"
+                            th:autofocus="${selectedGame == null}">
                     </div>
-                </div>
-            </form>
+
+                    <div class="game-search-panel" id="game-search-panel" hidden>
+                        <section class="game-group" th:unless="${#lists.isEmpty(recentGames)}">
+                            <h3>Recently viewed</h3>
+                            <ul>
+                                <li th:each="game : ${recentGames}">
+                                    <a class="game-option" th:href="@{/search(game=${game})}" th:attr="data-name=${game}">
+                                        <span class="game-icon" aria-hidden="true"></span>
+                                        <span th:text="${game}">Valorant</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </section>
+
+                        <section class="game-group" data-recommendations th:unless="${#lists.isEmpty(otherGames)}">
+                            <h3>Recommended games</h3>
+                            <ul>
+                                <li th:each="game : ${otherGames}"
+                                    th:attr="data-recommendation-order=${recommendedGames.indexOf(game)}"
+                                    th:hidden="${!recommendedGames.contains(game)}">
+                                    <a class="game-option" th:href="@{/search(game=${game})}" th:attr="data-name=${game}">
+                                        <span class="game-icon" aria-hidden="true"></span>
+                                        <span th:text="${game}">Minecraft</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </section>
+
+                        <div class="game-search-empty" id="game-search-empty" hidden>
+                            <span>No games found</span>
+                            <a class="button-link" id="game-request-link" href="/game-requests/new?from=search">Request this game</a>
+                            <span id="pending-request-note" hidden>Already requested, waiting for a moderator</span>
+                        </div>
+                    </div>
+                </form>
+                <a class="button-link" id="game-request-shortcut"
+                    th:href="@{/game-requests/new(from='search')}">Request a game</a>
+            </div>
 
             <p class="form-message" th:if="${success}" th:text="${success}" role="status"></p>
             <p class="form-message error" th:if="${error}" th:text="${error}" role="alert"></p>
-            <a class="button-link" th:if="${requestGameName != null}"
-                th:href="@{/game-requests/new(gameName=${requestGameName},from='search')}"
-                th:text="|Request ${requestGameName}|">Request this game</a>
-            <p class="form-message" th:if="${pendingRequestGame != null}"
-                th:text="|A request for ${pendingRequestGame} is already waiting for a moderator.|"></p>
         </div>
     </div>
     <script src="/js/gameSearch.js" defer></script>

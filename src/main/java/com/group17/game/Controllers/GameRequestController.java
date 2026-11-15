@@ -113,7 +113,7 @@ public class GameRequestController {
 
         gameRequestRepository.save(request);
 
-        redirect.addFlashAttribute("success", "Your game request has been submitted!");
+        redirect.addFlashAttribute("success", "Your game request is pending approval.");
         return backToStart;
     }
 

@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const panel = document.getElementById("game-search-panel");
     const empty = document.getElementById("game-search-empty");
     const requestLink = document.getElementById("game-request-link");
+    const requestShortcut = document.getElementById("game-request-shortcut");
+    const requestShortcutUrl = requestShortcut.href;
     const pendingNote = document.getElementById("pending-request-note");
     const pendingRequests = (form.dataset.pendingRequests || "").split("|").filter(Boolean);
     const groups = Array.from(panel.querySelectorAll(".game-group"));
@@ -23,7 +25,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Show three recommendations by default; typing searches the entire catalog.
     function filter() {
-        const query = input.value.trim().toLowerCase();
+        const typedName = input.value.trim();
+        const query = typedName.toLowerCase();
+        const requestUrl = new URL(requestShortcutUrl);
+        if (typedName) requestUrl.searchParams.set("gameName", typedName);
+        requestShortcut.href = requestUrl.href;
         let anyMatch = false;
 
         groups.forEach(group => {
@@ -70,8 +76,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const first = visibleOptions()[0];
         const query = input.value.trim();
         event.preventDefault();
+        if (!query) return;
         if (first) window.location.href = first.href;
-        else if (query) window.location.href = "/search?game=" + encodeURIComponent(query);
+        else window.location.href = "/search?game=" + encodeURIComponent(query);
     });
 
     // Arrow keys move through the list; Escape closes it.
