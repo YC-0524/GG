@@ -1,14 +1,31 @@
+/* Three equal buttons that stay inside the sidebar instead of spilling past its edge. */
+.status-selector-container {
+    container-type: inline-size;
+}
+
 .status-selector {
-    display: flex;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
 }
 
 .status-selector button {
-    padding: 8px 16px;
+    min-width: 0;
+    padding: 6px 2px;
     border: 1px solid #ccc;
     border-radius: 6px;
     background: transparent;
     cursor: pointer;
+    font-size: 0.9rem;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Narrow sidebars (smaller laptop screens) have no room for three in a row, so stack them. */
+@container (max-width: 170px) {
+    .status-selector {
+        grid-template-columns: 1fr;
+    }
 }
 
 .status-selector button.active {
