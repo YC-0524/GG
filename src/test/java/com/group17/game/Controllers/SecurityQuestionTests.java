@@ -352,7 +352,7 @@ public class SecurityQuestionTests {
         answer(other, "wrong", "wrong", "wrong");
 
         // the first session can't get in with the correct answers now
-        MvcResult result = answer(session, "Alpha", "Beta", "Gamma");
+        MvcResult result = answer(session, "Fluffy", "Vancouver", "Super Mario");
         assertTrue(result.getResponse().getRedirectedUrl().startsWith("/auth/forgot-password?error="));
     }
 
@@ -363,7 +363,7 @@ public class SecurityQuestionTests {
         answer(session, "wrong", "wrong", "wrong");
         answer(session, "wrong", "wrong", "wrong");
 
-        MvcResult result = answer(session, "Alpha", "Beta", "Gamma");
+        MvcResult result = answer(session, "Fluffy", "Vancouver", "Super Mario");
 
         assertEquals("/auth/reset-password", result.getResponse().getRedirectedUrl());
         assertTrue(recoveryAttemptRepository.findByUserID(userId()).isEmpty());
