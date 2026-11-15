@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${game} + ' | GAME GANG'">Game | GAME GANG</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/activityStatus.css">
+    <link rel="stylesheet" href="/css/gamePage.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav='search')}"></nav>
+        <main class="content-container game-page">
+            <a class="game-page-back" th:href="@{/search}">&larr; Search Games</a>
+
+            <header class="game-page-header">
+                <h2 th:text="${game}">Valorant</h2>
+                <ul class="game-page-genres" th:unless="${#lists.isEmpty(genres)}" aria-label="Genres">
+                    <li th:each="genre : ${genres}" th:text="${genre}">FPS</li>
+                </ul>
+            </header>
+
+            <!-- Every player who listed this game with "Show In Matches" on (US 22) -->
+            <section class="game-page-players" aria-labelledby="game-players-title">
+                <h3 id="game-players-title" th:text="|Players (${#lists.size(players)})|">Players (0)</h3>
+
+                <p class="muted-text" th:if="${#lists.isEmpty(players)}">
+                    No other players have listed this game yet.
+                    <a href="/games">Add it to My Games</a> so others can find you.
+                </p>
+
+                <ul class="game-player-list" th:unless="${#lists.isEmpty(players)}">
+                    <li class="game-player" th:each="row : ${players}" th:with="player=${row.player}">
+                        <div class="game-player-avatar" aria-hidden="true">
+                            <span th:text="${player.initials}">?</span>
+                            <img th:if="${player.avatar != null}" th:src="${player.avatar}" alt=""
+                                referrerpolicy="no-referrer">
+                        </div>
+
+                        <div class="game-player-info">
+                            <a class="game-player-name" th:href="@{/profile/{id}(id=${player.id})}"
+                                th:text="${player.username}">Player</a>
+                            <th:block th:unless="${#lists.isEmpty(player.tags)}">
+                                <div th:replace="~{profileTags :: profileTags(${player.tags})}"></div>
+                            </th:block>
+                            <span class="muted-text" th:if="${#lists.isEmpty(player.tags)}">No tags yet</span>
+                        </div>
+
+                        <span class="game-player-rank" th:text="${row.rank}">Gold 2</span>
+
+                        <div class="game-player-status"
+                            th:insert="~{activityStatus :: activityStatus(${player.activityStatus})}"></div>
+                    </li>
+                </ul>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

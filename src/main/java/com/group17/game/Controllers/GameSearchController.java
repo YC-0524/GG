@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,11 +16,16 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.group17.game.Utilities.GameCatalog;
 import com.group17.game.Utilities.AvailableGameCatalog;
 
+import com.group17.game.DTOs.GamePlayer;
+import com.group17.game.DTOs.PlayerCard;
+import com.group17.game.Models.ActivityStatus;
 import com.group17.game.Models.CurrentUser;
 import com.group17.game.Models.User;
 import com.group17.game.Models.GameEntry;
 import com.group17.game.Models.GameEntryRepository;
 import com.group17.game.Models.GameRequestRepository;
+import com.group17.game.Models.ProfileTag;
+import com.group17.game.Models.ProfileTagRepository;
 import com.group17.game.Models.RequestStatus;
 
 import jakarta.servlet.http.HttpSession;
@@ -39,13 +46,15 @@ public class GameSearchController {
     private final GameEntryRepository gameEntryRepository;
     private final AvailableGameCatalog availableGameCatalog;
     private final GameRequestRepository gameRequestRepository;
+    private final ProfileTagRepository profileTagRepository;
 
     public GameSearchController(GameEntryRepository gameEntryRepository, AvailableGameCatalog availableGameCatalog,
-            GameRequestRepository gameRequestRepository)
+            GameRequestRepository gameRequestRepository, ProfileTagRepository profileTagRepository)
     {
         this.gameEntryRepository = gameEntryRepository;
         this.availableGameCatalog = availableGameCatalog;
         this.gameRequestRepository = gameRequestRepository;
+        this.profileTagRepository = profileTagRepository;
     }
 
     @GetMapping("")
@@ -59,10 +68,8 @@ public class GameSearchController {
             Optional<String> game = availableGameCatalog.findGame(gameName);
             if (game.isPresent())
             {
-                remember(recent, game.get());
-                session.setAttribute(RECENT_GAMES, recent);
-                model.addAttribute("selectedGame", game.get());
-                model.addAttribute("players", playersFor(game.get(), user));
+                // Picking a game opens its own page (US 22)
+                return "redirect:/search/" + slug(game.get());
             }
 
             else
@@ -102,13 +109,39 @@ public class GameSearchController {
         return "search";
     }
 
-    // Friendly links like /search/stardew-valley go to the normal search for that game.
+    // A game's own page, e.g. /search/overwatch-2, listing the players who play it (US 22).
     @GetMapping("/{slug}")
-    public String searchBySlug(@PathVariable("slug") String slug)
+    public String showGamePage(@PathVariable("slug") String slug, Model model, @CurrentUser User user, HttpSession session)
     {
-        String gameName = slug.replace('-', ' ').strip();
-        return "redirect:" + UriComponentsBuilder.fromPath("/search")
-                .queryParam("game", gameName).encode().build().toUriString();
+        Set<String> allGames = availableGameCatalog.all().keySet();
+        String wanted = slug.toLowerCase(Locale.ROOT);
+        Optional<String> game = allGames.stream().filter(name -> slug(name).equals(wanted)).findFirst();
+
+        if (game.isEmpty())
+        {
+            // Not a game we have: the normal search shows "No games found" and offers to request it.
+            String gameName = slug.replace('-', ' ').strip();
+            return "redirect:" + UriComponentsBuilder.fromPath("/search")
+                    .queryParam("game", gameName).encode().build().toUriString();
+        }
+
+        List<String> recent = recentGames(session, allGames);
+        remember(recent, game.get());
+        session.setAttribute(RECENT_GAMES, recent);
+
+        model.addAttribute("user", user);
+        model.addAttribute("game", game.get());
+        model.addAttribute("genres", GameCatalog.genres(game.get()));
+        model.addAttribute("players", playersFor(game.get(), user));
+        return "game";
+    }
+
+    // "Overwatch 2" -> "overwatch-2", used in the game page's address.
+    static String slug(String game)
+    {
+        return game.strip().toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("^-|-$", "");
     }
 
     private List<String> recentGames(HttpSession session, Set<String> allGames)
@@ -146,10 +179,38 @@ public class GameSearchController {
         }
     }
 
-    // Other Players who listed this game and left "Show In Matches" on
-    private List<GameEntry> playersFor(String game, User user)
+    // Other players who listed this game and left "Show In Matches" on, with their rank, tags and status.
+    // Online players come first, then AFK, then offline, so teammates who can play now are at the top.
+    private List<GamePlayer> playersFor(String game, User user)
     {
-        return gameEntryRepository.findByGameNameAndSearchableTrue(game).stream().filter(entry -> entry.getUser().getId() != user.getId()).toList();
+        List<GameEntry> entries = gameEntryRepository.findByGameNameAndSearchableTrue(game).stream()
+                .filter(entry -> entry.getUser().getId() != user.getId())
+                .toList();
+        if (entries.isEmpty())
+        {
+            return List.of();
+        }
+
+        List<Long> playerIds = entries.stream().map(entry -> entry.getUser().getId()).toList();
+        Map<Long, List<ProfileTag>> tagsByPlayer = profileTagRepository.findAllByUserIdIn(playerIds).stream()
+                .collect(Collectors.groupingBy(ProfileTag::getUserID));
+
+        return entries.stream()
+                .map(entry -> {
+                    User player = entry.getUser();
+                    PlayerCard card = new PlayerCard(player.getId(), player.getUsername(), player.getAvatar(),
+                            player.getActivityStatus(),
+                            new ArrayList<>(tagsByPlayer.getOrDefault(player.getId(), List.of())), null);
+                    return new GamePlayer(card, entry.getRank());
+                })
+                .sorted(Comparator.comparingInt((GamePlayer row) -> statusOrder(row.getPlayer().getActivityStatus()))
+                        .thenComparing(row -> row.getPlayer().getUsername(), String.CASE_INSENSITIVE_ORDER))
+                .toList();
+    }
+
+    private int statusOrder(ActivityStatus status)
+    {
+        return status == null ? ActivityStatus.values().length : status.ordinal();
     }
     
 }

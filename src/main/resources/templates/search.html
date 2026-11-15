@@ -23,7 +23,7 @@
                     <input type="search" id="game-search-input" name="game" placeholder="Search games"
                         autocomplete="off" aria-controls="game-search-panel" aria-expanded="false"
                         th:value="${requestGameName ?: pendingRequestGame}"
-                        th:autofocus="${selectedGame == null}">
+                        autofocus>
                 </div>
 
                 <div class="game-search-panel" id="game-search-panel" hidden>
@@ -68,18 +68,6 @@
                 th:text="|Request ${requestGameName}|">Request this game</a>
             <p class="form-message" th:if="${pendingRequestGame != null}"
                 th:text="|A request for ${pendingRequestGame} is already waiting for a moderator.|"></p>
-
-            <!-- The game the player picked, with the players who play it -->
-            <section class="game-players" th:if="${selectedGame != null}">
-                <h3 th:text="|Players who play ${selectedGame}|">Players who play Valorant</h3>
-                <p class="form-message" th:if="${#lists.isEmpty(players)}">No other players have listed this game yet</p>
-                <ul th:unless="${#lists.isEmpty(players)}">
-                    <li th:each="entry : ${players}">
-                        <a th:href="@{/profile/{id}(id=${entry.user.id})}" th:text="${entry.user.username}">Player</a>
-                        <span th:text="${entry.rank}">Gold 2</span>
-                    </li>
-                </ul>
-            </section>
         </div>
     </div>
     <script src="/js/gameSearch.js" defer></script>
