@@ -31,8 +31,11 @@
                         </div>
                         <h3 th:id="|player-name-${player.id}|" th:text="${player.username}">Player</h3>
                         <section class="tags">
-                            <!-- This includes activity status and tags like "CO-OP", "LFG", etc. -->
+                            <!-- This includes activity status, games, and tags like "CO-OP", "LFG", etc.  -->
                             <div th:replace="~{activityStatus :: activityStatus(${player.activityStatus})}"></div>
+                            <div th:replace="~{profileTags :: profileTags(${player.tags})}" th:hidden="{#lists.isEmpty(player.tags)}"></div>
+                            <div th:replace="~{profileGames :: profileGames(${player.games})}" th:hidden="{#lists.isEmpty(player.games)}"></div>
+                            <!-- Later Iteration: mix the tags and games together for a less rigid appearance, but not important -->
                         </section>
                         <a th:href="@{/profile/{id}(id=${player.id})}">View profile</a>
                     </article>
