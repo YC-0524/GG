@@ -66,18 +66,6 @@
 
             <p class="form-message" th:if="${success}" th:text="${success}" role="status"></p>
             <p class="form-message error" th:if="${error}" th:text="${error}" role="alert"></p>
-
-            <!-- The game the player picked, with the players who play it -->
-            <section class="game-players" th:if="${selectedGame != null}">
-                <h3 th:text="|Players who play ${selectedGame}|">Players who play Valorant</h3>
-                <p class="form-message" th:if="${#lists.isEmpty(players)}">No other players have listed this game yet</p>
-                <ul th:unless="${#lists.isEmpty(players)}">
-                    <li th:each="entry : ${players}">
-                        <a th:href="@{/profile/{id}(id=${entry.user.id})}" th:text="${entry.user.username}">Player</a>
-                        <span th:text="${entry.rank}">Gold 2</span>
-                    </li>
-                </ul>
-            </section>
         </div>
     </div>
     <script src="/js/gameSearch.js" defer></script>

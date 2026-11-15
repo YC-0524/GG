@@ -2,6 +2,7 @@ package com.group17.game.Controllers;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -11,6 +12,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+
+import com.group17.game.DTOs.GamePlayer;
+import com.group17.game.Models.ActivityStatus;
+import com.group17.game.Models.ProfileTag;
+import com.group17.game.Models.ProfileTagRepository;
+import com.group17.game.Models.ProfileTagType;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +55,7 @@ class GameSearchTests {
     @Autowired GameEntryRepository entries;
     @Autowired CatalogGameRepository catalogGames;
     @Autowired GameRequestRepository gameRequests;
+    @Autowired ProfileTagRepository profileTags;
 
     private User register(String name) {
         return users.saveAndFlush(new User(name, name + "@example.com", "a".repeat(64)));
@@ -58,8 +66,9 @@ class GameSearchTests {
                 List.of(new SimpleGrantedAuthority("ROLE_USER")));
     }
 
+    // Opens the game's own page, which is what picking a game does (US 22)
     private void view(User user, MockHttpSession session, String game) throws Exception {
-        mockMvc.perform(get("/search").param("game", game).session(session)
+        mockMvc.perform(get("/search/" + GameSearchController.slug(game)).session(session)
                 .with(authentication(login(user))))
                 .andExpect(status().isOk());
     }
@@ -105,7 +114,9 @@ class GameSearchTests {
     @Test
     void recommendationsPreferSimilarGenresAndExcludeRecentGames() throws Exception {
         User player = register("Player");
-        mockMvc.perform(get("/search").param("game", "Valorant")
+        MockHttpSession session = new MockHttpSession();
+        view(player, session, "Valorant");
+        mockMvc.perform(get("/search").session(session)
                 .with(authentication(login(player))))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("recommendedGames",
@@ -135,8 +146,17 @@ class GameSearchTests {
                 .andExpect(content().string(containsString("<h2>Game not found</h2>")));
     }
 
+    // US 22
     @Test
-    void pickedGameListsOtherPlayersWhoShowInMatches() throws Exception {
+    void pickingAGameOpensItsPage() throws Exception {
+        User player = register("Player");
+        mockMvc.perform(get("/search").param("game", "overwatch 2").with(authentication(login(player))))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/search/overwatch-2"));
+    }
+
+    @Test
+    void gamePageListsOtherPlayersWithRankTagsAndStatus() throws Exception {
         User player = register("Player");
         User friend = register("Friend");
         User ghost = register("Ghost");
@@ -145,12 +165,47 @@ class GameSearchTests {
         GameEntry hidden = new GameEntry(ghost, "Valorant", "Iron 1");
         hidden.setSearchable(false);
         entries.saveAndFlush(hidden);
+        profileTags.saveAndFlush(new ProfileTag(friend.getId(), "Competitive", ProfileTagType.PLAYSTYLE));
 
-        mockMvc.perform(get("/search").param("game", "Valorant").with(authentication(login(player))))
+        mockMvc.perform(get("/search/valorant").with(authentication(login(player))))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("game", "Valorant"))
+                .andExpect(content().string(containsString("Players (1)")))
                 .andExpect(content().string(containsString("Friend")))
                 .andExpect(content().string(containsString("Gold 2")))
+                .andExpect(content().string(containsString("Competitive")))
+                .andExpect(content().string(containsString("class=\"activity-status\"")))
                 .andExpect(content().string(not(containsString("Iron 1"))))
                 .andExpect(content().string(not(containsString("Silver 1"))));
+    }
+
+    @Test
+    void gamePageListsOnlinePlayersFirst() throws Exception {
+        User player = register("Player");
+        User away = register("Away");
+        User sleeping = register("Asleep");
+        User online = register("Zed");
+        away.setActivityStatus(ActivityStatus.AFK);
+        sleeping.setActivityStatus(ActivityStatus.OFFLINE);
+        users.saveAllAndFlush(List.of(away, sleeping));
+        entries.save(new GameEntry(away, "Valorant", "Gold 1"));
+        entries.save(new GameEntry(sleeping, "Valorant", "Gold 2"));
+        entries.saveAndFlush(new GameEntry(online, "Valorant", "Gold 3"));
+
+        Object rows = mockMvc.perform(get("/search/valorant").with(authentication(login(player))))
+                .andReturn().getModelAndView().getModel().get("players");
+        List<String> order = ((List<?>) rows).stream()
+                .map(row -> ((GamePlayer) row).getPlayer().getUsername()).toList();
+        assertEquals(List.of("Zed", "Away", "Asleep"), order);
+    }
+
+    @Test
+    void gamePageWithNoPlayersSaysSo() throws Exception {
+        User player = register("Player");
+        mockMvc.perform(get("/search/minecraft").with(authentication(login(player))))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("players", List.of()))
+                .andExpect(content().string(containsString("No other players have listed this game yet")));
     }
 
     @Test
@@ -192,13 +247,14 @@ class GameSearchTests {
         catalogGames.saveAndFlush(new CatalogGame("Stardew Valley"));
 
         mockMvc.perform(get("/search").param("game", "stardew valley").with(authentication(login(player))))
+                .andExpect(redirectedUrl("/search/stardew-valley"));
+        mockMvc.perform(get("/search/stardew-valley").with(authentication(login(player))))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("selectedGame", "Stardew Valley"))
-                .andExpect(model().attributeDoesNotExist("missingGame"));
+                .andExpect(model().attribute("game", "Stardew Valley"));
     }
 
     @Test
-    void gameLinkRedirectsToSearch() throws Exception {
+    void unknownGameLinkFallsBackToSearch() throws Exception {
         User player = register("Player");
         mockMvc.perform(get("/search/stardew-valley").with(authentication(login(player))))
                 .andExpect(status().is3xxRedirection())
