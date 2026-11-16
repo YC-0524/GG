@@ -226,9 +226,9 @@ class GameSearchTests {
                 .param("rank", "Gold 2").param("status", "online")
                 .with(authentication(login(viewer))))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("selectedTag", "Casual"))
-                .andExpect(model().attribute("selectedRank", "Gold 2"))
-                .andExpect(model().attribute("selectedStatus", "ONLINE"))
+                .andExpect(model().attribute("selectedTags", List.of("Casual")))
+                .andExpect(model().attribute("selectedRanks", List.of("Gold 2")))
+                .andExpect(model().attribute("selectedStatuses", List.of("ONLINE")))
                 .andExpect(model().attribute("tagOptions", List.of("Casual", "Competitive")))
                 .andExpect(content().string(containsString("Players (1)")))
                 .andExpect(content().string(containsString("MatchingPlayer")))
@@ -236,6 +236,14 @@ class GameSearchTests {
                 .andExpect(content().string(not(containsString("OtherRankPlayer"))))
                 .andExpect(content().string(not(containsString("OfflinePlayer"))))
                 .andExpect(content().string(containsString("href=\"/search/valorant\">Reset filters")));
+
+        mockMvc.perform(get("/search/valorant").param("tag", "Casual", "Competitive")
+                .param("rank", "Gold 2", "Silver 1").param("status", "ONLINE", "OFFLINE")
+                .with(authentication(login(viewer))))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("selectedTags", List.of("Casual", "Competitive")))
+                .andExpect(model().attribute("selectedStatuses", List.of("ONLINE", "OFFLINE")))
+                .andExpect(content().string(containsString("Players (4)")));
 
         mockMvc.perform(get("/search/valorant").param("status", "AFK")
                 .with(authentication(login(viewer))))
@@ -245,7 +253,7 @@ class GameSearchTests {
         mockMvc.perform(get("/search/valorant").param("status", "invalid")
                 .with(authentication(login(viewer))))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("selectedStatus", ""))
+                .andExpect(model().attribute("selectedStatuses", List.of()))
                 .andExpect(content().string(containsString("Players (4)")));
 
         mockMvc.perform(get("/search/valorant").with(authentication(login(viewer))))

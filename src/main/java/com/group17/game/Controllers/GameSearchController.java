@@ -107,9 +107,9 @@ public class GameSearchController {
     // A game's own page, e.g. /search/overwatch-2, listing the players who play it (US 22).
     @GetMapping("/{slug}")
     public String showGamePage(@PathVariable("slug") String slug,
-            @RequestParam(name = "tag", defaultValue = "") String tag,
-            @RequestParam(name = "rank", defaultValue = "") String rank,
-            @RequestParam(name = "status", defaultValue = "") String status,
+            @RequestParam(name = "tag", defaultValue = "") List<String> tag,
+            @RequestParam(name = "rank", defaultValue = "") List<String> rank,
+            @RequestParam(name = "status", defaultValue = "") List<String> status,
             Model model, @CurrentUser User user, HttpSession session)
     {
         Map<String, List<String>> catalog = availableGameCatalog.all();
@@ -143,33 +143,35 @@ public class GameSearchController {
         ranks.add(GameCatalog.UNRANKED);
         ranks.addAll(catalog.get(game.get()));
 
-        String selectedTag = validFilter(tag, tags);
-        String selectedRank = validFilter(rank, ranks);
-        String selectedStatus = validFilter(status, List.of("ONLINE", "AFK", "OFFLINE"));
+        List<String> selectedTags = validFilters(tag, tags);
+        List<String> selectedRanks = validFilters(rank, ranks);
+        List<String> selectedStatuses = validFilters(status, List.of("ONLINE", "AFK", "OFFLINE"));
 
         List<GamePlayer> players = allPlayers.stream()
-                .filter(row -> selectedTag.isEmpty() || row.getPlayer().getTags().stream()
-                        .anyMatch(profileTag -> selectedTag.equals(profileTag.getTag())))
-                .filter(row -> selectedRank.isEmpty() || selectedRank.equals(row.getRank()))
-                .filter(row -> selectedStatus.isEmpty() || (row.getPlayer().getActivityStatus() != null
-                        && selectedStatus.equals(row.getPlayer().getActivityStatus().name())))
+                .filter(row -> selectedTags.isEmpty() || row.getPlayer().getTags().stream()
+                        .anyMatch(profileTag -> selectedTags.contains(profileTag.getTag())))
+                .filter(row -> selectedRanks.isEmpty() || selectedRanks.contains(row.getRank()))
+                .filter(row -> selectedStatuses.isEmpty() || (row.getPlayer().getActivityStatus() != null
+                        && selectedStatuses.contains(row.getPlayer().getActivityStatus().name())))
                 .toList();
 
         model.addAttribute("players", players);
         model.addAttribute("hasPlayers", !allPlayers.isEmpty());
         model.addAttribute("tagOptions", tags);
         model.addAttribute("rankOptions", ranks);
-        model.addAttribute("selectedTag", selectedTag);
-        model.addAttribute("selectedRank", selectedRank);
-        model.addAttribute("selectedStatus", selectedStatus);
+        model.addAttribute("selectedTags", selectedTags);
+        model.addAttribute("selectedRanks", selectedRanks);
+        model.addAttribute("selectedStatuses", selectedStatuses);
         model.addAttribute("gameSlug", slug(game.get()));
         return "game";
     }
 
-    private String validFilter(String input, List<String> options)
+    private List<String> validFilters(List<String> inputs, List<String> options)
     {
-        String value = input.strip();
-        return options.stream().filter(option -> option.equalsIgnoreCase(value)).findFirst().orElse("");
+        List<String> values = inputs.stream().map(String::strip).toList();
+        return options.stream()
+                .filter(option -> values.stream().anyMatch(option::equalsIgnoreCase))
+                .toList();
     }
 
     // "Overwatch 2" -> "overwatch-2", used in the game page's address.

@@ -26,31 +26,38 @@
             <form class="game-filters" th:action="@{/search/{slug}(slug=${gameSlug})}" method="get"
                 aria-label="Filter players">
                 <div class="game-filter-fields">
-                    <div>
-                        <label for="filter-tag">Tag</label>
-                        <select id="filter-tag" name="tag">
-                            <option value="">All tags</option>
-                            <option th:each="tag : ${tagOptions}" th:value="${tag}" th:text="${tag}"
-                                th:selected="${tag == selectedTag}"></option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="filter-rank">Rank</label>
-                        <select id="filter-rank" name="rank">
-                            <option value="">All ranks</option>
-                            <option th:each="rank : ${rankOptions}" th:value="${rank}" th:text="${rank}"
-                                th:selected="${rank == selectedRank}"></option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="filter-status">Status</label>
-                        <select id="filter-status" name="status">
-                            <option value="">All statuses</option>
-                            <option value="ONLINE" th:selected="${selectedStatus == 'ONLINE'}">Online</option>
-                            <option value="AFK" th:selected="${selectedStatus == 'AFK'}">AFK</option>
-                            <option value="OFFLINE" th:selected="${selectedStatus == 'OFFLINE'}">Offline</option>
-                        </select>
-                    </div>
+                    <details class="game-filter">
+                        <summary>Tag <span th:if="${!selectedTags.isEmpty()}" th:text="|(${selectedTags.size()})|"></span></summary>
+                        <div class="game-filter-options">
+                            <span th:if="${tagOptions.isEmpty()}">No tags in use</span>
+                            <label th:each="tag : ${tagOptions}">
+                                <input type="checkbox" name="tag" th:value="${tag}"
+                                    th:checked="${selectedTags.contains(tag)}">
+                                <span th:text="${tag}"></span>
+                            </label>
+                        </div>
+                    </details>
+                    <details class="game-filter">
+                        <summary>Rank <span th:if="${!selectedRanks.isEmpty()}" th:text="|(${selectedRanks.size()})|"></span></summary>
+                        <div class="game-filter-options">
+                            <label th:each="rank : ${rankOptions}">
+                                <input type="checkbox" name="rank" th:value="${rank}"
+                                    th:checked="${selectedRanks.contains(rank)}">
+                                <span th:text="${rank}"></span>
+                            </label>
+                        </div>
+                    </details>
+                    <details class="game-filter">
+                        <summary>Status <span th:if="${!selectedStatuses.isEmpty()}" th:text="|(${selectedStatuses.size()})|"></span></summary>
+                        <div class="game-filter-options">
+                            <label><input type="checkbox" name="status" value="ONLINE"
+                                th:checked="${selectedStatuses.contains('ONLINE')}"> Online</label>
+                            <label><input type="checkbox" name="status" value="AFK"
+                                th:checked="${selectedStatuses.contains('AFK')}"> AFK</label>
+                            <label><input type="checkbox" name="status" value="OFFLINE"
+                                th:checked="${selectedStatuses.contains('OFFLINE')}"> Offline</label>
+                        </div>
+                    </details>
                 </div>
                 <div class="game-filter-actions">
                     <button type="submit">Apply filters</button>
