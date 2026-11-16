@@ -261,6 +261,45 @@ class GameSearchTests {
     }
 
     @Test
+    void tagFiltersMatchEveryCategoryButAnyTagWithinOne() throws Exception {
+        User viewer = register("Viewer");
+        User fpsWithMic = register("FpsMicPlayer");
+        User micOnly = register("MicOnlyPlayer");
+        User fpsNoMic = register("FpsNoMicPlayer");
+        User duo = register("DuoPlayer");
+        User trio = register("TrioPlayer");
+        entries.saveAllAndFlush(List.of(
+                new GameEntry(fpsWithMic, "Valorant", "Gold 2"),
+                new GameEntry(micOnly, "Valorant", "Gold 2"),
+                new GameEntry(fpsNoMic, "Valorant", "Gold 2"),
+                new GameEntry(duo, "Valorant", "Gold 2"),
+                new GameEntry(trio, "Valorant", "Gold 2")));
+        profileTags.saveAllAndFlush(List.of(
+                new ProfileTag(fpsWithMic.getId(), "FPS", ProfileTagType.GENRE),
+                new ProfileTag(fpsWithMic.getId(), "Mic", ProfileTagType.MIC),
+                new ProfileTag(micOnly.getId(), "Mic", ProfileTagType.MIC),
+                new ProfileTag(fpsNoMic.getId(), "FPS", ProfileTagType.GENRE),
+                new ProfileTag(fpsNoMic.getId(), "No Mic", ProfileTagType.MIC),
+                new ProfileTag(duo.getId(), "Duo", ProfileTagType.GROUP_SIZE),
+                new ProfileTag(trio.getId(), "Trio", ProfileTagType.GROUP_SIZE)));
+
+        // Different categories: the player needs both
+        mockMvc.perform(get("/search/valorant").param("tag", "FPS", "Mic")
+                .with(authentication(login(viewer))))
+                .andExpect(content().string(containsString("Players (1)")))
+                .andExpect(content().string(containsString("FpsMicPlayer")))
+                .andExpect(content().string(not(containsString("MicOnlyPlayer"))))
+                .andExpect(content().string(not(containsString("FpsNoMicPlayer"))));
+
+        // Same category: either one is enough
+        mockMvc.perform(get("/search/valorant").param("tag", "Duo", "Trio")
+                .with(authentication(login(viewer))))
+                .andExpect(content().string(containsString("Players (2)")))
+                .andExpect(content().string(containsString("DuoPlayer")))
+                .andExpect(content().string(containsString("TrioPlayer")));
+    }
+
+    @Test
     void gamePageWithNoPlayersHasNoTagOptions() throws Exception {
         User player = register("Player");
         mockMvc.perform(get("/search/minecraft").with(authentication(login(player))))

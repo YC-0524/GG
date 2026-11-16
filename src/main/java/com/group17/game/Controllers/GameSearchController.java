@@ -1,6 +1,7 @@
 package com.group17.game.Controllers;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -147,9 +148,14 @@ public class GameSearchController {
         List<String> selectedRanks = validFilters(rank, ranks);
         List<String> selectedStatuses = validFilters(status, List.of("ONLINE", "AFK", "OFFLINE"));
 
+        // Tags in the same category are alternatives (Duo or Trio); every category picked must match (FPS and Mic).
+        Collection<List<String>> tagGroups = selectedTags.stream()
+                .collect(Collectors.groupingBy(GameSearchController::tagCategory))
+                .values();
+
         List<GamePlayer> players = allPlayers.stream()
-                .filter(row -> selectedTags.isEmpty() || row.getPlayer().getTags().stream()
-                        .anyMatch(profileTag -> selectedTags.contains(profileTag.getTag())))
+                .filter(row -> tagGroups.stream().allMatch(group -> row.getPlayer().getTags().stream()
+                        .anyMatch(profileTag -> group.contains(profileTag.getTag()))))
                 .filter(row -> selectedRanks.isEmpty() || selectedRanks.contains(row.getRank()))
                 .filter(row -> selectedStatuses.isEmpty() || (row.getPlayer().getActivityStatus() != null
                         && selectedStatuses.contains(row.getPlayer().getActivityStatus().name())))
@@ -164,6 +170,15 @@ public class GameSearchController {
         model.addAttribute("selectedStatuses", selectedStatuses);
         model.addAttribute("gameSlug", slug(game.get()));
         return "game";
+    }
+
+    private static String tagCategory(String tag)
+    {
+        return ProfileTag.ALLOWED_TAGS.entrySet().stream()
+                .filter(entry -> entry.getValue().contains(tag))
+                .map(entry -> entry.getKey().name())
+                .findFirst()
+                .orElse(tag);
     }
 
     private List<String> validFilters(List<String> inputs, List<String> options)
