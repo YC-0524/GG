@@ -11,7 +11,7 @@
 </head>
 
 <body>
-    <div class="app-container game-page-layout">
+    <div class="app-container">
         <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav='search')}"></nav>
         <main class="content-container game-page">
             <a class="game-page-back" th:href="@{/search}">&larr; Search Games</a>
@@ -23,60 +23,13 @@
                 </ul>
             </header>
 
-            <form class="game-filters" th:action="@{/search/{slug}(slug=${gameSlug})}" method="get"
-                aria-label="Filter players">
-                <div class="game-filter-fields">
-                    <details class="game-filter">
-                        <summary>Tag <span th:if="${!selectedTags.isEmpty()}" th:text="|(${selectedTags.size()})|"></span></summary>
-                        <div class="game-filter-options">
-                            <span th:if="${tagOptions.isEmpty()}">No tags in use</span>
-                            <label th:each="tag : ${tagOptions}">
-                                <input type="checkbox" name="tag" th:value="${tag}"
-                                    th:checked="${selectedTags.contains(tag)}">
-                                <span th:text="${tag}"></span>
-                            </label>
-                        </div>
-                    </details>
-                    <details class="game-filter">
-                        <summary>Rank <span th:if="${!selectedRanks.isEmpty()}" th:text="|(${selectedRanks.size()})|"></span></summary>
-                        <div class="game-filter-options">
-                            <label th:each="rank : ${rankOptions}">
-                                <input type="checkbox" name="rank" th:value="${rank}"
-                                    th:checked="${selectedRanks.contains(rank)}">
-                                <span th:text="${rank}"></span>
-                            </label>
-                        </div>
-                    </details>
-                    <details class="game-filter">
-                        <summary>Status <span th:if="${!selectedStatuses.isEmpty()}" th:text="|(${selectedStatuses.size()})|"></span></summary>
-                        <div class="game-filter-options">
-                            <label><input type="checkbox" name="status" value="ONLINE"
-                                th:checked="${selectedStatuses.contains('ONLINE')}"> Online</label>
-                            <label><input type="checkbox" name="status" value="AFK"
-                                th:checked="${selectedStatuses.contains('AFK')}"> AFK</label>
-                            <label><input type="checkbox" name="status" value="OFFLINE"
-                                th:checked="${selectedStatuses.contains('OFFLINE')}"> Offline</label>
-                        </div>
-                    </details>
-                </div>
-                <div class="game-filter-actions">
-                    <button type="submit">Apply filters</button>
-                    <a th:href="@{/search/{slug}(slug=${gameSlug})}">Reset filters</a>
-                </div>
-            </form>
-
             <!-- Every player who listed this game with "Show In Matches" on (US 22) -->
             <section class="game-page-players" aria-labelledby="game-players-title">
                 <h3 id="game-players-title" th:text="|Players (${#lists.size(players)})|">Players (0)</h3>
 
-                <p class="muted-text" th:unless="${hasPlayers}">
+                <p class="muted-text" th:if="${#lists.isEmpty(players)}">
                     No other players have listed this game yet.
                     <a href="/games">Add it to My Games</a> so others can find you.
-                </p>
-
-                <p class="muted-text" th:if="${hasPlayers and #lists.isEmpty(players)}">
-                    No players match these filters.
-                    <a th:href="@{/search/{slug}(slug=${gameSlug})}">Reset filters</a>
                 </p>
 
                 <ul class="game-player-list" th:unless="${#lists.isEmpty(players)}">

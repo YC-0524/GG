@@ -1,7 +1,6 @@
 package com.group17.game.Controllers;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -107,14 +106,9 @@ public class GameSearchController {
 
     // A game's own page, e.g. /search/overwatch-2, listing the players who play it (US 22).
     @GetMapping("/{slug}")
-    public String showGamePage(@PathVariable("slug") String slug,
-            @RequestParam(name = "tag", defaultValue = "") List<String> tag,
-            @RequestParam(name = "rank", defaultValue = "") List<String> rank,
-            @RequestParam(name = "status", defaultValue = "") List<String> status,
-            Model model, @CurrentUser User user, HttpSession session)
+    public String showGamePage(@PathVariable("slug") String slug, Model model, @CurrentUser User user, HttpSession session)
     {
-        Map<String, List<String>> catalog = availableGameCatalog.all();
-        Set<String> allGames = catalog.keySet();
+        Set<String> allGames = availableGameCatalog.all().keySet();
         String wanted = slug.toLowerCase(Locale.ROOT);
         Optional<String> game = allGames.stream().filter(name -> slug(name).equals(wanted)).findFirst();
 
@@ -133,60 +127,8 @@ public class GameSearchController {
         model.addAttribute("user", user);
         model.addAttribute("game", game.get());
         model.addAttribute("genres", GameCatalog.genres(game.get()));
-        List<GamePlayer> allPlayers = playersFor(game.get(), user);
-        List<String> tags = allPlayers.stream()
-                .flatMap(row -> row.getPlayer().getTags().stream())
-                .map(ProfileTag::getTag)
-                .distinct()
-                .sorted(String.CASE_INSENSITIVE_ORDER)
-                .toList();
-        List<String> ranks = new ArrayList<>();
-        ranks.add(GameCatalog.UNRANKED);
-        ranks.addAll(catalog.get(game.get()));
-
-        List<String> selectedTags = validFilters(tag, tags);
-        List<String> selectedRanks = validFilters(rank, ranks);
-        List<String> selectedStatuses = validFilters(status, List.of("ONLINE", "AFK", "OFFLINE"));
-
-        // Tags in the same category are alternatives (Duo or Trio); every category picked must match (FPS and Mic).
-        Collection<List<String>> tagGroups = selectedTags.stream()
-                .collect(Collectors.groupingBy(GameSearchController::tagCategory))
-                .values();
-
-        List<GamePlayer> players = allPlayers.stream()
-                .filter(row -> tagGroups.stream().allMatch(group -> row.getPlayer().getTags().stream()
-                        .anyMatch(profileTag -> group.contains(profileTag.getTag()))))
-                .filter(row -> selectedRanks.isEmpty() || selectedRanks.contains(row.getRank()))
-                .filter(row -> selectedStatuses.isEmpty() || (row.getPlayer().getActivityStatus() != null
-                        && selectedStatuses.contains(row.getPlayer().getActivityStatus().name())))
-                .toList();
-
-        model.addAttribute("players", players);
-        model.addAttribute("hasPlayers", !allPlayers.isEmpty());
-        model.addAttribute("tagOptions", tags);
-        model.addAttribute("rankOptions", ranks);
-        model.addAttribute("selectedTags", selectedTags);
-        model.addAttribute("selectedRanks", selectedRanks);
-        model.addAttribute("selectedStatuses", selectedStatuses);
-        model.addAttribute("gameSlug", slug(game.get()));
+        model.addAttribute("players", playersFor(game.get(), user));
         return "game";
-    }
-
-    private static String tagCategory(String tag)
-    {
-        return ProfileTag.ALLOWED_TAGS.entrySet().stream()
-                .filter(entry -> entry.getValue().contains(tag))
-                .map(entry -> entry.getKey().name())
-                .findFirst()
-                .orElse(tag);
-    }
-
-    private List<String> validFilters(List<String> inputs, List<String> options)
-    {
-        List<String> values = inputs.stream().map(String::strip).toList();
-        return options.stream()
-                .filter(option -> values.stream().anyMatch(option::equalsIgnoreCase))
-                .toList();
     }
 
     // "Overwatch 2" -> "overwatch-2", used in the game page's address.
