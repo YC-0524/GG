@@ -34,6 +34,7 @@ services:
         fromDatabase:
           name: game-db
           property: password
+      
       # Staff accounts, created on startup by StaffAccountSeeder - Set in the Render dashboard
       - key: ADMIN_EMAIL
         sync: false
@@ -42,4 +43,18 @@ services:
       - key: MODERATOR_EMAIL
         sync: false
       - key: MODERATOR_PASSWORD
+        sync: false
+      
+      # OAuth - Set in the Render dashboard
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_CLIENT_SECRET
+        sync: false
+      - key: DISCORD_REDIRECT_URI
+        sync: false
+      - key: DISCORD_OAUTH_URI
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
         sync: false
