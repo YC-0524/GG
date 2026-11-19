@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Username | GAME GANG</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav='profile')}"></nav>
+        <div class="content-container">
+            <form th:action="@{/profile/me/username}" method="POST" style="display: flex; flex-direction: column; gap: 0.5rem; max-width: 420px;">
+                <h2>Change Username</h2>
+                <span th:text="'Current username: ' + ${currentUsername}">Current username: John</span>
+
+                <p class="error-message" role="alert" th:if="${param.error}" th:text="${param.error}"></p>
+
+                <p role="status" th:unless="${canChange}"
+                    th:text="'You can change your username again on ' + ${nextChangeDate}">You can change your username again on ...</p>
+
+                <th:block th:if="${canChange}">
+                    <span>3–20 letters, numbers or underscores. You can change it once every 30 days.</span>
+                    <input type="text" name="username" id="username" placeholder="New Username"
+                        minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}"
+                        title="3–20 letters, numbers or underscores" autocomplete="username" required />
+                    <button type="submit">Update Username</button>
+                </th:block>
+
+                <a th:href="@{/profile/me}">Back to profile</a>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

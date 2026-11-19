@@ -25,9 +25,24 @@ import com.group17.game.Models.UserRepository;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 
+// US 43
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
+import org.springframework.web.util.UriUtils;
+
+import com.group17.game.Utilities.UsernamePolicy;
+
+
 @Controller
 @RequestMapping("/profile") // prefixes /profile to other routes in here
 public class ProfileController {
+    static final DateTimeFormatter USERNAME_DATE_FORMAT =
+            DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.ENGLISH).withZone(ZoneId.systemDefault());
+
     private final UserRepository userRepository;
     private final GameEntryRepository gameEntryRepository;
     private final ProfileTagRepository profileTagRepository;
@@ -78,6 +93,45 @@ public class ProfileController {
         return "redirect:" + referer;
     }
 
+    @PostMapping("/me/username")
+    public String changeUsername(@RequestParam String username, @CurrentUser User user) {
+        String newUsername = username.trim();
+        Instant now = Instant.now();
+
+        if (!user.canChangeUsername(now)) {
+            return usernameError(user, "You can't change your username yet.");
+        }
+
+        Optional<String> problem = UsernamePolicy.validate(newUsername);
+        if (problem.isPresent()) {
+            return usernameError(user, problem.get());
+        }
+
+        if (newUsername.equals(user.getUsername())) {
+            return usernameError(user, "That's already your username.");
+        }
+
+        if (userRepository.existsByUsernameIgnoreCaseAndIdNot(newUsername, user.getId())) {
+            return usernameError(user, "That username is already taken.");
+        }
+
+        user.setUsername(newUsername);
+        user.setUsernameChangedAt(now);
+        userRepository.save(user);
+
+        return "redirect:/profile/" + user.getId() + "?usernameChanged";
+    }
+
+    private String usernameError(User user, String message) {
+        return "redirect:/profile/" + user.getId() + "?usernameError="
+                + UriUtils.encodeQueryParam(message, StandardCharsets.UTF_8);
+    }
+
+    private String formatNextUsernameChange(User user) {
+        Instant next = user.getNextUsernameChangeAt();
+        return next == null ? null : USERNAME_DATE_FORMAT.format(next);
+    }
+
     @GetMapping("/search")
     public String searchProfile(
             Model model,
@@ -118,7 +172,10 @@ public class ProfileController {
         model.addAttribute("games", gameEntryRepository.findByUserIdOrderByGameNameAsc(userID));
         model.addAttribute("tags", profileTagRepository.findAllByUserId(userID));
         // Only the owner gets a link to edit their list
-        model.addAttribute("isOwner", user != null && user.getId() == userID);
+        boolean isOwner = user != null && user.getId() == userID;
+        model.addAttribute("isOwner", isOwner);
+        model.addAttribute("nextUsernameChange", isOwner ? formatNextUsernameChange(user) : null);
+        model.addAttribute("canChangeUsername", isOwner && user.canChangeUsername(Instant.now()));
         return "profile";
     }
 

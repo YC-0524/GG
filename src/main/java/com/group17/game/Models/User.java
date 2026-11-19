@@ -15,11 +15,14 @@ import jakarta.validation.constraints.Size;
 import java.util.Date;
 import java.time.Instant;
 
+import java.time.Duration;
+
 @Entity
 @Table(name = "users")
 public class User {
 
     public static int MINIMUM_PASSWORD_LENGTH = 8;
+    public static final Duration USERNAME_CHANGE_COOLDOWN = Duration.ofDays(30);
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -65,6 +68,11 @@ public class User {
 
     @Column(name = "last_seen")
     private Date lastSeen;
+
+    // Last time the player changed their own username
+    // Moderator resets don't set this
+    @Column(name = "username_changed_at")
+    private Instant usernameChangedAt;
 
     // empty constructor, needed for springboot initializers
     public User() {
@@ -189,5 +197,23 @@ public class User {
 
     public void setTimeoutUntil(java.time.Instant timeoutUntil) {
         this.timeoutUntil = timeoutUntil;
+    }
+    
+    public Instant getUsernameChangedAt() {
+        return usernameChangedAt;
+    }
+
+    public void setUsernameChangedAt(Instant usernameChangedAt) {
+        this.usernameChangedAt = usernameChangedAt;
+    }
+
+    // null if the player has never changed their username
+    public Instant getNextUsernameChangeAt() {
+        return usernameChangedAt == null ? null : usernameChangedAt.plus(USERNAME_CHANGE_COOLDOWN);
+    }
+
+    public boolean canChangeUsername(Instant now) {
+        Instant next = getNextUsernameChangeAt();
+        return next == null || !now.isBefore(next);
     }
 }

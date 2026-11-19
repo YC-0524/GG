@@ -56,6 +56,7 @@ public class ModeratorController {
         User target = findUser(id);
         access.assertCanModerate(actor, target);
 
+        // don't set usernameChangedAt: a moderator reset doesn't use up the player's change (US 43)
         target.setUsername("user" + target.getId());
         target.setAvatar(null);
         userRepository.save(target);

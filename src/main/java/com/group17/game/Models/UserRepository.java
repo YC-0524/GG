@@ -17,6 +17,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findByEmail(String email);
 
     User findByUsername(String username);
+    boolean existsByUsernameIgnoreCaseAndIdNot(String username, long id);
 
     @Query("select new com.group17.game.DTOs.PlayerCard(u.id, u.username, u.avatar, u.activityStatus) "
             + "from User u where u.id <> :userId "

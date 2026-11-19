@@ -63,3 +63,104 @@
     margin: 0;
     color: var(--muted-text);
 }
+
+.profile-username {
+    margin: 0;
+}
+
+.username-area,
+.username-display {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+/* display: flex would otherwise override the hidden attribute */
+.username-display[hidden],
+.username-form[hidden] {
+    display: none;
+}
+
+.username-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: -0.5rem;
+    padding: 0.1rem 0.5rem;
+    border: 1px dashed transparent;
+    border-radius: 0.5rem;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.username-button:hover,
+.username-button:focus-visible {
+    border-color: var(--accent-color);
+    background: rgb(183 154 255 / 8%);
+}
+
+.username-edit-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+    color: var(--accent-color);
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.username-button:hover .username-edit-icon,
+.username-button:focus-visible .username-edit-icon {
+    opacity: 1;
+}
+
+.username-hint {
+    font-size: 0.85rem;
+    color: var(--muted-text);
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.username-display:hover .username-hint,
+.username-display:focus-within .username-hint {
+    opacity: 1;
+}
+
+/* touch screens can't hover, so always show the pencil there */
+@media (hover: none) {
+    .username-edit-icon {
+        opacity: 1;
+    }
+}
+
+.username-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.username-form input {
+    width: 14rem;
+    max-width: 100%;
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: var(--panel-background);
+    color: inherit;
+}
+
+.username-rules {
+    flex-basis: 100%;
+    font-size: 0.85rem;
+    color: var(--muted-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .username-button,
+    .username-edit-icon,
+    .username-hint {
+        transition: none;
+    }
+}

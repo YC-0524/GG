@@ -7,6 +7,7 @@
     <title th:text="${profile.username} + ' | GAMG GANG'">Proifle | GAME GANG</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/profile.css">
+    <script src="/js/profileUsername.js" defer></script>
 </head>
 
 <body>
@@ -16,10 +17,44 @@
             <section class="profile-splash">
                 <img class="profile-avatar" th:if="${#strings.isEmpty(profile.avatar)}" src="/images/person.svg" alt="Default Avatar" />
                 <img class="profile-avatar" th:unless="${#strings.isEmpty(profile.avatar)}" th:src="@{${profile.avatar}}" alt="User Avatar" referrerpolicy="no-referrer" />
-                <h1 th:text="${profile.username}">John Doe</h1>
+                <h1 th:unless="${isOwner}" class="profile-username" th:text="${profile.username}">John Doe</h1>
+
+                <div th:if="${isOwner}" class="username-area">
+                    <div class="username-display">
+                        <h1 class="profile-username">
+                            <button th:if="${canChangeUsername}" type="button" id="username-edit-button"
+                                class="username-button" aria-describedby="username-hint">
+                                <span th:text="${profile.username}">John Doe</span>
+                                <svg class="username-edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                                </svg>
+                            </button>
+                            <span th:unless="${canChangeUsername}" th:text="${profile.username}">John Doe</span>
+                        </h1>
+                        <span th:if="${canChangeUsername}" id="username-hint" class="username-hint">Click to change your username</span>
+                        <span th:unless="${canChangeUsername}" class="muted-text"
+                            th:text="'You can change your username again on ' + ${nextUsernameChange}"></span>
+                    </div>
+
+                    <form th:if="${canChangeUsername}" th:action="@{/profile/me/username}" method="POST"
+                        id="username-form" class="username-form" hidden>
+                        <label for="username-input" class="visually-hidden">New username</label>
+                        <input type="text" name="username" id="username-input" th:value="${profile.username}"
+                            minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}"
+                            title="3–20 letters, numbers or underscores" autocomplete="off"
+                            aria-describedby="username-rules" required />
+                        <button type="submit">Save</button>
+                        <button type="button" id="username-cancel">Cancel</button>
+                        <span id="username-rules" class="username-rules">3–20 letters, numbers or underscores. You can change it once every 30 days.</span>
+                    </form>
+                </div>
             </section>
 
             <p class="success-message" role="status" th:if="${isOwner and param.passwordChanged != null}">Your password has been updated.</p>
+            <p class="success-message" role="status" th:if="${isOwner and param.usernameChanged != null}"
+                th:text="'Your username has been updated. You can change your username again on ' + ${nextUsernameChange}">Your username has been updated.</p>
+            <p class="error-message" role="alert" th:if="${isOwner and param.usernameError != null}" th:text="${param.usernameError}"></p>
 
             <section class="profile-section">
                 <div th:replace="~{activityStatus :: activityStatus(${user.activityStatus})}"></div>
