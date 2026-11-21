@@ -22,7 +22,6 @@ public class UserActivityScheduler {
     @Scheduled(fixedRate = 60000)
     @Transactional
     public void updateUserStatuses() {
-
         Date now = new Date();
 
         Date offlineThreshold = new Date(now.getTime() - 20 * 60 * 1000);
