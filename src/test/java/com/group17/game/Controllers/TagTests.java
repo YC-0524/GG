@@ -2,12 +2,9 @@ package com.group17.game.Controllers;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -20,13 +17,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
+import com.group17.game.Helpers;
 import com.group17.game.Models.ProfileTag;
 import com.group17.game.Models.ProfileTagRepository;
 import com.group17.game.Models.ProfileTagType;
@@ -47,11 +43,6 @@ public class TagTests {
 
     @Autowired
     MockMvc mockMvc;
-
-    private UsernamePasswordAuthenticationToken login(User user) {
-        return UsernamePasswordAuthenticationToken.authenticated(user.getId(), null,
-                List.of(new SimpleGrantedAuthority("ROLE_USER")));
-    }
 
     @Test
     @Transactional
@@ -117,7 +108,7 @@ public class TagTests {
         mockMvc.perform(post("/tags")
                 .param("tag", "Casual")
                 .param("tagType", "PLAYSTYLE")
-                .with(authentication(login(user)))
+                .with(authentication(Helpers.login(user)))
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/tags"));
@@ -141,7 +132,7 @@ public class TagTests {
         mockMvc.perform(post("/tags")
                 .param("tag", "Casual")
                 .param("tagType", "GTA6CAMEOUT!")
-                .with(authentication(login(user)))
+                .with(authentication(Helpers.login(user)))
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/tags?error=*"))
@@ -155,7 +146,7 @@ public class TagTests {
         mockMvc.perform(post("/tags")
                 .param("tag", "Casual")
                 .param("tagType", "GENRE")
-                .with(authentication(login(user)))
+                .with(authentication(Helpers.login(user)))
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/tags?error=*"))
