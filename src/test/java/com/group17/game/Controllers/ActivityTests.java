@@ -2,6 +2,11 @@ package com.group17.game.Controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Date;
 
@@ -62,6 +67,35 @@ public class ActivityTests {
         userRepository.save(user);
         assertTrue(userRepository.existsById(user.getId()));
         assertTrue(user.getActivityStatus() == ActivityStatus.ONLINE);
+    }
+
+    @Test
+    void userSetsValidActivity() throws Exception {
+        User user = Helpers.generateRandomValidTestUser();
+        userRepository.save(user);
+        assertTrue(userRepository.existsById(user.getId()));
+
+        mockMvc.perform(post("/profile/me/status")
+                .param("status", "OFFLINE")
+                .with(authentication(Helpers.login(user)))
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection());
+
+        assertTrue(user.isManualStatusOverride());
+    }
+
+    @Test
+    void userSetsInvalidActivity() throws Exception {
+        User user = Helpers.generateRandomValidTestUser();
+        userRepository.save(user);
+        assertTrue(userRepository.existsById(user.getId()));
+
+        mockMvc.perform(post("/profile/me/status")
+                .param("status", "LOL!")
+                .with(authentication(Helpers.login(user)))
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/dashboard?error=*"));
     }
 
     @Test
