@@ -119,6 +119,71 @@ public class TagTests {
 
     @Test
     @Transactional
+    void testRemovingValidTagHTTP() throws Exception {
+        User user = new User(
+                "username",
+                "email@gmail.com",
+                "134eb251c5f98bbbc2a345b3d0a33ad10437919899571bd158114097d54b30cf");
+
+        // insert user
+        userRepository.save(user);
+        assertTrue(userRepository.existsById(user.getId()));
+
+        mockMvc.perform(post("/tags")
+                .param("tag", "Casual")
+                .param("tagType", "PLAYSTYLE")
+                .with(authentication(Helpers.login(user)))
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/tags"));
+
+        Optional<ProfileTag> tag = tagRepository.findByUserIdAndTag(user.getId(), "Casual");
+        assertTrue(tag.isPresent());
+
+        mockMvc.perform(post("/tags/" + tag.get().getId() + "/delete")
+                .with(authentication(Helpers.login(user)))
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/tags"));
+    }
+
+    @Test
+    @Transactional
+    void testRemovingNonExistentTagHTTP() throws Exception {
+        User user = new User(
+                "username",
+                "email@gmail.com",
+                "134eb251c5f98bbbc2a345b3d0a33ad10437919899571bd158114097d54b30cf");
+
+        // insert user
+        userRepository.save(user);
+        assertTrue(userRepository.existsById(user.getId()));
+
+        mockMvc.perform(post("/tags")
+                .param("tag", "Casual")
+                .param("tagType", "PLAYSTYLE")
+                .with(authentication(Helpers.login(user)))
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/tags"));
+
+        Optional<ProfileTag> tag = tagRepository.findByUserIdAndTag(user.getId(), "Casual");
+        assertTrue(tag.isPresent());
+
+        mockMvc.perform(post("/tags/-1/delete")
+                .with(authentication(Helpers.login(user)))
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/tags?error=*"))
+                .andExpect(result -> {
+                    String url = result.getResponse().getRedirectedUrl();
+                    assertTrue(URLDecoder.decode(url, StandardCharsets.UTF_8)
+                            .contains("error=Tag doesn't exist."));
+                });
+    }
+
+    @Test
+    @Transactional
     void testInvalidTagsHTTP() throws Exception {
         User user = new User(
                 "username",
