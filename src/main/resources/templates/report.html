@@ -1,0 +1,25 @@
+<body>
+    <div th:fragment="report(user)">
+        <link rel="stylesheet" th:href="@{/css/report.css}">
+
+        <button onclick="displayReport" class="report-button">
+            <span>Report</span>
+        </button>
+
+        <div id="report-popup" class="report-popup">
+            <form method="POST" action="/report/user" class="report-form" id="report-form" style="display: none;">
+            <input type="hidden" name="reportedUserId" th:value="${user.id}">
+            <select name="reason" id="reason">
+                <option value="harassment">Harassment</option>
+                <option value="cheating">Cheating</option>
+                <option value="offensive">Offensive Profile</option>
+                <option value="other">Other</option>
+            </select>
+            <textarea minlength="5" name="description" id="description" cols="30" rows="10"></textarea>
+            <button type="submit">Submit</button>
+        </form>
+        </div>
+
+        <script src="/js/report.js" defer></script>
+    </div>
+</body>

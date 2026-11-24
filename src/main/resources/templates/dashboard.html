@@ -38,6 +38,7 @@
                             <!-- Later Iteration: mix the tags and games together for a less rigid appearance, but not important -->
                         </section>
                         <a th:href="@{/profile/{id}(id=${player.id})}">View profile</a>
+                        <div th:replace="~{report :: report(${player})}"></div>
                     </article>
                 </div>
 
