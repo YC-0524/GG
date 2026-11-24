@@ -43,9 +43,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         passButton.disabled = availableCount() < 2;
         likeButton.disabled = availableCount() === 0;
-        status.textContent = availableCount() === 0
-            ? "No more players to recommend right now."
-            : "";
+        if (cards.length > 0) {
+            status.textContent = availableCount() === 0
+                ? "No more players to recommend right now."
+                : "";
+        }
     }
 
     // Keep initials visible if an avatar is missing or fails to load.

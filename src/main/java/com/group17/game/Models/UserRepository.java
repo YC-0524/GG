@@ -20,9 +20,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("select new com.group17.game.DTOs.PlayerCard(u.id, u.username, u.avatar, u.activityStatus) "
             + "from User u where u.id <> :userId "
+            + "and u.ageRange in :ageRanges "
+            + "and (:filterAge = false or (u.agePublic = true and u.age between :minAge and :maxAge)) "
+            + "and (:anyRegion = true or u.region in :regions) "
             + "and not exists (select l.id from PlayerLike l "
             + "where l.sender.id = :userId and l.target.id = u.id) order by u.id")
-    List<PlayerCard> findPlayerCardsExcluding(@Param("userId") Long userId);
+    List<PlayerCard> findPlayerCardsExcluding(@Param("userId") Long userId,
+            @Param("ageRanges") List<AgeRange> ageRanges, @Param("regions") List<Region> regions,
+            @Param("anyRegion") boolean anyRegion, @Param("filterAge") boolean filterAge,
+            @Param("minAge") int minAge, @Param("maxAge") int maxAge);
 
     List<User> findByUsernameContaining(String username);
 

@@ -19,6 +19,10 @@ import java.time.Instant;
 @Table(name = "users")
 public class User {
 
+    public static final int MINIMUM_AGE = 13;
+    public static final int ADULT_AGE = 18;
+    public static final int MAXIMUM_AGE = 120;
+
     public static int MINIMUM_PASSWORD_LENGTH = 8;
 
     @Id
@@ -44,6 +48,55 @@ public class User {
     private UserRole role = UserRole.USER;
 
     private Instant timeoutUntil;
+
+    @Enumerated(EnumType.STRING)
+    private AgeRange ageRange;
+
+    private Integer age;
+
+    @Column(columnDefinition = "boolean not null default false")
+    private boolean agePublic;
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public boolean isAgePublic() {
+        return agePublic;
+    }
+
+    public void updateAge(int age, boolean agePublic) {
+        this.age = age;
+        this.agePublic = agePublic;
+        if (age < ADULT_AGE) {
+            ageRange = AgeRange.TEEN;
+        } else if (age < 25) {
+            ageRange = AgeRange.AGE_18_24;
+        } else if (age < 35) {
+            ageRange = AgeRange.AGE_25_34;
+        } else {
+            ageRange = AgeRange.AGE_35_PLUS;
+        }
+    }
+
+    @Enumerated(EnumType.STRING)
+    private Region region;
+
+    public AgeRange getAgeRange() {
+        return ageRange;
+    }
+
+    public void setAgeRange(AgeRange ageRange) {
+        this.ageRange = ageRange;
+    }
+
+    public Region getRegion() {
+        return region;
+    }
+
+    public void setRegion(Region region) {
+        this.region = region;
+    }
 
     @Enumerated(EnumType.STRING)
     private UserStatus status = UserStatus.ACTIVE;
