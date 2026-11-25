@@ -16,7 +16,7 @@
             <span th:text="${report.reason}">Reason</span>
             <span th:text="${report.description}">Description</span>
             <form
-                th:action="@{/report/resolve/{reporter}/{reported}(reporter=${report.userID}, reported=${reportedUserID})}"
+                th:action="@{/report/resolve/{report}(report=${report.id})}"
                 method="POST">
 
                 <button type="submit">Resolved?</button>

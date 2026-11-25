@@ -37,6 +37,10 @@ public class UserReport {
         this.description = description;
     }
 
+    public Long getId() {
+        return this.id;
+    }
+
     public Instant getCreatedAt() {
         return this.createdAt;
     }

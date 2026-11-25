@@ -10,7 +10,7 @@
             <form method="POST" th:action="@{/report/user}" class="report-form" id="report-form">
                 <h2>Report</h2>
                 <span th:text="'Reporting: ' + ${user.username}"></span>
-                <input type="hidden" name="reportedUserId" th:value="${user.id}">
+                <input type="hidden" name="reportedUserID" th:value="${user.id}">
                 <select name="reason" id="reason">
                     <option value="harassment">Harassment</option>
                     <option value="cheating">Cheating</option>

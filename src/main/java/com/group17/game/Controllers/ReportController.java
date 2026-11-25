@@ -77,17 +77,7 @@ public class ReportController {
     public String moderatorReportView(Authentication authentication,
             Model model,
             @CurrentUser User user) {
-        if (authentication == null || !authentication.isAuthenticated()
-                || !(authentication.getPrincipal() instanceof Long)) {
-            return "redirect:/auth/login";
-        }
-
-        Long userId = (Long) authentication.getPrincipal();
-        User currentUser = userRepository.findById(userId).orElse(null);
-
-        if (currentUser == null
-                || (currentUser.getRole() != UserRole.MODERATOR
-                        && currentUser.getRole() != UserRole.ADMIN)) {
+        if (user.getRole() != UserRole.MODERATOR && user.getRole() != UserRole.ADMIN) {
             return "redirect:/dashboard";
         }
 
@@ -97,30 +87,24 @@ public class ReportController {
         return "reports";
     }
 
-    @PostMapping("/resolve/{reporter}/{reported}")
+    @PostMapping("/resolve/{report}")
     public String resolveReport(
             Authentication authentication,
             Model model,
             @CurrentUser User user,
-            @PathVariable("reporter") Long reporterID,
-            @PathVariable("reported") Long reportedID) {
+            @PathVariable("report") Long reportID) {
         if (authentication == null || !authentication.isAuthenticated()
                 || !(authentication.getPrincipal() instanceof Long)) {
             return "redirect:/auth/login";
         }
 
-        Long userId = (Long) authentication.getPrincipal();
-        User currentUser = userRepository.findById(userId).orElse(null);
-
-        if (currentUser == null
-                || (currentUser.getRole() != UserRole.MODERATOR
-                        && currentUser.getRole() != UserRole.ADMIN)) {
+        if (user.getRole() != UserRole.MODERATOR && user.getRole() != UserRole.ADMIN) {
             return "redirect:/dashboard";
         }
 
-        Optional<UserReport> reportOption = reportRepository.findByUserIDAndReportedUserID(reporterID, reportedID);
+        Optional<UserReport> reportOption = reportRepository.findById(reportID);
         if (reportOption.isEmpty()) {
-            return "redirect:/report/review?error=Invalid report combination";
+            return "redirect:/report/review?error=Invalid report";
         }
 
         UserReport report = reportOption.get();
