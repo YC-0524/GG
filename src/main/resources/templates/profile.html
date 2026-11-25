@@ -26,6 +26,7 @@
                 <span th:text="'Joined GG on ' + ${#dates.format(profile.registered, 'yyyy-MM-dd')}"></span>
                 <span th:replace="~{roleBadge :: roleBadge(${profile.role})}"></span>
                 <div th:replace="~{profileTags :: profileTags(${tags})}" th:hidden="{#lists.isEmpty(tags)}"></div>
+                <div th:if="${!isOwner}" th:replace="~{report :: report(${profile})}"></div>
                 <a th:if="${isOwner}" th:href="@{/auth/change-password}" class="button-link">Change password</a>
             </section>
             <section class="profile-section">

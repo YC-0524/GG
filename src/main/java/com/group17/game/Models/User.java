@@ -12,7 +12,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.time.Instant;
 
 @Entity
@@ -66,6 +68,9 @@ public class User {
     @Column(name = "last_seen")
     private Date lastSeen;
 
+    @Column(name = "blocked_users")
+    private List<Long> blockedUsers = new ArrayList<>();
+
     // empty constructor, needed for springboot initializers
     public User() {
     }
@@ -94,6 +99,10 @@ public class User {
     // Getters
     public long getId() {
         return id;
+    }
+
+    public List<Long> getBlockedUsers() {
+        return this.blockedUsers;
     }
 
     public String getUsername() {
@@ -139,6 +148,14 @@ public class User {
 
     public boolean isManualStatusOverride() {
         return manualStatusOverride;
+    }
+
+    public void setBlockedUsers(List<Long> blocked) {
+        this.blockedUsers = blocked;
+    }
+
+    public void blockUser(Long userID) {
+        this.blockedUsers.add(userID);
     }
 
     public void setManualStatusOverride(boolean manualStatusOverride) {

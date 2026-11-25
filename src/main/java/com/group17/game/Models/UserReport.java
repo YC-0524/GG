@@ -37,6 +37,18 @@ public class UserReport {
         this.description = description;
     }
 
+    public Instant getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public Instant getResolvedAt() {
+        return this.resolvedAt;
+    }
+
+    public boolean isResolved() {
+        return this.resolvedAt != null;
+    }
+
     public Long getUserID() {
         return this.userID;
     }
@@ -51,5 +63,13 @@ public class UserReport {
 
     public String getDescription() {
         return this.description;
+    }
+
+    public void setResolvedAt(Instant time) {
+        this.resolvedAt = time;
+    }
+
+    public void setResolvedBy(Long userID) {
+        this.resolvedByUserID = userID;
     }
 }

@@ -45,7 +45,7 @@
         </section>
         <section class="sidebar-section" id="moderator" th:hidden="${user == null || (user.role.name() != 'MODERATOR' and user.role.name() != 'ADMIN')}">
             <h3>Moderation</h3>
-            <a class="nav-link" href="/dashboard/moderator"
+            <a class="nav-link" href="/report/review"
                 th:classappend="${selectedNav == 'reports' ? 'active' : ''}"
                 th:attr="aria-current=${selectedNav == 'reports' ? 'page' : null}">Open User Reports</a>
             <a class="nav-link" href="/dashboard/moderator"

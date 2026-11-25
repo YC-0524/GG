@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b0c16">
+    <title>Game Gang - Reports</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/report.css">
+</head>
+
+<body>
+    <div class="reports">
+        <div class="report" th:each="report : ${reports}">
+            <span th:text="${report.reason}">Reason</span>
+            <span th:text="${report.description}">Description</span>
+            <form
+                th:action="@{/report/resolve/{reporter}/{reported}(reporter=${report.userID}, reported=${reportedUserID})}"
+                method="POST">
+
+                <button type="submit">Resolved?</button>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

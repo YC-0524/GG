@@ -78,6 +78,15 @@ public class ProfileController {
         return "redirect:" + referer;
     }
 
+    // Blocks the provided USER ID, not the current user
+    @PostMapping("/{userID}/block")
+    public String blockUser(
+        @CurrentUser User user,
+        @RequestParam("userID") Long blockedID
+    ) {
+        
+    }
+
     @GetMapping("/search")
     public String searchProfile(
             Model model,
