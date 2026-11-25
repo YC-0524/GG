@@ -1,9 +1,8 @@
-const reportPopup = document.getElementById("report-popup");
-
-const displayReport = () => {
-    reportPopup.style.display = "grid";
+function displayReport(button) {
+    button.closest(".report-wrapper")
+        .querySelector(".report-popup").style.display = "grid";
 }
 
-const hideReport = () => {
-    reportPopup.style.display = "none";
+function hideReport(button) {
+    button.closest(".report-popup").style.display = "none";
 }

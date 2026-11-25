@@ -81,7 +81,7 @@ public class ProfileController {
     @PostMapping("/{userID}/block")
     public String blockUser(
         @CurrentUser User user,
-        @RequestParam("userID") Long blockedID
+        @PathVariable("userID") Long blockedID
     ) {
         Optional<User> blockedOption = userRepository.findById(blockedID);
         if (blockedOption.isEmpty()) {
@@ -89,6 +89,10 @@ public class ProfileController {
         }
 
         User blockedUser = blockedOption.get();
+        if (blockedUser.getId() == user.getId()) {
+            return "redirect:/dashboard?error=Can't block yourself"; 
+        }
+
         user.blockUser(blockedUser.getId());
         userRepository.save(user);
 

@@ -9,6 +9,9 @@
     <title>Game Gang - Dashboard</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/playerCards.css">
+
+    <link rel="stylesheet" th:href="@{/css/report.css}">
+    <script th:src="@{/js/report.js}" defer></script>
 </head>
 
 <body>
@@ -27,14 +30,17 @@
                         th:attr="aria-labelledby=|player-name-${player.id}|,data-player-id=${player.id}">
                         <div class="player-avatar" aria-hidden="true">
                             <span th:text="${player.initials}">?</span>
-                            <img th:if="${player.avatar != null}" th:src="${player.avatar}" alt="Player Profile Picture" referrerpolicy="no-referrer">
+                            <img th:if="${player.avatar != null}" th:src="${player.avatar}" alt="Player Profile Picture"
+                                referrerpolicy="no-referrer">
                         </div>
                         <h3 th:id="|player-name-${player.id}|" th:text="${player.username}">Player</h3>
                         <section class="tags">
                             <!-- This includes activity status, games, and tags like "CO-OP", "LFG", etc.  -->
                             <div th:replace="~{activityStatus :: activityStatus(${player.activityStatus})}"></div>
-                            <div th:replace="~{profileTags :: profileTags(${player.tags})}" th:hidden="{#lists.isEmpty(player.tags)}"></div>
-                            <div th:replace="~{profileGames :: profileGames(${player.games})}" th:hidden="{#lists.isEmpty(player.games)}"></div>
+                            <div th:replace="~{profileTags :: profileTags(${player.tags})}"
+                                th:hidden="{#lists.isEmpty(player.tags)}"></div>
+                            <div th:replace="~{profileGames :: profileGames(${player.games})}"
+                                th:hidden="{#lists.isEmpty(player.games)}"></div>
                             <!-- Later Iteration: mix the tags and games together for a less rigid appearance, but not important -->
                         </section>
                         <a th:href="@{/profile/{id}(id=${player.id})}">View profile</a>

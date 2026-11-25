@@ -93,11 +93,6 @@ public class ReportController {
             Model model,
             @CurrentUser User user,
             @PathVariable("report") Long reportID) {
-        if (authentication == null || !authentication.isAuthenticated()
-                || !(authentication.getPrincipal() instanceof Long)) {
-            return "redirect:/auth/login";
-        }
-
         if (user.getRole() != UserRole.MODERATOR && user.getRole() != UserRole.ADMIN) {
             return "redirect:/dashboard";
         }
@@ -108,6 +103,10 @@ public class ReportController {
         }
 
         UserReport report = reportOption.get();
+        if (report.isResolved()) {
+            return "redirect:/report/review?error=Report already resolved";
+        }
+        
         report.setResolvedAt(Instant.now());
         report.setResolvedBy(user.getId());
 
