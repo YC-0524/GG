@@ -127,6 +127,8 @@ public class ReportController {
         report.setResolvedAt(Instant.now());
         report.setResolvedBy(user.getId());
 
+        reportRepository.save(report);
+
         return "redirect:/report/review";
     }
 }

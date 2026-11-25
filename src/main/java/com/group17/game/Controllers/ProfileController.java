@@ -84,7 +84,16 @@ public class ProfileController {
         @CurrentUser User user,
         @RequestParam("userID") Long blockedID
     ) {
-        
+        Optional<User> blockedOption = userRepository.findById(blockedID);
+        if (blockedOption.isEmpty()) {
+            return "redirect:/dashboard?error=Must block an actual user";
+        }
+
+        User blockedUser = blockedOption.get();
+        user.blockUser(blockedUser.getId());
+        userRepository.save(user);
+
+        return "redirect:/dashboard?message=Blocked " + blockedUser.getUsername();
     }
 
     @GetMapping("/search")
