@@ -133,6 +133,10 @@ public class User {
         return this.role;
     }
 
+    public boolean hasBlockedUser(Long otherUserID) {
+        return this.blockedUsers.contains(otherUserID);
+    }
+
     // status getters
     public UserStatus getStatus() {
         return status;

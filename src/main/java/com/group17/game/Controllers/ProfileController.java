@@ -22,7 +22,6 @@ import com.group17.game.Models.ProfileTagRepository;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 
-import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
@@ -122,13 +121,17 @@ public class ProfileController {
     }
 
     @GetMapping("/{userID}")
-    public String getUserProfile(@PathVariable("userID") long userID, Model model, @Nullable @CurrentUser User user) {
+    public String getUserProfile(@PathVariable("userID") long userID, Model model, @CurrentUser User user) {
         Optional<User> profileOption = userRepository.findById(userID);
         if (profileOption.isEmpty()) {
             return "redirect:/profile/search?error=User doesn't exist";
         }
 
         User profile = profileOption.get();
+        if (profile.hasBlockedUser(user.getId())) {
+            return "redirect:/dashboard";
+        }
+         
         profile.setPasswordHash("");
         profile.setEmail("");
         model.addAttribute("profile", profile);
