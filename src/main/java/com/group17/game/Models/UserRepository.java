@@ -21,7 +21,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("select new com.group17.game.DTOs.PlayerCard(u.id, u.username, u.avatar, u.activityStatus) "
             + "from User u where u.id <> :userId "
             + "and not exists (select l.id from PlayerLike l "
-            + "where l.sender.id = :userId and l.target.id = u.id) order by u.id")
+            + "where l.sender.id = :userId and l.target.id = u.id) "
+            + "and not exists (select me.id from User me "
+            + "where me.id = :userId and u.id member of me.blockedUsers) "
+            + "order by u.id")
     List<PlayerCard> findPlayerCardsExcluding(@Param("userId") Long userId);
 
     List<User> findByUsernameContaining(String username);
