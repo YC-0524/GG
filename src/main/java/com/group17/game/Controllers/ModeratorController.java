@@ -23,11 +23,14 @@ public class ModeratorController {
     private final UserRepository userRepository;
     private final SuspensionRequestRepository requestRepository;
     private final AccessService access;
+    private final ProfilePictureRepository profilePictureRepository;
 
-    public ModeratorController(UserRepository userRepository, SuspensionRequestRepository requestRepository, AccessService access) {
+    public ModeratorController(UserRepository userRepository, SuspensionRequestRepository requestRepository,
+            AccessService access, ProfilePictureRepository profilePictureRepository) {
         this.userRepository = userRepository;
         this.requestRepository = requestRepository;
         this.access = access;
+        this.profilePictureRepository = profilePictureRepository;
     }
 
     // prevents user from logging in for a certain period of time
@@ -58,10 +61,29 @@ public class ModeratorController {
 
         // don't set usernameChangedAt: a moderator reset doesn't use up the player's change (US 43)
         target.setUsername("user" + target.getId());
-        target.setAvatar(null);
+        removeAvatar(target);
         userRepository.save(target);
-        
+
         return "redirect:/dashboard/moderator";
+    }
+
+    // puts back the default initial (US 44)
+    @PostMapping("/{id}/reset-avatar")
+    public String resetAvatar(@PathVariable Long id, Authentication auth) {
+        User actor = access.requireRole(auth, UserRole.MODERATOR, UserRole.ADMIN);
+        User target = findUser(id);
+        access.assertCanModerate(actor, target);
+
+        removeAvatar(target);
+        userRepository.save(target);
+
+        return "redirect:/dashboard/moderator";
+    }
+
+    // don't set avatarChangedAt: a moderator reset doesn't use up the player's daily change
+    private void removeAvatar(User target) {
+        target.setAvatar(null);
+        profilePictureRepository.deleteById(target.getId());
     }
 
     // creates a suspension request for a user

@@ -76,7 +76,7 @@ public class PlayerCard {
             return null;
         // Support Discord images and local profile images, without script URLs.
         if (avatar.startsWith("https://") || avatar.startsWith("http://")
-                || avatar.startsWith("/images/"))
+                || avatar.startsWith("/images/") || avatar.startsWith("/profile/"))
             return avatar;
         return null;
     }

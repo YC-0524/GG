@@ -36,21 +36,40 @@ import org.springframework.web.util.UriUtils;
 
 import com.group17.game.Utilities.UsernamePolicy;
 
+// US 44
+import java.time.Duration;
+
+import org.springframework.http.CacheControl;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.group17.game.Models.ProfilePicture;
+import com.group17.game.Models.ProfilePictureRepository;
+import com.group17.game.Utilities.AvatarImages;
+import com.group17.game.Utilities.AvatarImages.InvalidAvatarException;
+
 
 @Controller
 @RequestMapping("/profile") // prefixes /profile to other routes in here
 public class ProfileController {
     static final DateTimeFormatter USERNAME_DATE_FORMAT =
             DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.ENGLISH).withZone(ZoneId.systemDefault());
+    static final DateTimeFormatter AVATAR_DATE_FORMAT =
+            DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h:mm a", Locale.ENGLISH).withZone(ZoneId.systemDefault());
 
     private final UserRepository userRepository;
     private final GameEntryRepository gameEntryRepository;
     private final ProfileTagRepository profileTagRepository;
+    private final ProfilePictureRepository profilePictureRepository;
 
-    public ProfileController(UserRepository userRepo, GameEntryRepository gameEntryRepo, ProfileTagRepository profileTagRepository) {
+    public ProfileController(UserRepository userRepo, GameEntryRepository gameEntryRepo,
+            ProfileTagRepository profileTagRepository, ProfilePictureRepository profilePictureRepository) {
         this.userRepository = userRepo;
         this.gameEntryRepository = gameEntryRepo;
         this.profileTagRepository = profileTagRepository;
+        this.profilePictureRepository = profilePictureRepository;
     }
 
     @GetMapping("/me")
@@ -132,6 +151,63 @@ public class ProfileController {
         return next == null ? null : USERNAME_DATE_FORMAT.format(next);
     }
 
+    @PostMapping("/me/avatar")
+    @Transactional
+    public String changeAvatar(@RequestParam(name = "avatar", required = false) MultipartFile file,
+            @CurrentUser User user) {
+        Instant now = Instant.now();
+
+        if (!user.canChangeAvatar(now)) {
+            return avatarError(user, "You can only change your profile picture once a day.");
+        }
+
+        if (file == null || file.isEmpty()) {
+            return avatarError(user, AvatarImages.EMPTY);
+        }
+
+        byte[] image;
+        try {
+            image = AvatarImages.process(file.getBytes());
+        } catch (InvalidAvatarException e) {
+            return avatarError(user, e.getMessage());
+        } catch (java.io.IOException e) {
+            return avatarError(user, AvatarImages.UNREADABLE);
+        }
+
+        ProfilePicture picture = profilePictureRepository.findById(user.getId())
+                .orElseGet(() -> new ProfilePicture(user.getId(), image, now));
+        picture.setImage(image);
+        picture.setUpdatedAt(now);
+        profilePictureRepository.save(picture);
+
+        // the ?v= part makes browsers fetch the new picture instead of a cached old one
+        user.setAvatar("/profile/" + user.getId() + "/avatar?v=" + now.getEpochSecond());
+        user.setAvatarChangedAt(now);
+        userRepository.save(user);
+
+        return "redirect:/profile/" + user.getId() + "?avatarChanged";
+    }
+
+    @GetMapping("/{userID}/avatar")
+    public ResponseEntity<byte[]> getAvatar(@PathVariable("userID") long userID) {
+        return profilePictureRepository.findById(userID)
+                .map(picture -> ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_PNG)
+                        .cacheControl(CacheControl.maxAge(Duration.ofDays(1)).cachePublic())
+                        .body(picture.getImage()))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    private String avatarError(User user, String message) {
+        return "redirect:/profile/" + user.getId() + "?avatarError="
+                + UriUtils.encodeQueryParam(message, StandardCharsets.UTF_8);
+    }
+
+    private String formatNextAvatarChange(User user) {
+        Instant next = user.getNextAvatarChangeAt();
+        return next == null ? null : AVATAR_DATE_FORMAT.format(next);
+    }
+
     @GetMapping("/search")
     public String searchProfile(
             Model model,
@@ -176,6 +252,8 @@ public class ProfileController {
         model.addAttribute("isOwner", isOwner);
         model.addAttribute("nextUsernameChange", isOwner ? formatNextUsernameChange(user) : null);
         model.addAttribute("canChangeUsername", isOwner && user.canChangeUsername(Instant.now()));
+        model.addAttribute("nextAvatarChange", isOwner ? formatNextAvatarChange(user) : null);
+        model.addAttribute("canChangeAvatar", isOwner && user.canChangeAvatar(Instant.now()));
         return "profile";
     }
 

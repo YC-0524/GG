@@ -23,6 +23,7 @@ public class User {
 
     public static int MINIMUM_PASSWORD_LENGTH = 8;
     public static final Duration USERNAME_CHANGE_COOLDOWN = Duration.ofDays(30);
+    public static final Duration AVATAR_CHANGE_COOLDOWN = Duration.ofDays(1);
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -73,6 +74,11 @@ public class User {
     // Moderator resets don't set this
     @Column(name = "username_changed_at")
     private Instant usernameChangedAt;
+
+    // Last time the player uploaded their own profile picture
+    // Moderator resets don't set this
+    @Column(name = "avatar_changed_at")
+    private Instant avatarChangedAt;
 
     // empty constructor, needed for springboot initializers
     public User() {
@@ -215,5 +221,32 @@ public class User {
     public boolean canChangeUsername(Instant now) {
         Instant next = getNextUsernameChangeAt();
         return next == null || !now.isBefore(next);
+    }
+
+    public Instant getAvatarChangedAt() {
+        return avatarChangedAt;
+    }
+
+    public void setAvatarChangedAt(Instant avatarChangedAt) {
+        this.avatarChangedAt = avatarChangedAt;
+    }
+
+    // null if the player has never uploaded a profile picture
+    public Instant getNextAvatarChangeAt() {
+        return avatarChangedAt == null ? null : avatarChangedAt.plus(AVATAR_CHANGE_COOLDOWN);
+    }
+
+    public boolean canChangeAvatar(Instant now) {
+        Instant next = getNextAvatarChangeAt();
+        return next == null || !now.isBefore(next);
+    }
+
+    // first letter of the username, shown when there's no profile picture
+    public String getInitial() {
+        if (username == null || username.isBlank()) {
+            return "?";
+        }
+        String name = username.strip();
+        return name.substring(0, name.offsetByCodePoints(0, 1)).toUpperCase(java.util.Locale.ROOT);
     }
 }

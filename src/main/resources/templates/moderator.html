@@ -45,6 +45,11 @@
                                 <button type="submit">Clean user</button>
                             </form>
 
+                            <form th:action="@{/dashboard/moderator/users/{id}/reset-avatar(id=${user.id})}"
+                                method="post">
+                                <button type="submit">Reset avatar</button>
+                            </form>
+
                             <form th:action="@{/dashboard/moderator/users/{id}/request-suspension(id=${user.id})}"
                                 method="post">
                                 <input type="text" name="reason" placeholder="reason" required>

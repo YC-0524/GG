@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/profile.css">
     <script src="/js/profileUsername.js" defer></script>
+    <script src="/js/profileAvatar.js" defer></script>
 </head>
 
 <body>
@@ -15,8 +16,27 @@
         <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav=${isOwner ? 'profile' : null})}"></nav>
         <div class="profile-container">
             <section class="profile-splash">
-                <img class="profile-avatar" th:if="${#strings.isEmpty(profile.avatar)}" src="/images/person.svg" alt="Default Avatar" />
-                <img class="profile-avatar" th:unless="${#strings.isEmpty(profile.avatar)}" th:src="@{${profile.avatar}}" alt="User Avatar" referrerpolicy="no-referrer" />
+                <button th:if="${canChangeAvatar}" type="button" id="avatar-edit-button"
+                    class="profile-picture avatar-button" aria-label="Change profile picture"
+                    aria-controls="avatar-panel" aria-expanded="false">
+                    <span class="profile-picture-initial" th:text="${profile.initial}" aria-hidden="true">J</span>
+                    <img th:unless="${#strings.isEmpty(profile.avatar)}" th:src="@{${profile.avatar}}" alt=""
+                        referrerpolicy="no-referrer" />
+                    <span class="avatar-overlay" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                            <circle cx="12" cy="13" r="3" />
+                        </svg>
+                        Change
+                    </span>
+                </button>
+                <div th:unless="${canChangeAvatar}" class="profile-picture">
+                    <span class="profile-picture-initial" th:text="${profile.initial}" aria-hidden="true">J</span>
+                    <img th:unless="${#strings.isEmpty(profile.avatar)}" th:src="@{${profile.avatar}}"
+                        th:alt="${profile.username} + '\'s profile picture'" referrerpolicy="no-referrer" />
+                </div>
+
                 <h1 th:unless="${isOwner}" class="profile-username" th:text="${profile.username}">John Doe</h1>
 
                 <div th:if="${isOwner}" class="username-area">
@@ -36,6 +56,8 @@
                         <span th:unless="${canChangeUsername}" class="muted-text"
                             th:text="'You can change your username again on ' + ${nextUsernameChange}"></span>
                     </div>
+                    <span th:unless="${canChangeAvatar}" class="muted-text"
+                        th:text="'You can change your profile picture again on ' + ${nextAvatarChange}"></span>
 
                     <form th:if="${canChangeUsername}" th:action="@{/profile/me/username}" method="POST"
                         id="username-form" class="username-form" hidden>
@@ -55,6 +77,36 @@
             <p class="success-message" role="status" th:if="${isOwner and param.usernameChanged != null}"
                 th:text="'Your username has been updated. You can change your username again on ' + ${nextUsernameChange}">Your username has been updated.</p>
             <p class="error-message" role="alert" th:if="${isOwner and param.usernameError != null}" th:text="${param.usernameError}"></p>
+            <p class="success-message" role="status" th:if="${isOwner and param.avatarChanged != null}">Profile picture updated</p>
+            <p class="error-message" role="alert" th:if="${isOwner and param.avatarError != null}" th:text="${param.avatarError}"
+                data-avatar-error></p>
+
+            <section th:if="${canChangeAvatar}" id="avatar-panel" class="profile-section avatar-panel"
+                aria-labelledby="avatar-panel-title" hidden>
+                <h2 id="avatar-panel-title">Change profile picture</h2>
+                <form th:action="@{/profile/me/avatar}" method="POST" enctype="multipart/form-data" class="avatar-form">
+                    <div class="avatar-form-row">
+                        <div class="profile-picture avatar-preview" aria-hidden="true">
+                            <span class="profile-picture-initial" th:text="${profile.initial}">J</span>
+                            <img id="avatar-preview-image" alt="" hidden />
+                        </div>
+                        <div class="avatar-form-fields">
+                            <label for="avatar-input">Choose an image</label>
+                            <input type="file" name="avatar" id="avatar-input"
+                                accept="image/jpeg,image/png,image/webp" aria-describedby="avatar-rules" required />
+                            <span id="avatar-rules" class="muted-text avatar-rules">
+                                JPG, PNG or WebP, up to 2 MB and at least 128 × 128 px. It will be cropped to a square.
+                                You can change it once a day.
+                            </span>
+                            <p id="avatar-client-error" class="avatar-client-error" role="alert"></p>
+                        </div>
+                    </div>
+                    <div class="avatar-form-actions">
+                        <button type="submit">Upload</button>
+                        <button type="button" id="avatar-cancel">Cancel</button>
+                    </div>
+                </form>
+            </section>
 
             <section class="profile-section">
                 <div th:replace="~{activityStatus :: activityStatus(${user.activityStatus})}"></div>
