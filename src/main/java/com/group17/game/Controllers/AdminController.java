@@ -22,6 +22,7 @@ import com.group17.game.Models.UserRepository;
 import com.group17.game.Models.UserRole;
 import com.group17.game.Models.UserStatus;
 import com.group17.game.Utilities.AccessService;
+import com.group17.game.Utilities.MatchService;
 
 
 @Controller 
@@ -33,15 +34,18 @@ public class AdminController {
     private final LoginConnectionRepository loginConnectionRepository;
     private final PlayerLikeRepository playerLikeRepository;
     private final GameEntryRepository gameEntryRepository;
+    private final MatchService matchService;
 
-    public AdminController(UserRepository userRepository, SuspensionRequestRepository requestRepository, AccessService access, 
-        LoginConnectionRepository loginConnectionRepository, PlayerLikeRepository playerLikeRepository, GameEntryRepository gameEntryRepository) {
+    public AdminController(UserRepository userRepository, SuspensionRequestRepository requestRepository, AccessService access,
+        LoginConnectionRepository loginConnectionRepository, PlayerLikeRepository playerLikeRepository, GameEntryRepository gameEntryRepository,
+        MatchService matchService) {
         this.userRepository = userRepository;
         this.requestRepository = requestRepository;
         this.access = access;
         this.loginConnectionRepository = loginConnectionRepository;
         this.playerLikeRepository = playerLikeRepository;
         this.gameEntryRepository = gameEntryRepository;
+        this.matchService = matchService;
     }
 
     // suspends user
@@ -120,6 +124,8 @@ public class AdminController {
         requestRepository.deleteByTargetUserId(id);
         playerLikeRepository.deleteBySenderId(id);
         playerLikeRepository.deleteByTargetId(id);
+        // their matches and chat messages (Epic D)
+        matchService.deleteAllForUser(id);
         gameEntryRepository.deleteByUserId(id);
 
         userRepository.delete(target);

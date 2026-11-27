@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Chat with ' + ${chat.otherUsername()} + ' | GAME GANG'">Chat | GAME GANG</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/matches.css">
+    <script src="/js/matches.js" defer></script>
+    <script src="/js/chat.js" defer></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav='matches')}"></nav>
+        <main class="chat-page" id="chat" th:attr="data-match-id=${chat.matchId()}">
+            <header class="chat-header">
+                <a href="/matches" class="chat-back">← Matches</a>
+                <span class="match-avatar" aria-hidden="true">
+                    <span th:text="${chat.otherInitial()}">P</span>
+                    <img th:if="${chat.otherAvatar() != null}" th:src="${chat.otherAvatar()}" alt=""
+                        referrerpolicy="no-referrer">
+                </span>
+                <h1>
+                    <a th:href="@{/profile/{id}(id=${chat.otherId()})}" th:text="${chat.otherUsername()}">Player</a>
+                </h1>
+                <form th:action="@{/matches/{id}/unmatch(id=${chat.matchId()})}" method="post" class="unmatch-form"
+                    th:attr="data-username=${chat.otherUsername()}">
+                    <button type="submit" class="unmatch-button">Unmatch</button>
+                </form>
+            </header>
+
+            <!-- oldest to newest (US 48) -->
+            <ol class="chat-messages" id="chat-messages" aria-label="Messages" aria-live="polite">
+                <li th:each="message : ${chat.messages()}" class="chat-message"
+                    th:classappend="${message.mine()} ? 'mine' : 'theirs'" th:attr="data-message-id=${message.id()}">
+                    <span class="visually-hidden" th:text="${message.mine()} ? 'You:' : ${chat.otherUsername()} + ':'"></span>
+                    <p class="chat-bubble" th:text="${message.body()}">Hello!</p>
+                    <time th:datetime="${message.sentAtIso()}" th:text="${message.sentAt()}">Nov 25, 3:04 PM</time>
+                </li>
+            </ol>
+            <p class="chat-empty" id="chat-empty" th:hidden="${!#lists.isEmpty(chat.messages())}">
+                No messages yet. Say hi and plan a game!
+            </p>
+
+            <p class="error-message" role="alert" th:if="${param.error != null}" th:text="${param.error}"></p>
+            <p class="error-message" role="alert" id="chat-closed" hidden>
+                This chat is closed because one of you unmatched. <a href="/matches">Back to matches</a>
+            </p>
+
+            <form th:action="@{/matches/{id}/messages(id=${chat.matchId()})}" method="post" class="chat-form" id="chat-form">
+                <label for="chat-input" class="visually-hidden">Message</label>
+                <textarea id="chat-input" name="message" rows="2" th:attr="maxlength=${maxLength}"
+                    placeholder="Type a message…" aria-describedby="chat-count" required></textarea>
+                <div class="chat-form-footer">
+                    <span id="chat-count" class="chat-count" th:text="'0 / ' + ${maxLength}">0 / 500</span>
+                    <button type="submit">Send</button>
+                </div>
+            </form>
+        </main>
+    </div>
+</body>
+
+</html>

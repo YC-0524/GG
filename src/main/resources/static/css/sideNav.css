@@ -37,6 +37,20 @@
     height: 24px;
 }
 
+/* unread messages on the Matches link (US 48) */
+.nav-badge {
+    margin-left: auto;
+    min-width: 1.4rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    background: #ff5d7a;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: center;
+}
+
 
 .nav-link.active {
     border-color: #6650b7;

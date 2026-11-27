@@ -14,6 +14,16 @@
                 <img src="/images/group.svg" alt="Match Icon">
                 <span>Match</span>
             </a>
+            <a class="nav-link" href="/matches" th:classappend="${selectedNav == 'matches' ? 'active' : ''}"
+                th:with="unread=${user != null ? @matchService.unreadMessageCount(user.id) : 0}"
+                th:attr="aria-current=${selectedNav == 'matches' ? 'page' : null}">
+                <img src="/images/chat.svg" alt="Matches Icon" />
+                <span>Matches</span>
+                <span class="nav-badge" th:if="${unread > 0}" aria-hidden="true"
+                    th:text="${unread > 99 ? '99+' : unread}">2</span>
+                <span class="visually-hidden" th:if="${unread > 0}"
+                    th:text="${unread == 1 ? ', 1 unread message' : ', ' + unread + ' unread messages'}"></span>
+            </a>
             <a class="nav-link" href="/profile/me" th:classappend="${selectedNav == 'profile' ? 'active' : ''}"
                 th:attr="aria-current=${selectedNav == 'profile' ? 'page' : null}">
                 <img src="/images/person.svg" alt="Profile Picture" />

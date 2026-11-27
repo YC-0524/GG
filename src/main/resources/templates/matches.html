@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matches | GAME GANG</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/matches.css">
+    <script src="/js/matches.js" defer></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav='matches')}"></nav>
+        <main class="matches-page">
+            <h1>Matches</h1>
+            <p class="muted-text">Players who liked you back. Open a chat to plan a game.</p>
+
+            <!-- "It's a match!" for players who liked this player back since their last visit (US 47) -->
+            <div th:each="fresh : ${newMatches}" class="match-banner" role="status">
+                <strong>It's a match!</strong>
+                <span th:text="'You and ' + ${fresh.otherUsername()} + ' liked each other.'">You and Player liked each other.</span>
+            </div>
+
+            <p class="success-message" role="status" th:if="${param.unmatched != null}"
+                th:text="'You unmatched ' + ${param.unmatched} + '. Your chat with them is closed.'"></p>
+            <p class="error-message" role="alert" th:if="${param.error != null}" th:text="${param.error}"></p>
+
+            <p th:if="${#lists.isEmpty(matches)}" class="matches-empty">
+                No matches yet. When someone you liked likes you back, they'll show up here.
+                <a href="/dashboard">Find players</a>
+            </p>
+
+            <ul th:unless="${#lists.isEmpty(matches)}" class="match-list">
+                <li th:each="row : ${matches}" class="match-row" th:classappend="${row.unreadCount() > 0} ? 'has-unread'">
+                    <a class="match-open" th:href="@{/matches/{id}(id=${row.matchId()})}"
+                        th:attr="aria-label=${row.unreadCount() > 0} ? 'Chat with ' + ${row.otherUsername()} + ', ' + ${row.unreadCount()} + ' unread' : 'Chat with ' + ${row.otherUsername()}">
+                        <span class="match-avatar" aria-hidden="true">
+                            <span th:text="${row.otherInitial()}">P</span>
+                            <img th:if="${row.otherAvatar() != null}" th:src="${row.otherAvatar()}" alt=""
+                                referrerpolicy="no-referrer">
+                        </span>
+                        <span class="match-text">
+                            <span class="match-name">
+                                <span th:text="${row.otherUsername()}">Player</span>
+                                <span th:if="${row.isNew()}" class="match-new">New</span>
+                            </span>
+                            <span class="match-preview" th:text="${row.lastMessage() != null} ? ${row.lastMessage()} : 'No messages yet. Say hi!'">No messages yet</span>
+                        </span>
+                        <span th:if="${row.unreadCount() > 0}" class="unread-badge" aria-hidden="true"
+                            th:text="${row.unreadCount() > 99 ? '99+' : row.unreadCount()}">2</span>
+                    </a>
+                    <div class="match-actions-row">
+                        <a th:href="@{/profile/{id}(id=${row.otherId()})}">Profile</a>
+                        <form th:action="@{/matches/{id}/unmatch(id=${row.matchId()})}" method="post"
+                            class="unmatch-form" th:attr="data-username=${row.otherUsername()}">
+                            <button type="submit" class="unmatch-button">Unmatch</button>
+                        </form>
+                    </div>
+                </li>
+            </ul>
+        </main>
+    </div>
+</body>
+
+</html>

@@ -48,7 +48,7 @@ class PlayerLikeTests {
                     .post("/dashboard/players/" + target.getId() + "/like")
                     .with(authentication(login(sender)))
                     .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isNoContent());
+                    .andExpect(status().isOk());
         }
         users.flush();
         assertTrue(likes.existsBySenderIdAndTargetId(sender.getId(), target.getId()));
