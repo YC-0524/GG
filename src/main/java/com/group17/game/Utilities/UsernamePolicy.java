@@ -7,6 +7,8 @@ public class UsernamePolicy {
     public static final int MIN_LENGTH = 3;
     public static final int MAX_LENGTH = 20;
     private static final Pattern ALLOWED = Pattern.compile("[A-Za-z0-9_]+");
+    // "user" + digits is what a moderator reset gives someone, so players can't pick it
+    private static final Pattern RESERVED = Pattern.compile("(?i)user\\d+");
 
     private UsernamePolicy() {}
 
@@ -16,6 +18,9 @@ public class UsernamePolicy {
         }
         if (!ALLOWED.matcher(username).matches()) {
             return Optional.of("Username can only use letters, numbers and underscores.");
+        }
+        if (RESERVED.matcher(username).matches()) {
+            return Optional.of("Usernames like user123 are reserved.");
         }
         return Optional.empty();
     }

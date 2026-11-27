@@ -57,7 +57,7 @@ public class ModeratorController {
         access.assertCanModerate(actor, target);
 
         // don't set usernameChangedAt: a moderator reset doesn't use up the player's change (US 43)
-        target.setUsername("user" + target.getId());
+        target.setUsername(resetUsername(target));
         target.setAvatar(null);
         userRepository.save(target);
         
@@ -78,6 +78,18 @@ public class ModeratorController {
         requestRepository.save(request);
         
         return "redirect:/dashboard/moderator";
+    }
+
+    // "user" + id, plus "_1", "_2"... if someone already has that name (e.g. from sign-up)
+    private String resetUsername(User target) {
+        String base = "user" + target.getId();
+        String name = base;
+        int suffix = 1;
+        while (userRepository.existsByUsernameIgnoreCaseAndIdNot(name, target.getId())) {
+            name = base + "_" + suffix;
+            suffix++;
+        }
+        return name;
     }
 
     // gets user

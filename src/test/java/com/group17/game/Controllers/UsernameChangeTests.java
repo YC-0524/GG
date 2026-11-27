@@ -90,6 +90,45 @@ class UsernameChangeTests {
     }
 
     @Test
+    void policyReservesModeratorResetNames() {
+        assertTrue(UsernamePolicy.validate("user10").isPresent());
+        assertTrue(UsernamePolicy.validate("User10").isPresent());
+        assertTrue(UsernamePolicy.validate("USER5").isPresent());
+
+        // only "user" + digits is reserved
+        assertTrue(UsernamePolicy.validate("user").isEmpty());
+        assertTrue(UsernamePolicy.validate("user_10").isEmpty());
+        assertTrue(UsernamePolicy.validate("user10x").isEmpty());
+        assertTrue(UsernamePolicy.validate("superuser10").isEmpty());
+    }
+
+    @Test
+    void rejectsReservedUsername() throws Exception {
+        User user = register("normalName");
+
+        expectError(user, change(user, "user10"));
+        expectError(user, change(user, "User10"));
+
+        User saved = reload(user);
+        assertEquals("normalName", saved.getUsername());
+        assertNull(saved.getUsernameChangedAt());
+    }
+
+    @Test
+    void moderatorResetSkipsNameAlreadyTaken() throws Exception {
+        User moderator = register("modUser2", UserRole.MODERATOR);
+        User player = register("badName");
+        // someone already has the reset name (e.g. from sign-up before names were reserved)
+        register("User" + player.getId());
+
+        mockMvc.perform(post("/dashboard/moderator/users/" + player.getId() + "/clean")
+                .with(csrf()).with(loginAs(moderator)))
+                .andExpect(status().is3xxRedirection());
+
+        assertEquals("user" + player.getId() + "_1", reload(player).getUsername());
+    }
+
+    @Test
     void changesUsernameAndStartsCooldown() throws Exception {
         User user = register("oldName");
 
