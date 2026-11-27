@@ -108,6 +108,24 @@
             </fieldset>
         </aside>
     </div>
+
+    <!-- "It's a match!" (US 47): opened by dashboard.js after a mutual Like,
+         or right away when someone liked this player back since their last visit -->
+    <dialog id="match-dialog" class="match-dialog" aria-labelledby="match-dialog-title"
+        th:attr="data-show-on-load=${!#lists.isEmpty(newMatches)}"
+        th:with="single=${#lists.size(newMatches) == 1}">
+        <h2 id="match-dialog-title">It's a match!</h2>
+        <p id="match-dialog-text"
+            th:text="${#lists.isEmpty(newMatches)} ? '' : (${single} ? 'You and ' + ${newMatches[0].otherUsername()} + ' liked each other.' : 'You have ' + ${#lists.size(newMatches)} + ' new matches.')">
+        </p>
+        <div class="match-dialog-actions">
+            <a id="match-dialog-link" class="match-dialog-primary"
+                th:href="${single} ? @{/matches/{id}(id=${newMatches[0].matchId()})} : @{/matches}"
+                th:text="${single} ? 'Send a message' : 'See matches'">Send a message</a>
+            <button type="button" id="match-dialog-close">Keep browsing</button>
+        </div>
+    </dialog>
+
     <script src="/js/dashboard.js" defer></script>
 </body>
 

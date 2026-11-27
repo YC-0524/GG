@@ -16,6 +16,7 @@ import com.group17.game.Models.SuspensionRequestRepository;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 import com.group17.game.Models.UserRole;
+import com.group17.game.Utilities.MatchService;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -32,18 +33,21 @@ public class DashboardController {
     private final GameRequestRepository gameRequestRepository;
     private final ProfileTagRepository profileTagRepository;
     private final GameEntryRepository gameEntryRepository;
+    private final MatchService matchService;
 
     public DashboardController(
             UserRepository userRepository,
             SuspensionRequestRepository requestRepository,
-            GameRequestRepository gameRequestRepository ,           
+            GameRequestRepository gameRequestRepository ,
             ProfileTagRepository profileTagRepository,
-            GameEntryRepository gameEntryRepository) {
+            GameEntryRepository gameEntryRepository,
+            MatchService matchService) {
         this.userRepository = userRepository;
         this.requestRepository = requestRepository;
         this.gameRequestRepository = gameRequestRepository;
         this.profileTagRepository = profileTagRepository;
         this.gameEntryRepository = gameEntryRepository;
+        this.matchService = matchService;
     }
 
     @GetMapping("")
@@ -68,6 +72,8 @@ public class DashboardController {
             p.setGameEntries(new ArrayList<>(gameEntries));
         }
         model.addAttribute("players", playerCards);
+        // players who liked this player back since their last visit (US 47)
+        model.addAttribute("newMatches", matchService.takeNewMatches(userId));
         return "dashboard";
     }
 

@@ -11,6 +11,22 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentIndex;
     let savingLike = false;
 
+    // "It's a match!" (US 47)
+    const matchDialog = document.getElementById("match-dialog");
+    const matchDialogText = document.getElementById("match-dialog-text");
+    const matchDialogLink = document.getElementById("match-dialog-link");
+
+    function showMatchDialog(username, matchId) {
+        if (username) {
+            matchDialogText.textContent = `You and ${username} liked each other.`;
+            matchDialogLink.href = `/matches/${matchId}`;
+            matchDialogLink.textContent = "Send a message";
+        }
+        if (!matchDialog.open) matchDialog.showModal();
+    }
+
+    document.getElementById("match-dialog-close").addEventListener("click", () => matchDialog.close());
+
     function chooseNextIndex() {
         const available = Array.from(cards.keys())
             .filter(index => !likedIndices.has(index));
@@ -70,10 +86,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 credentials: "same-origin",
                 headers: token && header ? { [header]: token } : {}
             });
-            if (response.status !== 204) throw new Error("Like failed");
+            if (!response.ok) throw new Error("Like failed");
+            const result = await response.json();
             likedIndices.add(currentIndex);
             if (queuedIndex !== undefined && likedIndices.has(queuedIndex)) queuedIndex = undefined;
             showRandomCard();
+            if (result.matched) showMatchDialog(result.username, result.matchId);
         } catch (error) {
             status.textContent = "Could not save your Like. Please try again or sign in again.";
         } finally {
@@ -85,4 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     showRandomCard();
+
+    // someone liked this player back since their last visit
+    if (matchDialog.dataset.showOnLoad === "true") showMatchDialog();
 });
