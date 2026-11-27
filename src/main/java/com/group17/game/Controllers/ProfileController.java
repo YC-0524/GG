@@ -193,7 +193,8 @@ public class ProfileController {
         return profilePictureRepository.findById(userID)
                 .map(picture -> ResponseEntity.ok()
                         .contentType(MediaType.IMAGE_PNG)
-                        .cacheControl(CacheControl.maxAge(Duration.ofDays(1)).cachePublic())
+                        // short, so a picture a moderator removed doesn't stay cached for long
+                        .cacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePublic())
                         .body(picture.getImage()))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }

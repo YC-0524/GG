@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
@@ -19,7 +20,9 @@ public final class AvatarImages {
     public static final int MIN_SIZE = 128;
     public static final int OUTPUT_SIZE = 256;
     // stops tiny files that unpack into huge images from using up memory
-    private static final int MAX_SIDE = 8000;
+    public static final int MAX_SIDE = 4096;
+    // big images are read at reduced size, but never below this, so the resize still looks smooth
+    private static final int READ_SIZE = OUTPUT_SIZE * 2;
 
     public static final String NOT_ALLOWED = "Only JPG, PNG or WebP images are allowed.";
     public static final String NO_GIFS = "GIFs aren't allowed. Please upload a JPG, PNG or WebP image.";
@@ -101,7 +104,12 @@ public final class AvatarImages {
             if (type.equals("IDAT")) {
                 return false;
             }
-            pos += 12 + length; // length + type + data + crc
+            // length + type + data + crc, as a long so a huge length can't wrap around and loop forever
+            long next = pos + 12L + length;
+            if (next > d.length) {
+                return false; // broken chunk: ImageIO will reject the file
+            }
+            pos = (int) next;
         }
         return false;
     }
@@ -131,7 +139,11 @@ public final class AvatarImages {
                 if (width > MAX_SIDE || height > MAX_SIDE) {
                     throw new InvalidAvatarException(TOO_LARGE);
                 }
-                return reader.read(0);
+                // only keep every n-th pixel of big images: the result is 256 px anyway
+                int step = Math.max(1, Math.min(width, height) / READ_SIZE);
+                ImageReadParam param = reader.getDefaultReadParam();
+                param.setSourceSubsampling(step, step, 0, 0);
+                return reader.read(0, param);
             } finally {
                 reader.dispose();
             }

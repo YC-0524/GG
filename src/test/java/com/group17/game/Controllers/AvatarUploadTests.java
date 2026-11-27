@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -218,6 +220,36 @@ class AvatarUploadTests {
         animated[20] = 0x02;
 
         expectError(user, upload(user, "pic.webp", "image/webp", animated), AvatarImages.NO_ANIMATION);
+    }
+
+    @Test
+    void brokenPngChunkIsRejectedWithoutHanging() {
+        // PNG signature + a chunk whose length is 0xFFFFFFF4, so 12 + length wraps to 0 in an int
+        byte[] broken = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A,
+                (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xF4, 't', 'E', 'X', 't', 0, 0, 0, 0};
+
+        AvatarImages.InvalidAvatarException e = assertTimeoutPreemptively(Duration.ofSeconds(5),
+                () -> assertThrows(AvatarImages.InvalidAvatarException.class, () -> AvatarImages.process(broken)));
+        assertEquals(AvatarImages.UNREADABLE, e.getMessage());
+    }
+
+    @Test
+    void rejectsImageWiderThanMaxSide() throws Exception {
+        User user = register("tooWide");
+
+        expectError(user, upload(user, "wide.png", "image/png", image(AvatarImages.MAX_SIDE + 1, 200, "png")),
+                AvatarImages.TOO_LARGE);
+    }
+
+    @Test
+    void bigImageIsReadSmallerAndStillSavedAt256() throws Exception {
+        User user = register("bigPhoto");
+
+        expectSuccess(user, upload(user, "big.jpg", "image/jpeg", image(2400, 1800, "jpg")));
+
+        BufferedImage saved = stored(user);
+        assertEquals(256, saved.getWidth());
+        assertEquals(256, saved.getHeight());
     }
 
     @Test
