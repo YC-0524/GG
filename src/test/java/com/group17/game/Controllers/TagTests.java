@@ -145,15 +145,49 @@ public class TagTests {
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/tags"));
+
+        tag = tagRepository.findByUserIdAndTag(user.getId(), "Casual");
+        assertTrue(tag.isEmpty());
+    }
+
+    @Test
+    @Transactional
+    void testRemovingOtherUserTagHTTP() throws Exception {
+        User user = Helpers.generateRandomValidTestUser();
+
+        // insert user
+        userRepository.save(user);
+        assertTrue(userRepository.existsById(user.getId()));
+
+        mockMvc.perform(post("/tags")
+                .param("tag", "Casual")
+                .param("tagType", "PLAYSTYLE")
+                .with(authentication(Helpers.login(user)))
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/tags"));
+
+        Optional<ProfileTag> tag = tagRepository.findByUserIdAndTag(user.getId(), "Casual");
+        assertTrue(tag.isPresent());
+
+        User other = Helpers.generateRandomValidTestUser();
+        userRepository.save(other);
+
+        mockMvc.perform(post("/tags/" + tag.get().getId() + "/delete")
+                .with(authentication(Helpers.login(other)))
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/tags?error=Tag doesn't belong to you."));
+
+        // The tag must be present as we tried with the other
+        tag = tagRepository.findByUserIdAndTag(user.getId(), "Casual");
+        assertTrue(tag.isPresent());
     }
 
     @Test
     @Transactional
     void testRemovingNonExistentTagHTTP() throws Exception {
-        User user = new User(
-                "username",
-                "email@gmail.com",
-                "134eb251c5f98bbbc2a345b3d0a33ad10437919899571bd158114097d54b30cf");
+        User user = Helpers.generateRandomValidTestUser();
 
         // insert user
         userRepository.save(user);
@@ -185,10 +219,7 @@ public class TagTests {
     @Test
     @Transactional
     void testInvalidTagsHTTP() throws Exception {
-        User user = new User(
-                "username",
-                "email@gmail.com",
-                "134eb251c5f98bbbc2a345b3d0a33ad10437919899571bd158114097d54b30cf");
+        User user = Helpers.generateRandomValidTestUser();
 
         // insert user
         userRepository.save(user);

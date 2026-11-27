@@ -76,11 +76,15 @@ public class ActivityTests {
         assertTrue(userRepository.existsById(user.getId()));
 
         mockMvc.perform(post("/profile/me/status")
-                .param("status", "OFFLINE")
+                .param("status", "AFK")
                 .with(authentication(Helpers.login(user)))
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection());
 
+        entityManager.flush();
+        User reloaded = reload(user);
+
+        assertEquals(ActivityStatus.AFK, reloaded.getActivityStatus());
         assertTrue(user.isManualStatusOverride());
     }
 
