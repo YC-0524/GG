@@ -29,6 +29,11 @@
                 <img src="/images/search.svg" alt="Game Search" />
                 <span>Search Games</span>
             </a>
+            <a class="nav-link" href="/sos" th:classappend="${selectedNav == 'sos' ? 'active' : ''}"
+                th:attr="aria-current=${selectedNav == 'sos' ? 'page' : null}">
+                <img src="/images/sos.svg" alt="SOS Hub" />
+                <span>SOS Hub</span>
+            </a>
         </nav>
         <section class="sidebar-section" th:if="${user != null}">
             <div th:replace="~{activityStatusChange :: activityStatusChange(${user.activityStatus})}"></div>

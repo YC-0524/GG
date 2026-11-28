@@ -1,0 +1,186 @@
+/* SOS Hub (US 51).
+   The page layout, form fields and card box come from gameRequest.css,
+   and buttons, links and focus outlines from style.css and common.css. */
+
+/* Hub header: title on the left, New SOS on the right */
+.sos-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.sos-header > div {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.sos-back {
+    align-self: flex-start;
+}
+
+/* Post list and cards */
+.sos-list {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sos-card {
+    gap: 0.6rem;
+}
+
+.sos-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.sos-meta > span {
+    padding: 0.15rem 0.6rem;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+}
+
+.sos-meta > .sos-status {
+    border-color: var(--success-color);
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.sos-meta > .sos-type {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.sos-title {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.sos-title a {
+    color: inherit;
+}
+
+.sos-title a:hover {
+    text-decoration: underline;
+}
+
+/* On the hub, show only the first two lines of the details */
+.sos-preview {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+/* On the post page, keep the player's line breaks */
+.sos-details {
+    margin: 0;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.sos-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.9rem;
+    color: var(--accent-color);
+}
+
+.sos-byline {
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+.sos-byline a {
+    color: inherit;
+}
+
+.sos-empty,
+.sos-game,
+.sos-preview,
+.sos-byline,
+.optional,
+.char-count,
+.field-help {
+    color: var(--muted-text);
+}
+
+/* New SOS form */
+.sos-form fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.sos-form legend {
+    padding: 0;
+    margin-bottom: 0.35rem;
+}
+
+.sos-type-options label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.sos-type-options input[type="radio"] {
+    accent-color: var(--accent-color);
+}
+
+.field-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+}
+
+.optional,
+.char-count,
+.field-help {
+    font-size: 0.85rem;
+}
+
+.field-help {
+    margin: 0;
+}
+
+/* Hashtag suggestion chips (disabled look comes from style.css) */
+.sos-tag-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.sos-tag-suggestion {
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font-size: 0.85rem;
+}
+
+.sos-tag-suggestion:hover:not(:disabled) {
+    border-color: var(--accent-color);
+}
+
+.sos-tag-suggestion[aria-pressed="true"] {
+    border-color: var(--accent-color);
+    background: rgb(183 154 255 / 15%);
+    color: var(--accent-color);
+}

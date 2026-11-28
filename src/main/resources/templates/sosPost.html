@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${post.title} + ' | GAME GANG'">SOS | GAME GANG</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" th:href="@{/css/gameRequest.css}">
+    <link rel="stylesheet" th:href="@{/css/sos.css}">
+</head>
+
+<body>
+    <div class="app-container sos-page">
+        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav='sos')}"></nav>
+
+        <main class="content-container sos-content">
+            <a class="sos-back" th:href="@{/sos}">← Back to SOS Hub</a>
+
+            <p class="success-message" th:if="${success}" th:text="${success}" role="status"></p>
+
+            <article class="sos-card">
+                <div class="sos-meta">
+                    <span class="sos-status" th:text="${post.status.label}">Open</span>
+                    <span class="sos-game" th:text="${post.gameName}">Minecraft</span>
+                    <span class="sos-type" th:text="${post.type.label}">Single-player tips</span>
+                </div>
+                <h2 class="sos-title" th:text="${post.title}">Can't beat the Ender Dragon</h2>
+                <p class="sos-details" th:unless="${#strings.isEmpty(post.details)}"
+                   th:text="${post.details}"></p>
+                <ul class="sos-tags" th:unless="${#lists.isEmpty(post.hashtags)}" aria-label="Hashtags">
+                    <li th:each="tag : ${post.hashtags}" th:text="'#' + ${tag}">#boss-fight</li>
+                </ul>
+                <p class="sos-byline">
+                    Posted by
+                    <a th:href="@{/profile/{id}(id=${post.author.id})}" th:text="${post.author.username}">player</a>
+                    · <span th:text="${post.createdAtLabel}">Nov 25, 2026</span>
+                </p>
+            </article>
+        </main>
+    </div>
+</body>
+
+</html>
