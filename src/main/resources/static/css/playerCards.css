@@ -45,25 +45,65 @@
     gap: 1rem;
 }
 
-/* Preferences are disabled until real filtering is connected. */
+/* Match preferences */
 .preferences {
     align-self: start;
-    margin: 32px 20px 32px 0;
-    padding: 24px 20px;
-    border: 1px solid var(--border-color);
-    border-radius: 18px;
-    background: var(--panel-background);
+    margin: 32px 18px 32px 0;
+    color: #f4f2ff;
 }
 
 .preferences h2 {
-    margin: 0;
-    font-size: 21px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border: 1px solid #26274a;
+    border-radius: 15px;
+    background: #111426;
+    font-size: 19px;
 }
 
-.preferences-note {
-    margin: 8px 0 24px;
-    color: var(--muted-text);
-    font-size: 14px;
+.preferences-heading-icon {
+    display: grid;
+    place-content: center;
+    gap: 4px;
+    flex: 0 0 36px;
+    height: 36px;
+    border: 1px solid #433c77;
+    border-radius: 10px;
+    background: #232247;
+    color: #c5b8ff;
+}
+
+.preferences-heading-icon i {
+    position: relative;
+    width: 17px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+}
+
+.preferences-heading-icon i::after {
+    position: absolute;
+    top: -2px;
+    left: 4px;
+    width: 2px;
+    height: 6px;
+    border-radius: 2px;
+    background: currentColor;
+    content: "";
+}
+
+.preferences-heading-icon i:nth-child(2)::after {
+    left: 11px;
+}
+
+#match-filters {
+    padding: 14px;
+    border: 1px solid #26274a;
+    border-radius: 16px;
+    background: linear-gradient(155deg, #151a30, #111426 75%);
 }
 
 .preferences fieldset {
@@ -73,54 +113,259 @@
     min-width: 0;
 }
 
-.preferences legend {
-    margin-bottom: 12px;
-    font-size: 15px;
+/* Keep the group name and native controls available to keyboard and screen reader users. */
+.preferences legend,
+.genre-options input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
 }
 
 .genre-options {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
-    margin-bottom: 24px;
+    padding-bottom: 14px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid #2b2e50;
 }
 
 .genre-options label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px;
-    border: 1px solid #40365e;
-    border-radius: 20px;
-    font-size: 14px;
-    color: var(--muted-text);
+    position: relative;
+    cursor: pointer;
 }
 
-.genre-options input {
-    margin: 0;
-    accent-color: #a47ae5;
+.genre-options span {
+    display: grid;
+    place-items: center;
+    min-height: 38px;
+    padding: 3px;
+    border: 1px solid #403b74;
+    border-radius: 999px;
+    background: #171c34;
+    color: #eeeafe;
+    font-size: 13px;
+}
+
+.genre-options label:hover span {
+    border-color: #8e83d5;
+}
+
+.genre-options input:checked + span {
+    border-color: #6c8fff;
+    background: linear-gradient(115deg, #3b6df2, #335bce);
+    color: white;
+}
+
+.genre-options input:focus-visible + span,
+.preference-field summary:focus-visible {
+    outline: 2px solid #b8adff;
+    outline-offset: 2px;
 }
 
 .preference-field {
+    position: relative;
+}
+
+.preference-field + .preference-field {
+    margin-top: 8px;
+}
+
+.preference-field summary {
+    position: relative;
     display: grid;
-    gap: 8px;
-    padding: 16px 0;
-    border-top: 1px solid var(--border-color);
-}
-
-.preference-field label {
-    color: var(--muted-text);
+    align-content: center;
+    gap: 2px;
+    min-height: 58px;
+    padding: 8px 26px 8px 46px;
+    border-radius: 9px;
+    color: #f4f2ff;
     font-size: 15px;
+    list-style: none;
+    cursor: pointer;
 }
 
-.preference-field select {
+.preference-field summary::-webkit-details-marker {
+    display: none;
+}
+
+.preference-label {
+    color: #c8c3dc;
+    font-size: 12px;
+}
+
+.preference-field summary:hover,
+.preference-field[open] summary {
+    background: #1c2140;
+}
+
+.preference-field summary::after {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    width: 7px;
+    height: 7px;
+    border-top: 2px solid #9a8ee2;
+    border-right: 2px solid #9a8ee2;
+    transform: translateY(-50%) rotate(45deg);
+    pointer-events: none;
+    content: "";
+}
+
+.preference-field[open] summary::after {
+    transform: translateY(-65%) rotate(135deg);
+}
+
+.preferences .preference-options {
+    display: grid;
+    gap: 2px;
+    padding: 6px 4px 0;
+}
+
+.preference-options label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.preference-options label:hover {
+    background: #1c2140;
+}
+
+.preference-options input {
+    accent-color: #4e77ed;
+}
+
+.preferences .age-filter-bounds {
+    display: grid;
+    grid-template-columns: 1fr minmax(64px, 88px);
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    font-size: 13px;
+}
+
+.age-filter-bounds input {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #40365e;
+    min-width: 0;
+    padding: 6px;
+    border: 1px solid #403b74;
+    border-radius: 6px;
+    background: #171c34;
+    color: inherit;
+    font: inherit;
+}
+
+.age-filter-bounds .preference-note {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: #c8c3dc;
+}
+
+.age-filter-error {
+    margin: 4px 8px 8px;
+    color: #ffc1cb;
+    font-size: 13px;
+}
+
+.apply-filters {
+    width: 100%;
+    margin-top: 12px;
+    padding: 8px;
+    border: 1px solid #6c8fff;
     border-radius: 8px;
-    background: #19172b;
-    color: #ddd5f3;
-    opacity: 1;
+    background: #335bce;
+    color: white;
+    font: inherit;
+    cursor: pointer;
+}
+
+.apply-filters:hover {
+    background: #3b6df2;
+}
+
+.preference-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    z-index: 1;
+    width: 22px;
+    height: 22px;
+    color: #b7aaf8;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.preference-icon--people {
+    background: currentColor;
+    mask: url("/images/group.svg") center / contain no-repeat;
+}
+
+.preference-icon--globe,
+.preference-icon--clock {
+    border: 2px solid currentColor;
+    border-radius: 50%;
+}
+
+.preference-icon--globe::before,
+.preference-icon--globe::after,
+.preference-icon--clock::before,
+.preference-icon--mic::before,
+.preference-icon--mic::after {
+    position: absolute;
+    content: "";
+}
+
+.preference-icon--globe::before {
+    inset: 0 4px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+}
+
+.preference-icon--globe::after {
+    inset: 5px 0;
+    border-block: 1px solid currentColor;
+}
+
+.preference-icon--clock::before {
+    top: 3px;
+    left: 8px;
+    width: 5px;
+    height: 7px;
+    border-left: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+}
+
+.preference-icon--mic {
+    width: 16px;
+    height: 14px;
+    margin-left: 3px;
+    border: 2px solid currentColor;
+    border-top: 0;
+    border-radius: 0 0 9px 9px;
+}
+
+.preference-icon--mic::before {
+    left: 3px;
+    bottom: 4px;
+    width: 6px;
+    height: 13px;
+    border-radius: 6px;
+    background: currentColor;
+}
+
+.preference-icon--mic::after {
+    left: 5px;
+    bottom: -6px;
+    width: 2px;
+    height: 5px;
+    background: currentColor;
 }
 
 /* Leave space on the left for the next card behind the main card. */
@@ -382,37 +627,6 @@
 
     .preferences {
         margin: 20px 16px 20px 0;
-        padding: 18px 16px;
-    }
-
-    .preferences h2 {
-        font-size: 20px;
-    }
-
-    .preferences-note {
-        margin: 4px 0 14px;
-    }
-
-    .preferences legend {
-        margin-bottom: 8px;
-    }
-
-    .genre-options {
-        gap: 6px;
-        margin-bottom: 14px;
-    }
-
-    .genre-options label {
-        padding: 6px 8px;
-    }
-
-    .preference-field {
-        gap: 4px;
-        padding: 10px 0;
-    }
-
-    .preference-field select {
-        padding: 6px 10px;
     }
 }
 
@@ -429,10 +643,6 @@
     .preferences {
         grid-column: 2;
         margin: 0 24px 32px;
-    }
-
-    .genre-options {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
@@ -475,10 +685,6 @@
 
     .player-card h3 {
         font-size: 26px;
-    }
-
-    .genre-options {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 /* The shared navigation must fit its dashboard grid column. */

@@ -32,10 +32,13 @@ public class ProfileTag {
                     "FPS",
                     "RPG",
                     "Moba",
+                    "Survival",
                     "MMO")),
             ProfileTagType.SCHEDULE, new HashSet<>(Arrays.asList(
                     "Night Owl",
                     "Early Bird",
+                    "Afternoon",
+                    "Evening",
                     "Whenever")),
             ProfileTagType.MIC, new HashSet<>(Arrays.asList(
                     "Mic",

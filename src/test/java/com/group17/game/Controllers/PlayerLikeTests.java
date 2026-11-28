@@ -1,5 +1,7 @@
 package com.group17.game.Controllers;
 
+import com.group17.game.Models.AgeRange;
+import com.group17.game.Models.Region;
 import com.group17.game.Models.User;
 import com.group17.game.Models.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -32,7 +34,9 @@ class PlayerLikeTests {
     @Autowired com.group17.game.Models.PlayerLikeRepository likes;
 
     private User register(String name) {
-        return users.saveAndFlush(new User(name, name + "@example.com", "a".repeat(64)));
+        User user = new User(name, name + "@example.com", "a".repeat(64));
+        user.setAgeRange(AgeRange.AGE_18_24);
+        return users.saveAndFlush(user);
     }
 
     private UsernamePasswordAuthenticationToken login(User user) {
@@ -92,11 +96,13 @@ class PlayerLikeTests {
     void likedPlayersStayExcludedOnSubsequentDashboardLoads() throws Exception {
         User sender = register("Sender"), target = register("LikedTarget"), other = register("OtherTarget");
         likes.saveAndFlush(new com.group17.game.Models.PlayerLike(sender, target));
-        var recommendations = users.findPlayerCardsExcluding(sender.getId());
+        var recommendations = users.findPlayerCardsExcluding(sender.getId(), List.of(AgeRange.values()), List.of(Region.values()), true, false,
+                User.MINIMUM_AGE, User.MAXIMUM_AGE);
         assertEquals(1, recommendations.size());
         assertEquals(other.getId(), recommendations.get(0).getId());
         // A like belongs to the sender: other users may still see this target.
-        assertTrue(users.findPlayerCardsExcluding(other.getId()).stream()
+        assertTrue(users.findPlayerCardsExcluding(other.getId(), List.of(AgeRange.values()), List.of(Region.values()), true, false,
+                User.MINIMUM_AGE, User.MAXIMUM_AGE).stream()
                 .anyMatch(card -> card.getId().equals(target.getId())));
         mockMvc.perform(get("/dashboard").with(authentication(login(sender))))
                 .andExpect(status().isOk())
