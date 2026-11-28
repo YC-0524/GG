@@ -64,7 +64,9 @@
 }
 
 .sidebar-section a {
+    display: block;
     font-size: 14px;
+    margin-bottom: 4px;
 }
 
 .side-navigation h1 {

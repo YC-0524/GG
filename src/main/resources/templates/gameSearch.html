@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Games | GAME GANG</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/gameSearch.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <nav th:replace="~{sideNavigation :: sideNavigation}"></nav>
+        <div class="content-container game-search-container">
+            <h2>Search Games</h2>
+
+            <form class="game-search-form" th:action="@{/games/search}" method="get">
+                <label for="game-query" class="visually-hidden">Game name</label>
+                <input type="text" id="game-query" name="q" th:value="${query}"
+                    placeholder="Search thousands of games" autocomplete="off">
+                <button type="submit">Search</button>
+            </form>
+
+            <p class="form-message" th:if="${#strings.isEmpty(query)}">
+                Type a game name to search.
+            </p>
+            <p class="form-message"
+                th:if="${!#strings.isEmpty(query) and #lists.isEmpty(results)}">
+                No games found.
+            </p>
+
+            <ul class="game-results" th:unless="${#lists.isEmpty(results)}">
+                <li class="game-result" th:each="game : ${results}">
+                    <img th:if="${game.coverUrl != null}" th:src="${game.coverUrl}"
+                        th:alt="|Cover of ${game.gameName}|" loading="lazy">
+                    <div class="game-result-info">
+                        <h3 th:text="${game.gameName}">Hollow Knight</h3>
+                        <p class="game-result-genres" th:text="${game.genres}">Action, Platformer</p>
+                    </div>
+                </li>
+            </ul>
+
+            <p class="rawg-credit">
+                <a href="https://rawg.io" target="_blank" rel="noopener">Data from RAWG</a>
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>
