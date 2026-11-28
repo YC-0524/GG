@@ -199,11 +199,11 @@ class DashboardTests {
         mockMvc.perform(get("/dashboard").with(authentication(login(viewer))))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("players", containsInAnyOrder(hasProperty("id", is(teen.getId())))));
-        mockMvc.perform(get("/dashboard").param("ageRange", "TEEN", "AGE_18_24")
+        mockMvc.perform(get("/dashboard").param("ageRange", "AGE_18_24")
                         .with(authentication(login(viewer))))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("players", containsInAnyOrder(hasProperty("id", is(teen.getId())))));
-        mockMvc.perform(get("/dashboard").param("ageRange", "AGE_18_24").with(authentication(login(viewer))))
+        mockMvc.perform(get("/dashboard").param("minAge", "18").with(authentication(login(viewer))))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("players", List.of()));
     }
@@ -221,10 +221,6 @@ class DashboardTests {
                 .andExpect(content().string(containsString("min=\"18\"")))
                 .andExpect(model().attribute("players", containsInAnyOrder(hasProperty("id", is(adult.getId())))));
         mockMvc.perform(get("/dashboard").param("ageRange", "TEEN").with(authentication(login(viewer))))
-                .andExpect(status().isOk())
-                .andExpect(model().attribute("players", List.of()));
-        mockMvc.perform(get("/dashboard").param("ageRange", "TEEN", "AGE_18_24")
-                        .with(authentication(login(viewer))))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("players", containsInAnyOrder(hasProperty("id", is(adult.getId())))));
     }
@@ -246,6 +242,7 @@ class DashboardTests {
                         .with(authentication(login(viewer))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("23–28")))
+                .andExpect(content().string(containsString("Age filters only include players who show their age.")))
                 .andExpect(model().attribute("players", containsInAnyOrder(
                         hasProperty("id", is(minimum.getId())), hasProperty("id", is(maximum.getId())))));
         mockMvc.perform(get("/dashboard").param("minAge", "23").with(authentication(login(viewer))))
@@ -278,17 +275,18 @@ class DashboardTests {
         User differentRegion = register("DifferentRegion");
         User differentAge = register("DifferentAge");
         for (User player : List.of(match, differentRegion, differentAge)) {
-            player.setAgeRange(AgeRange.AGE_25_34);
+            player.updateAge(28, true);
             player.setRegion(Region.EUROPE);
             tags.save(new ProfileTag(player.getId(), "FPS", ProfileTagType.GENRE));
             tags.save(new ProfileTag(player.getId(), "Mic", ProfileTagType.MIC));
             tags.save(new ProfileTag(player.getId(), "Evening", ProfileTagType.SCHEDULE));
         }
         differentRegion.setRegion(Region.ASIA);
-        differentAge.setAgeRange(AgeRange.AGE_35_PLUS);
+        differentAge.updateAge(35, true);
         users.flush();
 
-        mockMvc.perform(get("/dashboard").param("ageRange", "AGE_25_34").param("region", "EUROPE")
+        mockMvc.perform(get("/dashboard").param("minAge", "25").param("maxAge", "34")
+                        .param("region", "EUROPE", "INVALID")
                         .param("genre", "FPS", "RPG").param("playTime", "Evening").param("mic", "Mic")
                         .with(authentication(login(viewer))))
                 .andExpect(status().isOk())
@@ -318,13 +316,40 @@ class DashboardTests {
         tags.save(new ProfileTag(excluded.getId(), "Evening", ProfileTagType.SCHEDULE));
         users.flush();
 
-        mockMvc.perform(get("/dashboard").param("ageRange", "AGE_18_24", "AGE_25_34")
-                        .param("region", "EUROPE", "ASIA").param("playTime", "Morning", "Evening")
+        mockMvc.perform(get("/dashboard").param("region", "EUROPE", "ASIA").param("playTime", "Morning", "Evening")
                         .param("mic", "Mic", "No mic").with(authentication(login(viewer))))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("players", containsInAnyOrder(
                         hasProperty("id", is(first.getId())), hasProperty("id", is(second.getId())))))
                 .andExpect(content().string(containsString("2 selected")));
+    }
+
+    @Test
+    void invalidRegionValuesAreIgnored() throws Exception {
+        User viewer = register("Viewer");
+        User european = register("EuropeanPlayer");
+        european.setRegion(Region.EUROPE);
+        User withoutRegion = register("NoRegion");
+        users.flush();
+
+        mockMvc.perform(get("/dashboard").param("region", "INVALID").with(authentication(login(viewer))))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("selectedRegions", List.of()))
+                .andExpect(model().attribute("players", containsInAnyOrder(
+                        hasProperty("id", is(european.getId())), hasProperty("id", is(withoutRegion.getId())))));
+    }
+
+    @Test
+    void mmoFilterMatchesPlayersWithMmoTag() throws Exception {
+        User viewer = register("Viewer");
+        User mmoPlayer = register("MmoPlayer");
+        register("UntaggedPlayer");
+        tags.save(new ProfileTag(mmoPlayer.getId(), "MMO", ProfileTagType.GENRE));
+
+        mockMvc.perform(get("/dashboard").param("genre", "MMO").with(authentication(login(viewer))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("name=\"genre\" value=\"MMO\" checked")))
+                .andExpect(model().attribute("players", containsInAnyOrder(hasProperty("id", is(mmoPlayer.getId())))));
     }
 
     @Test

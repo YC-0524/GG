@@ -103,6 +103,7 @@
                         <input id="match-max-age" type="number" name="maxAge"
                                th:min="${minimumAge}" th:max="${maximumAge}" th:value="${maxAge}"
                                th:placeholder="${maximumAge}">
+                        <p class="preference-note">Age filters only include players who show their age.</p>
                     </fieldset>
                     <p class="age-filter-error" role="alert" th:if="${invalidAgeBounds}"
                        th:text="|Enter an age range from ${minimumAge} to ${maximumAge}.|"></p>

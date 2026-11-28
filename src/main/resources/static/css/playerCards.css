@@ -262,6 +262,12 @@
     font: inherit;
 }
 
+.age-filter-bounds .preference-note {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: #c8c3dc;
+}
+
 .age-filter-error {
     margin: 4px 8px 8px;
     color: #ffc1cb;

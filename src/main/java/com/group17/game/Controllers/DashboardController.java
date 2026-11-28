@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/dashboard")
 public class DashboardController {
 
-    private static final List<String> GENRES = List.of("RPG", "FPS", "MOBA", "Co-op", "Survival", "Casual");
+    private static final List<String> GENRES = List.of("RPG", "FPS", "MOBA", "MMO", "Co-op", "Survival", "Casual");
 
     private static final List<AgeRange> AGE_RANGES = List.of(AgeRange.values());
     private static final List<AgeRange> ADULT_AGE_RANGES = AGE_RANGES.stream()
@@ -72,10 +72,9 @@ public class DashboardController {
             Model model,
             @CurrentUser User user,
             @RequestParam(name = "genre", defaultValue = "") List<String> genres,
-            @RequestParam(name = "ageRange", defaultValue = "") List<AgeRange> ageRanges,
             @RequestParam(name = "minAge", required = false) Integer minAge,
             @RequestParam(name = "maxAge", required = false) Integer maxAge,
-            @RequestParam(name = "region", defaultValue = "") List<Region> regions,
+            @RequestParam(name = "region", defaultValue = "") List<String> regions,
             @RequestParam(name = "playTime", defaultValue = "") List<String> playTimes,
             @RequestParam(name = "mic", defaultValue = "") List<String> micOptions) {
 
@@ -86,16 +85,13 @@ public class DashboardController {
 
         model.addAttribute("user", user);
         List<String> selectedGenres = selectedOptions(GENRES, genres);
-        List<AgeRange> selectedAgeRanges = AGE_RANGES.stream().filter(ageRanges::contains).toList();
-        List<Region> selectedRegions = REGIONS.stream().filter(regions::contains).toList();
+        List<Region> selectedRegions = REGIONS.stream().filter(region -> regions.contains(region.name())).toList();
         List<String> selectedPlayTimes = selectedOptions(PLAY_TIMES, playTimes);
         List<String> selectedMics = selectedOptions(MIC_OPTIONS, micOptions);
         List<String> scheduleTags = selectedPlayTimes.stream().map(SCHEDULE_TAGS::get).toList();
 
         AgeRange viewerAge = user.getAgeRange();
         List<AgeRange> allowedAges = viewerAge == AgeRange.TEEN ? List.of(AgeRange.TEEN) : ADULT_AGE_RANGES;
-        List<AgeRange> eligibleAges = selectedAgeRanges.isEmpty() ? allowedAges
-                : allowedAges.stream().filter(selectedAgeRanges::contains).toList();
         int minimumAge = viewerAge == AgeRange.TEEN ? User.MINIMUM_AGE : User.ADULT_AGE;
         int maximumAge = viewerAge == AgeRange.TEEN ? User.ADULT_AGE - 1 : User.MAXIMUM_AGE;
         int lowerAge = minAge == null ? minimumAge : minAge;
@@ -103,9 +99,9 @@ public class DashboardController {
         boolean invalidAgeBounds = lowerAge < minimumAge || upperAge > maximumAge || lowerAge > upperAge;
         boolean filterAge = minAge != null || maxAge != null;
         boolean anyRegion = selectedRegions.isEmpty();
-        List<PlayerCard> candidates = viewerAge == null || eligibleAges.isEmpty() || invalidAgeBounds
+        List<PlayerCard> candidates = viewerAge == null || invalidAgeBounds
                 ? List.of()
-                : userRepository.findPlayerCardsExcluding(userId, eligibleAges,
+                : userRepository.findPlayerCardsExcluding(userId, allowedAges,
                         anyRegion ? REGIONS : selectedRegions, anyRegion, filterAge, lowerAge, upperAge);
         Set<String> matchingGames = selectedGenres.isEmpty() || candidates.isEmpty()
                 ? Set.of() : findMatchingGames(selectedGenres);
