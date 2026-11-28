@@ -31,7 +31,8 @@ public class ProfileController {
     private final GameEntryRepository gameEntryRepository;
     private final ProfileTagRepository profileTagRepository;
 
-    public ProfileController(UserRepository userRepo, GameEntryRepository gameEntryRepo, ProfileTagRepository profileTagRepository) {
+    public ProfileController(UserRepository userRepo, GameEntryRepository gameEntryRepo,
+            ProfileTagRepository profileTagRepository) {
         this.userRepository = userRepo;
         this.gameEntryRepository = gameEntryRepo;
         this.profileTagRepository = profileTagRepository;
@@ -80,9 +81,8 @@ public class ProfileController {
     // Blocks the provided USER ID, not the current user
     @PostMapping("/{userID}/block")
     public String blockUser(
-        @CurrentUser User user,
-        @PathVariable("userID") Long blockedID
-    ) {
+            @CurrentUser User user,
+            @PathVariable("userID") Long blockedID) {
         Optional<User> blockedOption = userRepository.findById(blockedID);
         if (blockedOption.isEmpty()) {
             return "redirect:/dashboard?error=Must block an actual user";
@@ -90,7 +90,7 @@ public class ProfileController {
 
         User blockedUser = blockedOption.get();
         if (blockedUser.getId() == user.getId()) {
-            return "redirect:/dashboard?error=Can't block yourself"; 
+            return "redirect:/dashboard?error=Can't block yourself";
         }
 
         user.blockUser(blockedUser.getId());
@@ -107,6 +107,10 @@ public class ProfileController {
         if (usernameFilter != null) {
             List<User> users = userRepository.findByUsernameContaining(usernameFilter);
             for (User user : users) {
+                users = users.stream()
+                        .filter(u -> !u.hasBlockedUser(user.getId()) && !user.hasBlockedUser(u.getId()))
+                        .toList();
+
                 user.setPasswordHash("");
                 user.setEmail("");
             }
@@ -132,10 +136,10 @@ public class ProfileController {
         }
 
         User profile = profileOption.get();
-        if (profile.hasBlockedUser(user.getId())) {
+        if (profile.hasBlockedUser(user.getId()) || user.hasBlockedUser(profile.getId())) {
             return "redirect:/dashboard";
         }
-         
+
         profile.setPasswordHash("");
         profile.setEmail("");
         model.addAttribute("profile", profile);
@@ -149,7 +153,7 @@ public class ProfileController {
 
     @GetMapping("/{userID}/tags")
     @ResponseBody
-    public List<ProfileTag> addTagToUserProfile(@PathVariable("userID") long userID, Model model) { 
+    public List<ProfileTag> addTagToUserProfile(@PathVariable("userID") long userID, Model model) {
         Optional<User> user = userRepository.findById(userID);
         if (user.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);

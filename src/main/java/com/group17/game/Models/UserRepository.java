@@ -22,8 +22,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
             + "from User u where u.id <> :userId "
             + "and not exists (select l.id from PlayerLike l "
             + "where l.sender.id = :userId and l.target.id = u.id) "
-            + "and not exists (select me.id from User me "
-            + "where me.id = :userId and u.id member of me.blockedUsers) "
+            + "and not exists (select 1 from User me join me.blockedUsers b "
+            + "where me.id = :userId and b = u.id) "
+            + "and not exists (select 1 from User them join them.blockedUsers b "
+            + "where them.id = u.id and b = :userId) "
             + "order by u.id")
     List<PlayerCard> findPlayerCardsExcluding(@Param("userId") Long userId);
 

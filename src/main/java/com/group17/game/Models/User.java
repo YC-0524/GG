@@ -161,6 +161,10 @@ public class User {
     }
 
     public void blockUser(Long userID) {
+        if (blockedUsers.contains(userID)) {
+            return;
+        }
+        
         this.blockedUsers.add(userID);
     }
 
