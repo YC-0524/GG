@@ -1,0 +1,29 @@
+.game-detail-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 700px;
+}
+
+.game-detail-cover {
+    display: block;
+    width: 100%;
+    max-height: 360px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.game-detail-info {
+    margin: 0;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 8px 16px;
+}
+
+.game-detail-info dt {
+    font-weight: 600;
+}
+
+.game-detail-info dd {
+    margin: 0;
+}

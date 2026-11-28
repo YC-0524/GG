@@ -53,3 +53,13 @@
 .rawg-credit {
     font-size: 0.85rem;
 }
+
+.game-result a {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+.game-result:hover {
+    border-color: #6650b7;
+}

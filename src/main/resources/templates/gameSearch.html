@@ -32,12 +32,14 @@
 
             <ul class="game-results" th:unless="${#lists.isEmpty(results)}">
                 <li class="game-result" th:each="game : ${results}">
-                    <img th:if="${game.coverUrl != null}" th:src="${game.coverUrl}"
-                        th:alt="|Cover of ${game.gameName}|" loading="lazy">
-                    <div class="game-result-info">
-                        <h3 th:text="${game.gameName}">Hollow Knight</h3>
-                        <p class="game-result-genres" th:text="${game.genres}">Action, Platformer</p>
-                    </div>
+                    <a th:href="@{/games/catalog/{id}(id=${game.id})}">
+                        <img th:if="${game.coverUrl != null}" th:src="${game.coverUrl}"
+                            th:alt="|Cover of ${game.gameName}|" loading="lazy">
+                        <div class="game-result-info">
+                            <h3 th:text="${game.gameName}">Hollow Knight</h3>
+                            <p class="game-result-genres" th:text="${game.genres}">Action, Platformer</p>
+                        </div>
+                    </a>
                 </li>
             </ul>
 

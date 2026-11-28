@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${game.gameName} + ' | GAME GANG'">Game | GAME GANG</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/gameDetail.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <nav th:replace="~{sideNavigation :: sideNavigation}"></nav>
+        <div class="content-container game-detail-container">
+            <a href="/games/search">&larr; Back to search</a>
+
+            <h2 th:text="${game.gameName}">Hollow Knight</h2>
+
+            <img class="game-detail-cover" th:if="${game.coverUrl != null}" th:src="${game.coverUrl}"
+                th:alt="|Cover of ${game.gameName}|">
+            <p th:if="${game.coverUrl == null}" class="form-message">No cover image available.</p>
+
+            <dl class="game-detail-info">
+                <dt>Genres</dt>
+                <dd th:text="${#strings.isEmpty(game.genres) ? 'Not available' : game.genres}">Action, Platformer</dd>
+
+                <dt>Platforms</dt>
+                <dd th:text="${#strings.isEmpty(game.platforms) ? 'Not available' : game.platforms}">PC, Nintendo Switch</dd>
+            </dl>
+
+            <p class="rawg-credit">
+                <a href="https://rawg.io" target="_blank" rel="noopener">Data from RAWG</a>
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>
