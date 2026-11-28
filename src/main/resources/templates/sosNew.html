@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New SOS | GAME GANG</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" th:href="@{/css/gameRequest.css}">
+    <link rel="stylesheet" th:href="@{/css/sos.css}">
+    <script src="/js/sosForm.js" defer></script>
+</head>
+
+<body>
+    <div class="app-container sos-page">
+        <nav th:replace="~{sideNavigation :: sideNavigation(selectedNav='sos')}"></nav>
+
+        <main class="content-container sos-content">
+            <h2>New SOS</h2>
+
+            <p class="sos-intro">
+                Ask a short question about a game. Players who know it can help you out.
+            </p>
+
+            <p class="error-message"
+               th:if="${error}"
+               th:text="${error}"
+               role="alert"></p>
+
+            <form class="sos-form" th:action="@{/sos}" method="post">
+                <div class="field">
+                    <label for="gameName">Game</label>
+                    <select id="gameName" name="gameName" required>
+                        <option value="">Choose a game</option>
+                        <option th:each="game : ${games}"
+                                th:value="${game}"
+                                th:text="${game}"
+                                th:selected="${game == gameName}">Minecraft</option>
+                    </select>
+                </div>
+
+                <fieldset class="field sos-type-options">
+                    <legend>Type of help</legend>
+                    <label th:each="option : ${types}">
+                        <input type="radio" name="type"
+                               th:value="${option.name()}"
+                               th:checked="${option == type}" required>
+                        <span th:text="${option.label}">Single-player tips</span>
+                    </label>
+                </fieldset>
+
+                <div class="field">
+                    <div class="field-label-row">
+                        <label for="title">Title</label>
+                        <span class="char-count" data-count-for="title"></span>
+                    </div>
+                    <input type="text" id="title" name="title"
+                           th:value="${title}" maxlength="80"
+                           placeholder="e.g. Can't beat the Ender Dragon" required>
+                </div>
+
+                <div class="field">
+                    <div class="field-label-row">
+                        <label for="details">Details <span class="optional">(optional)</span></label>
+                        <span class="char-count" data-count-for="details"></span>
+                    </div>
+                    <textarea id="details" name="details"
+                              maxlength="500"
+                              th:text="${details}"
+                              placeholder="What have you tried? Where are you stuck?"></textarea>
+                </div>
+
+                <div class="field">
+                    <div class="field-label-row">
+                        <label for="hashtags">Hashtags <span class="optional">(optional)</span></label>
+                        <span class="char-count" id="hashtag-count"></span>
+                    </div>
+                    <input type="text" id="hashtags" name="hashtags"
+                           th:value="${hashtags}" autocomplete="off"
+                           placeholder="#boss-fight #ranked-tips"
+                           aria-describedby="hashtag-help">
+                    <p class="field-help" id="hashtag-help">
+                        Up to 5, separated by spaces. Letters, numbers and hyphens only.
+                    </p>
+                    <div class="sos-tag-suggestions" role="group" aria-label="Suggested hashtags">
+                        <button type="button" class="sos-tag-suggestion"
+                                th:each="tag : ${suggestedHashtags}"
+                                th:data-tag="${tag}"
+                                th:text="'#' + ${tag}"
+                                aria-pressed="false">#boss-fight</button>
+                    </div>
+                </div>
+
+                <div class="sos-actions">
+                    <button type="submit">Post SOS</button>
+                    <a th:href="@{/sos}">Cancel</a>
+                </div>
+            </form>
+        </main>
+    </div>
+</body>
+
+</html>
