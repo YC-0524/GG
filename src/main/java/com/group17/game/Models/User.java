@@ -1,6 +1,7 @@
 package com.group17.game.Models;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -69,6 +70,7 @@ public class User {
     private Date lastSeen;
 
     @Column(name = "blocked_users")
+    @ElementCollection 
     private List<Long> blockedUsers = new ArrayList<>();
 
     // empty constructor, needed for springboot initializers
